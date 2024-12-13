@@ -1,0 +1,67 @@
+<section class="main-slider clearfix">
+    <div class="swiper-container thm-swiper__slider" data-swiper-options='{
+        "slidesPerView": 1,
+        "loop": true,
+        "effect": "fade",
+        "pagination": {
+            "el": "#main-slider-pagination",
+            "type": "bullets",
+            "clickable": true
+        },
+        "navigation": {
+            "nextEl": "#main-slider__swiper-button-next",
+            "prevEl": "#main-slider__swiper-button-prev"
+        },
+        "autoplay": {
+            "delay": 5000
+        }}'>
+        <div class="swiper-wrapper">
+            {% for slide in slides %}
+                <div class="swiper-slide">
+                    <div class="image-layer" style="background-image: url({{ asset(slide.image) }});"></div>
+                    
+                    {# Slider Shapes #}
+                    <div class="main-slider__shape-1">
+                        <img src="{{ asset('landing/images/shapes/main-slider-shape-1.png') }}" alt="">
+                    </div>
+                    <div class="main-slider__shape-2">
+                        <img src="{{ asset('landing/images/shapes/main-slider-shape-2.png') }}" alt="">
+                    </div>
+                    <div class="main-slider__shape-3">
+                        <img src="{{ asset('landing/images/shapes/main-slider-shape-3.png') }}" alt="">
+                    </div>
+
+                    {# Slider Content #}
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xl-7 col-lg-8">
+                                <div class="main-slider__content">
+                                    <p class="main-slider__sub-title">{{ slide.subtitle|default('Raising Money is Easy Now!')|raw }}</p>
+                                    <h2 class="main-slider__title">{{ slide.title|default('Ultimate <br> Crowdfunding <br> Platforms')|raw }}</h2>
+                                    <div class="main-slider__btn-box">
+                                        <a href="#" class="thm-btn main-slider__btn">
+                                            Start a Project
+                                        </a>
+                                        <a href="#" class="main-slider__btn-two">
+                                            Speak with Expert
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Navigation Buttons #}
+        <div class="main-slider__nav">
+            <div class="swiper-button-prev" id="main-slider__swiper-button-next">
+                <i class="icon-right-arrow"></i>
+            </div>
+            <div class="swiper-button-next" id="main-slider__swiper-button-prev">
+                <i class="icon-right-arrow"></i>
+            </div>
+        </div>
+    </div>
+</section>

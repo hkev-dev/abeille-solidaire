@@ -1,0 +1,104 @@
+<section class="project-one">
+    <div class="container">
+        {# Section Header #}
+        <div class="project-one__top">
+            <div class="section-title text-center">
+                <span class="section-title__tagline">Businesses You Can Back</span>
+                <h2 class="section-title__title">Explore the Best Featured <br> Projects now</h2>
+            </div>
+        </div>
+
+        {# Projects Carousel #}
+        <div class="project-one__bottom">
+            <div class="project-one__carousel owl-carousel owl-theme thm-owl__carousel" data-owl-options='{
+                "loop": true,
+                "autoplay": false,
+                "margin": 30,
+                "nav": false,
+                "dots": true,
+                "smartSpeed": 500,
+                "autoplayTimeout": 10000,
+                "navText": ["<span class=\"fa fa-angle-left\"></span>","<span class=\"fa fa-angle-right\"></span>"],
+                "responsive": {
+                    "0": {
+                        "items": 1
+                    },
+                    "768": {
+                        "items": 2
+                    },
+                    "992": {
+                        "items": 3
+                    },
+                    "1200": {
+                        "items": 3
+                    }
+                }
+            }'>
+                {% for project in projects %}
+                    <div class="item">
+                        <div class="project-one__single">
+                            {# Project Image #}
+                            <div class="project-one__img-box">
+                                <div class="project-one__img">
+                                    <img src="{{ asset(project.image) }}" alt="{{ project.title }}">
+                                </div>
+                                <div class="project-one__icon">
+                                    <i class="far fa-heart"></i>
+                                </div>
+                            </div>
+
+                            {# Project Content #}
+                            <div class="project-one__content">
+                                <div class="project-one__tag">
+                                    <p>{{ project.category }}</p>
+                                </div>
+                                <h3 class="project-one__title">
+                                    <a href="#">
+                                        {{ project.title }}
+                                    </a>
+                                </h3>
+                                <div class="project-one__remaing">
+                                    <div class="icon">
+                                        <i class="fa fa-clock"></i>
+                                    </div>
+                                    <div class="text">
+                                        <p>{{ project.remainingDays }} Days Remaining</p>
+                                    </div>
+                                </div>
+
+                                {# Progress Bar #}
+                                <div class="progress-levels">
+                                    <div class="progress-box">
+                                        <div class="inner count-box">
+                                            <div class="text">Raised</div>
+                                            <div class="bar">
+                                                <div class="bar-innner">
+                                                    <div class="skill-percent">
+                                                        <span class="count-text" data-speed="3000" 
+                                                              data-stop="{{ project.progressPercentage }}">0</span>
+                                                        <span class="percent">%</span>
+                                                    </div>
+                                                    <div class="bar-fill" data-percent="{{ project.progressPercentage }}"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# Project Goals #}
+                                <div class="project-one__goals">
+                                    <p class="project-one__goals-one">
+                                        Achieved:<span>${{ project.achievedAmount|number_format(0, '.', ',') }}</span>
+                                    </p>
+                                    <p class="project-one__goals-one">
+                                        Goal:<span>${{ project.goalAmount|number_format(0, '.', ',') }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>

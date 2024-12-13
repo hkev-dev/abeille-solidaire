@@ -1,0 +1,80 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Home - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Main Slider #}
+    {% include 'public/components/slider.html.twig' with {
+        slides: mainSlides
+    } %}
+
+    {# Categories Section #}
+    {% include 'public/components/categories.html.twig' with {
+        categories: projectCategories
+    } %}
+
+    {# Featured Projects #}
+    {% include 'public/components/projects.html.twig' with {
+        projects: featuredProjects
+    } %}
+
+    <div class="black-bg background-repeat-no background-position-top-right"
+         style="background-image: url({{ asset('landing/images/shapes/why-choose-funfact-bg-1-1.png') }});">
+        
+        {# Why Choose Section #}
+        {% include 'public/components/why-choose.html.twig' with {
+            content: whyChooseContent
+        } %}
+
+        {# Counter Section #}
+        {% include 'public/components/counter.html.twig' %}
+    </div>
+
+    {# Newsletter Section #}
+    {% include 'public/components/newsletter.html.twig' %}
+
+    {# Recommended Projects #}
+    {% include 'public/components/recommended.html.twig' with {
+        recommendedProjects: recommendedProjectsList
+    } %}
+
+    {# Video Section #}
+    <section class="individuals-work">
+        <div class="individuals-work__bg" data-jarallax data-speed="0.2" data-imgPosition="50% 0%"
+             style="background-image: url({{ asset('landing/images/backgrounds/individuals-bg.jpg') }});">
+        </div>
+        <div class="container">
+            <div class="individuals-work__inner">
+                <div class="individuals-work__video-link">
+                    <a href="{{ videoUrl|default('https://www.youtube.com/watch?v=Get7rqXYrbQ') }}" class="video-popup">
+                        <div class="individuals-work__video-icon">
+                            <span class="fa fa-play"></span>
+                            <i class="ripple"></i>
+                        </div>
+                    </a>
+                </div>
+                <h3 class="individuals-work__title">{{ videoTitle|default('Qrowd is evolving the way<br>individuals works') }}</h3>
+            </div>
+        </div>
+    </section>
+
+    {# Testimonials Section #}
+    {% include 'public/components/testimonials.html.twig' with {
+        testimonials: testimonialsList
+    } %}
+
+    {# Brand Partners #}
+    {% include 'public/components/brands.html.twig' with {
+        brands: brandPartners
+    } %}
+
+    {# Latest News #}
+    {% include 'public/components/news.html.twig' with {
+        articles: latestNews
+    } %}
+
+    {# Ready Section #}
+    {% include 'public/components/ready-section.html.twig' with {
+        ready: readyContent
+    } %}
+{% endblock %}

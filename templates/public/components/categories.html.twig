@@ -1,0 +1,53 @@
+<section class="categories-one">
+    <div class="container">
+        {# Categories Header #}
+        <div class="categories-one__top">
+            <div class="row">
+                <div class="col-xl-6 col-lg-7">
+                    <div class="categories-one__top-left">
+                        <div class="section-title text-left">
+                            <span class="section-title__tagline">Explore categories</span>
+                            <h2 class="section-title__title">Check Which Category Intrest You</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="categories-one__backers">
+                <div class="categories-one__backers-tagline">
+                    <p>Find it first on Qrowd.</p>
+                </div>
+                <div class="categories-one__backers-box">
+                    <div class="categories-one__backers-icon">
+                        <span class="icon-computer"></span>
+                    </div>
+                    <div class="categories-one__backers-content">
+                        <h3 class="odometer" data-count="37400">00</h3>
+                        <p>Businesses Backers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Categories Grid #}
+        <div class="categories-one__bottom">
+            <div class="categories-one__bottom-inner">
+                <div class="row">
+                    {% for category in categories %}
+                        <div class="col-xl-2 col-lg-4 col-md-6 wow fadeInLeft" data-wow-delay="{{ loop.index * 100 }}ms">
+                            <div class="categories-one__single">
+                                <div class="categories-one__icon">
+                                    <span class="{{ category.icon }}"></span>
+                                </div>
+                                <h4 class="categories-one__title">{{ category.name }}</h4>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="categories-one__bottom-text">
+                Discover projects just for you and get great recommendations when you 
+                <span>select your interests.</span>
+            </p>
+        </div>
+    </div>
+</section>

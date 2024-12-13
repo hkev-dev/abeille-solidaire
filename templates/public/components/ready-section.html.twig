@@ -1,0 +1,29 @@
+<section class="ready-one">
+    <div class="container">
+        <div class="ready-one__inner">
+            {# Decorative Elements #}
+            <div class="ready-one-shape-1 float-bob-x">
+                <img src="{{ asset('landing/images/shapes/ready-one-shape-1.png') }}" alt="">
+            </div>
+            <div class="ready-one__big-icon float-bob-y-2">
+                <span class="icon-fundraiser"></span>
+            </div>
+
+            {# Left Content #}
+            <div class="ready-one__left">
+                <div class="icon">
+                    <span class="icon-fundraiser"></span>
+                </div>
+                <div class="content">
+                    <p>{{ ready.subtitle|default('Your story starts from here') }}</p>
+                    <h3>{{ ready.title|default('Ready to raise funds for idea?') }}</h3>
+                </div>
+            </div>
+
+            {# Right Content - CTA Button #}
+            <div class="ready-one__right">
+                <a href="#" class="thm-btn ready-one__btn">Make it Happen</a>
+            </div>
+        </div>
+    </div>
+</section>

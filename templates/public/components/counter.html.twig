@@ -1,0 +1,54 @@
+<section class="counter-one">
+    <div class="container">
+        <div class="row">
+            {% set counters = [
+                {
+                    icon: 'icon-verified',
+                    count: 790,
+                    text: 'Projects Completed',
+                    delay: 100
+                },
+                {
+                    icon: 'icon-business',
+                    count: 260,
+                    text: 'Partner Fundings',
+                    delay: 200
+                },
+                {
+                    icon: 'icon-stand-out',
+                    count: 86,
+                    text: 'Raised to Date',
+                    delay: 300,
+                    suffix: 'k'
+                },
+                {
+                    icon: 'icon-coaching',
+                    count: 940,
+                    text: 'Happy Customers',
+                    delay: 400
+                }
+            ] %}
+
+            {% for counter in counters %}
+                <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="{{ counter.delay }}ms">
+                    <div class="counter-one__single">
+                        <div class="counter-one__single-inner">
+                            <div class="counter-one__border-left"></div>
+                            <div class="counter-one__border-right"></div>
+                            <div class="counter-one__icon">
+                                <span class="{{ counter.icon }}"></span>
+                            </div>
+                            <div class="counter-one__count-box">
+                                <h3 class="odometer" data-count="{{ counter.count }}">00</h3>
+                                {% if counter.suffix is defined %}
+                                    <span class="counter-one__letter">{{ counter.suffix }}</span>
+                                {% endif %}
+                                <p class="counter-one__text">{{ counter.text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

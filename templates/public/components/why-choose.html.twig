@@ -1,0 +1,48 @@
+<section class="why-choose-one">
+    <div class="container">
+        <div class="why-choose-one__inner">
+            <div class="row">
+                {# Left Content #}
+                <div class="col-xl-6">
+                    <div class="why-choose-one__left">
+                        <div class="section-title text-left">
+                            <span class="section-title__tagline">our platform benefits</span>
+                            <h2 class="section-title__title">Why you Should Choose <br> Qrowd Platform</h2>
+                        </div>
+                        <div class="why-choose-one__left-text">
+                            <p>{{ content.description }}</p>
+                        </div>
+                        <ul class="why-choose-one__points list-unstyled">
+                            {% for point in content.points %}
+                                <li>
+                                    <div class="icon">
+                                        <i class="icon-check-mark"></i>
+                                    </div>
+                                    <div class="content">
+                                        <h3 class="title">{{ point.title }}</h3>
+                                        <p class="text">{{ point.description }}</p>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="#" class="thm-btn">Make it Happen</a>
+                    </div>
+                </div>
+
+                {# Right Content #}
+                <div class="col-xl-6">
+                    <div class="why-choose-one__right">
+                        <div class="why-choose-one__img-box">
+                            <div class="why-choose-one__img">
+                                <img src="{{ asset('landing/images/resources/why-choose-1.1.jpg') }}" alt="">
+                            </div>
+                            <div class="why-choose-one__trusted">
+                                <p>Trusted by more <br> than <span class="odometer" data-count="3500">00</span> <br> clients</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,9 +1,22 @@
 framework:
     asset_mapper:
-        # The paths to make available to the asset mapper.
         paths:
             - assets/
+            - assets/landing/
+            - assets/landing/vendors/
         missing_import_mode: strict
+        extensions:
+            - .js
+            - .css
+            - .png
+            - .jpg
+            - .jpeg
+            - .svg
+            - .gif
+            - .woff
+            - .woff2
+            - .ttf
+            - .eot
 
 when@prod:
     framework:

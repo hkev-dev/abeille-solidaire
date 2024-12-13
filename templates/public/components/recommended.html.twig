@@ -1,0 +1,111 @@
+<section class="recommended-one">
+    <div class="container">
+        {# Section Header #}
+        <div class="recommended-one__top">
+            <div class="section-title text-center">
+                <span class="section-title__tagline">Businesses You Can Back</span>
+                <h2 class="section-title__title">Recommended for you <br> Fresh Projects</h2>
+            </div>
+        </div>
+
+        {# Recommended Projects Carousel #}
+        <div class="recommended-one__bottom">
+            <div class="recommended-one__carousel owl-carousel owl-theme thm-owl__carousel" data-owl-options='{
+                "loop": true,
+                "autoplay": false,
+                "margin": 30,
+                "nav": false,
+                "dots": true,
+                "smartSpeed": 500,
+                "autoplayTimeout": 10000,
+                "navText": ["<span class=\"fa fa-angle-left\"></span>","<span class=\"fa fa-angle-right\"></span>"],
+                "responsive": {
+                    "0": {
+                        "items": 1
+                    },
+                    "768": {
+                        "items": 2
+                    },
+                    "992": {
+                        "items": 3
+                    },
+                    "1200": {
+                        "items": 4
+                    }
+                }
+            }'>
+                {% for project in recommendedProjects %}
+                    <div class="item">
+                        <div class="recommended-one__single">
+                            <div class="recommended-one__img-box">
+                                {# Project Image #}
+                                <div class="recommended-one__img">
+                                    <img src="{{ asset(project.image) }}" alt="{{ project.title }}">
+                                </div>
+                                
+                                {# Favorite Icon #}
+                                <div class="recomanded-one__icon">
+                                    <i class="far fa-heart"></i>
+                                </div>
+
+                                {# Project Content #}
+                                <div class="recommended-one__content">
+                                    <div class="recommended-one__tag-and-remaining">
+                                        <div class="recommended-one-tag">
+                                            <p>{{ project.category }}</p>
+                                        </div>
+                                        <div class="recommended-one__remaing">
+                                            <div class="icon">
+                                                <i class="fa fa-clock"></i>
+                                            </div>
+                                            <div class="text">
+                                                <p>{{ project.remainingDays }} Days Remaining</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# Project Title #}
+                                    <h3 class="recommended-one__title">
+                                        <a href="#">
+                                            {{ project.title }}
+                                        </a>
+                                    </h3>
+
+                                    {# Progress Bar #}
+                                    <div class="progress-levels">
+                                        <div class="progress-box">
+                                            <div class="inner count-box">
+                                                <div class="bar">
+                                                    <div class="bar-innner">
+                                                        <div class="skill-percent">
+                                                            <span class="count-text" data-speed="3000" 
+                                                                  data-stop="{{ project.progressPercentage }}">0</span>
+                                                            <span class="percent">%</span>
+                                                        </div>
+                                                        <div class="bar-fill" data-percent="{{ project.progressPercentage }}"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# Project Goals #}
+                                    <div class="project-one__goals">
+                                        <p class="project-one__goals-one">
+                                            <span>${{ project.currentAmount|number_format(0, '.', ',') }}</span>
+                                            <br>Goal of ${{ project.goalAmount|number_format(0, '.', ',') }}
+                                        </p>
+                                        <p class="project-one__goals-one">
+                                            <span class="odometer project-one__plus" data-count="{{ project.backersCount }}"></span>
+                                            <br>Backers We Got
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>

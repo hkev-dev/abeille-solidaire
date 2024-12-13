@@ -33,13 +33,18 @@ services:
 
   pgadmin:
     type: compose
+    app_mount: false
+    ssl: false
     services:
-      image: dpage/pgadmin4:latest
+      image: dpage/pgadmin4
+      command: /entrypoint.sh
+      restart: always
+      ports:
+        - :80
+    overrides:
       environment:
         PGADMIN_DEFAULT_EMAIL: admin@example.com
         PGADMIN_DEFAULT_PASSWORD: password
-      ports:
-        - "5050:80"
 
   mailhog:
     type: mailhog

@@ -1,0 +1,48 @@
+<section class="newsletter">
+    <div class="container">
+        <div class="row">
+            {# Newsletter Left #}
+            <div class="col-xl-6 col-lg-7">
+                <div class="newsletter__left">
+                    <div class="section-title text-left">
+                        <span class="section-title__tagline">Subscribe to newsletter</span>
+                        <h2 class="section-title__title">Get our Complete Crowdfunding Guides</h2>
+                    </div>
+                </div>
+            </div>
+
+            {# Newsletter Right #}
+            <div class="col-xl-6 col-lg-5">
+                <div class="newsletter__right">
+                    <form class="newsletter__form" action="#" method="POST">
+                        <div class="newsletter__input-box">
+                            <input 
+                                type="email" 
+                                placeholder="Enter your email" 
+                                name="email"
+                                required
+                            >
+                            <button type="submit" class="newsletter__btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+
+                        <div class="checked-box">
+                            <input 
+                                type="checkbox" 
+                                name="terms" 
+                                id="newsletter_terms" 
+                                required 
+                                checked
+                            >
+                            <label for="newsletter_terms">
+                                <span></span>
+                                I agree to all terms and policies of the company
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

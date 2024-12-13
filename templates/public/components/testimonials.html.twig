@@ -1,0 +1,80 @@
+<section class="testimonial-one">
+    <div class="container">
+        <div class="testimonial-one__slider">
+            <div class="testimonial-one__main-content">
+                <div class="row">
+                    {# Left Column - Main Image #}
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="testimonial-one__main-content-left">
+                            <div class="testimonial-one__main-content-img">
+                                <img src="{{ asset('landing/images/testimonial/testimonial-one-main-content-img-1.jpg') }}" alt="">
+                                <div class="testimonial-one__review-box">
+                                    <p>their <br> Reviews</p>
+                                    <div class="testimonial-one__review-icon">
+                                        <img src="{{ asset('landing/images/icon/comment-icon.png') }}" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Right Column - Testimonials #}
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="testimonial-one__main-content-right">
+                            <div class="section-title text-left">
+                                <span class="section-title__tagline">Our Testimonials</span>
+                                <h2 class="section-title__title">Reviews Directly from the Qrowd</h2>
+                            </div>
+
+                            <div class="swiper-container" id="testimonials-one__carousel">
+                                <div class="swiper-wrapper">
+                                    {% for testimonial in testimonials %}
+                                        <div class="swiper-slide">
+                                            <div class="testimonial-one__rating">
+                                                {% for i in 1..testimonial.rating %}
+                                                    <i class="fa fa-star"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <p class="testimonial-one__text-1">{{ testimonial.content }}</p>
+                                            <div class="testimonial-one__client-info">
+                                                <div class="testimonial-one__client-details">
+                                                    <div class="testimonial-one__client-img">
+                                                        <img src="{{ asset(testimonial.image) }}" alt="{{ testimonial.name }}">
+                                                    </div>
+                                                    <div class="testimonial-one__client-content">
+                                                        <h4>{{ testimonial.name }}</h4>
+                                                        <p>{{ testimonial.position }}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="testimonial-one__quote">
+                                                    <span class="icon-quotes"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Testimonial Thumbnails #}
+            <div class="testimonials-one__thumb-wrapper">
+                <div class="swiper-container" id="testimonials-one__thumb">
+                    <div class="swiper-wrapper">
+                        {% for testimonial in testimonials %}
+                            <div class="swiper-slide">
+                                <div class="testimonial-one__img-holder">
+                                    <img src="{{ asset(testimonial.thumbnail) }}" alt="{{ testimonial.name }}">
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="testimonials-one__carousel-pagination"></div>
+        </div>
+    </div>
+</section>

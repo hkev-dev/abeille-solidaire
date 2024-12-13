@@ -1,0 +1,64 @@
+<section class="news-one">
+    <div class="news-one__bg-color"></div>
+    <div class="container">
+        {# Section Header #}
+        <div class="section-title text-center">
+            <span class="section-title__tagline">Direct from the Blog Posts</span>
+            <h2 class="section-title__title">Checkout Latest News <br> and Articles</h2>
+        </div>
+
+        {# News Grid #}
+        <div class="row">
+            {% for article in articles %}
+                <div class="col-xl-4 col-lg-4 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
+                    <div class="news-one__single">
+                        {# Article Image #}
+                        <div class="news-one__img-box">
+                            <div class="news-one__img">
+                                <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+                                <a href="#">
+                                    <span class="news-one__plus"></span>
+                                </a>
+                            </div>
+                            <div class="news-one__date">
+                                <p>{{ article.date|date('d') }}</p>
+                                <span>{{ article.date|date('F')|lower }}</span>
+                            </div>
+                        </div>
+
+                        {# Article Content #}
+                        <div class="news-one__content">
+                            <ul class="news-one__meta list-unstyled">
+                                <li>
+                                    <a href="#">
+                                        <i class="fas fa-user-circle"></i>by {{ article.author }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="fas fa-comments"></i>{{ article.commentsCount }} Comments
+                                    </a>
+                                </li>
+                            </ul>
+                            <h3 class="news-one__title">
+                                <a href="#">
+                                    {{ article.title }}
+                                </a>
+                            </h3>
+                            <div class="news-one__bottom">
+                                <div class="news-one__button">
+                                    <a href="#">Read more</a>
+                                </div>
+                                <div class="news-one__arrow">
+                                    <a href="#">
+                                        <span class="icon-right-arrow"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
