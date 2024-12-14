@@ -1,0 +1,102 @@
+{# templates/pages/projects/details.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}{{ project.title }} - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    <section class="page-header">
+        <div class="page-header-bg"
+             style="background-image: url({{ asset('landing/images/backgrounds/page-header-bg.jpg') }})">
+        </div>
+        <div class="page-header-shape-1 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-1.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-2 float-bob-y">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-2.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-3 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-3.png') }}" alt="">
+        </div>
+        <div class="container">
+            <div class="page-header__inner">
+                <ul class="thm-breadcrumb list-unstyled">
+                    <li><a href="{{ path('landing.home') }}">Home</a></li>
+                    <li><span>/</span></li>
+                    <li>Project</li>
+                </ul>
+                <h2>Project Details</h2>
+            </div>
+        </div>
+    </section>
+
+    {# Project Details Top Section #}
+    <section class="project-details-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-7 col-lg-6">
+                    <div class="project-details-top__left">
+                        <div class="project-details-top__img">
+                            <img src="{{ asset(project.image) }}" alt="{{ project.title }}">
+                            <div class="project-details-top__icon">
+                                <i class="far fa-heart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-5 col-lg-6">
+                    <div class="project-details-top__right">
+                        <div class="project-details-top__tag-address">
+                            <div class="project-details-top__tag">
+                                <p>{{ project.category }}</p>
+                            </div>
+                            <div class="project-details-top__address">
+                                <p><i class="fas fa-map-marker"></i>{{ project.location }}</p>
+                            </div>
+                        </div>
+                        <h3 class="project-details-top__title">{{ project.title }}</h3>
+                        {% include 'public/components/project-details/statistics.html.twig' with { project: project } %}
+                        {% include 'public/components/project-details/progress.html.twig' with { project: project } %}
+                        {% include 'public/components/project-details/creator.html.twig' with { creator: project.creator } %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Project Details Bottom Section #}
+    <section class="project-details-bottom">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-8 col-lg-7">
+                    {% include 'public/components/project-details/tabs.html.twig' with {
+                        story: project.story,
+                        faqs: project.faqs,
+                        updates: project.updates,
+                        reviews: project.reviews
+                    } %}
+                </div>
+                <div class="col-xl-4 col-lg-5">
+                    {% include 'public/components/project-details/rewards.html.twig' %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Similar Projects Section #}
+    <section class="similar-project">
+        <div class="container">
+            <div class="section-title text-center">
+                <span class="section-title__tagline">Businesses You Can Back</span>
+                <h2 class="section-title__title">Checkout Our Similar <br> Projects</h2>
+            </div>
+            <div class="row">
+                {% for project in project.similarProjects %}
+                    <div class="col-xl-4 col-lg-4 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
+                        {% include 'public/components/project-card.html.twig' with { project: project } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

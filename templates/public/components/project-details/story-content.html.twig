@@ -1,0 +1,36 @@
+{# templates/components/project-details/story-content.html.twig #}
+<ul class="list-unstyled project-details__tab-box-story-points">
+    {% for point in project.storyContent.keyPoints %}
+        <li>
+            <div class="icon">
+                <span class="fa fa-check"></span>
+            </div>
+            <div class="text">
+                <p>{{ point }}</p>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+
+<div class="project-details__tab-box-story-img-box-one">
+    <div class="row">
+        {% for image in project.storyContent.galleryImages.main %}
+            <div class="col-xl-6">
+                <div class="project-details__tab-box-story-img-one-single">
+                    <img src="{{ asset(image) }}" alt="Project Story Image {{ loop.index }}">
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<p class="project-details__tab-box-story-text-2">
+    {{ project.storyContent.paragraphs[0] }}
+</p>
+
+<div class="project-details__tab-box-story-img-two">
+    <img src="{{ asset(project.storyContent.galleryImages.secondary) }}" alt="Project Story Secondary Image">
+    <p class="project-details__tab-box-story-text-3">
+        {{ project.storyContent.paragraphs[1] }}
+    </p>
+</div>

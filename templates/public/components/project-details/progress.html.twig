@@ -1,0 +1,19 @@
+{# templates/components/project-details/progress.html.twig #}
+<div class="progress-levels">
+    <div class="progress-box">
+        <div class="inner count-box">
+            <div class="text">Raised</div>
+            <div class="bar">
+                <div class="bar-innner">
+                    <div class="skill-percent">
+                        <span class="count-text" data-speed="3000" data-stop="{{ project.progress }}">0</span>
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="bar-fill" data-percent="{{ project.progress }}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p class="project-details-top__goal"><span>Goal:</span> {{ project.goal|number_format }}.00 USD</p>
+<p class="project-details-top__text">{{ project.description }}</p>

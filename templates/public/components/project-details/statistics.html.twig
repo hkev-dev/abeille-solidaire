@@ -1,0 +1,21 @@
+{# templates/components/project-details/statistics.html.twig #}
+<ul class="list-unstyled project-details-top__list">
+    <li>
+        <div class="project-details-top__list-content">
+            <h3>${{ project.pledged|number_format }}</h3>
+            <p>Pledged</p>
+        </div>
+    </li>
+    <li>
+        <div class="project-details-top__list-content">
+            <h3>{{ project.backers }}</h3>
+            <p>Backers</p>
+        </div>
+    </li>
+    <li>
+        <div class="project-details-top__list-content">
+            <h3>{{ project.daysLeft }}</h3>
+            <p>Days Left</p>
+        </div>
+    </li>
+</ul>

@@ -1,0 +1,44 @@
+{# templates/pages/projects/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Projects - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    <section class="page-header">
+        <div class="page-header-bg" style="background-image: url({{ asset('landing/images/backgrounds/page-header-bg.jpg') }})">
+        </div>
+        <div class="page-header-shape-1 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-1.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-2 float-bob-y">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-2.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-3 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-3.png') }}" alt="">
+        </div>
+        <div class="container">
+            <div class="page-header__inner">
+                <ul class="thm-breadcrumb list-unstyled">
+                    <li><a href="{{ path('landing.home') }}">Home</a></li>
+                    <li><span>/</span></li>
+                    <li>Explore</li>
+                </ul>
+                <h2>Explore</h2>
+            </div>
+        </div>
+    </section>
+
+    {# Project List Section #}
+    <section class="project-page-one">
+        <div class="container">
+            <div class="row">
+                {% for project in projects %}
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        {% include 'public/components/project-card.html.twig' with { project: project } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
