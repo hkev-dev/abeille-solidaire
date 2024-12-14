@@ -1,0 +1,40 @@
+{# templates/bundles/TwigBundle/Exception/error.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}{{ status_code }} {{ status_text }} - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    <section class="error-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="error-page__inner">
+                        <div class="error-page__title-box">
+                            <h2 class="error-page__title">{{ status_code }}</h2>
+                            <h2 class="error-page__title-2">{{ status_code }}</h2>
+                        </div>
+                        <h3 class="error-page__tagline">{{ status_text }}</h3>
+                        <p class="error-page__text">
+                            {% if status_code == 404 %}
+                                The page you are looking for was never existed.
+                            {% else %}
+                                {{ exception.message|default('An error has occurred.') }}
+                            {% endif %}
+                        </p>
+
+                        {% if status_code == 404 %}
+                            <form class="error-page__form">
+                                <div class="error-page__form-input">
+                                    <input type="search" placeholder="Search here">
+                                    <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                                </div>
+                            </form>
+                        {% endif %}
+
+                        <a href="{{ path('landing.home') }}" class="thm-btn error-page__btn mt-4">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
