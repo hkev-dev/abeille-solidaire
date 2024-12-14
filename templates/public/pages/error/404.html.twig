@@ -1,0 +1,31 @@
+{# templates/pages/error/404.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}404 Error - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Error Page Section #}
+    <section class="error-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="error-page__inner">
+                        <div class="error-page__title-box">
+                            <h2 class="error-page__title">404</h2>
+                            <h2 class="error-page__title-2">404</h2>
+                        </div>
+                        <h3 class="error-page__tagline">Sorry we can't find that page!</h3>
+                        <p class="error-page__text">The page you are looking for was never existed.</p>
+                        <form class="error-page__form">
+                            <div class="error-page__form-input">
+                                <input type="search" placeholder="Search here">
+                                <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                            </div>
+                        </form>
+                        <a href="{{ path('landing.home') }}" class="thm-btn error-page__btn">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
