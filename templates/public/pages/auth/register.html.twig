@@ -1,0 +1,62 @@
+{# templates/pages/auth/register.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Register - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Register',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Register', path: null}
+        ]
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="login-register__title">Create New Account</h3>
+                    <form class="login-register__form" action="#">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="contact-form__input-box">
+                                    <input type="text" placeholder="First Name*" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="contact-form__input-box">
+                                    <input type="text" placeholder="Last Name*" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contact-form__input-box">
+                            <input type="email" placeholder="Email Address*" required>
+                        </div>
+                        <div class="contact-form__input-box">
+                            <input type="text" placeholder="Username*" required>
+                        </div>
+                        <div class="contact-form__input-box">
+                            <input type="password" placeholder="Password*" required>
+                        </div>
+                        <div class="contact-form__input-box">
+                            <input type="password" placeholder="Confirm Password*" required>
+                        </div>
+                        <div class="login-register__checkbox">
+                            <input type="checkbox" id="login-register__policy" required>
+                            <label for="login-register__policy">I accept the <a href="#">Terms of Service</a> and <a
+                                        href="#">Privacy Policy</a></label>
+                        </div>
+                        <div class="login-register__info">
+                            <button type="submit" class="thm-btn login-register__btn">Register</button>
+                            <div class="login-register__text">
+                                <a href="{{ path('login') }}">Already have an account? Login</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

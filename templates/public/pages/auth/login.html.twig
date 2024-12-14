@@ -1,0 +1,47 @@
+{# templates/pages/auth/login.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Login - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Login',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Login', path: null}
+        ]
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="login-register__warning">
+                Demo account: <strong>Username</strong>: <span>demo</span> and
+                <strong>Password</strong>: <span>demo</span>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="login-register__title">Login</h3>
+                    <form class="login-register__form" action="#">
+                        <div class="contact-form__input-box">
+                            <input type="text" placeholder="Username or Email Address*" required>
+                        </div>
+                        <div class="contact-form__input-box">
+                            <input type="password" placeholder="Password*" required>
+                        </div>
+                        <div class="login-register__checkbox">
+                            <input type="checkbox" id="login-register__password">
+                            <label for="login-register__password">Remember Me?</label>
+                        </div>
+                        <div class="login-register__info">
+                            <button type="submit" class="thm-btn login-register__btn">Login</button>
+                            <div class="login-register__text">
+                                <a href="{{ path('register') }}">Don't have an account? Register</a><br>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
