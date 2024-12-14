@@ -1,0 +1,28 @@
+{# templates/pages/news/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}News - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Our News',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'News', path: null}
+        ]
+    } %}
+
+    {# News Grid Section #}
+    <section class="news-page">
+        <div class="container">
+            <div class="row">
+                {% for article in news %}
+                    <div class="col-xl-4 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
+                        {% include 'public/components/news/news-card.html.twig' with { article: article } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

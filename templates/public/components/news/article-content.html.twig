@@ -1,0 +1,91 @@
+{# templates/components/news/article-content.html.twig #}
+<div class="news-details__left">
+    {# Article Image #}
+    <div class="news-details__img">
+        <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+        <div class="news-details__date">
+            <p>{{ article.date.day }}</p>
+            <span>{{ article.date.month }}</span>
+        </div>
+    </div>
+
+    {# Article Content #}
+    <div class="news-details__content">
+        <ul class="list-unstyled news-details__meta">
+            <li>
+                <a href="#"><i class="fas fa-user-circle"></i> by {{ article.author }}</a>
+            </li>
+            <li>
+                <a href="#"><i class="fas fa-comments"></i> {{ article.comments_count }} Comments</a>
+            </li>
+        </ul>
+        <h3 class="news-details__title">{{ article.title }}</h3>
+        <div class="news-details__text">
+            {{ article.content|raw }}
+        </div>
+    </div>
+
+    {# Article Tags and Social #}
+    <div class="news-details__bottom">
+        <p class="news-details__tags">
+            <span>Tags</span>
+            {% for tag in article.tags %}
+                <a href="#">{{ tag }}</a>
+            {% endfor %}
+        </p>
+        <div class="news-details__social-list">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+        </div>
+    </div>
+
+    {# Comments Section #}
+    {% if article.comments|length > 0 %}
+        <div class="comment-one">
+            <h3 class="comment-one__title">{{ article.comments|length }} comments</h3>
+            {% for comment in article.comments %}
+                <div class="comment-one__single">
+                    <div class="comment-one__image">
+                        <img src="{{ asset(comment.image) }}" alt="{{ comment.author }}">
+                    </div>
+                    <div class="comment-one__content">
+                        <h3>{{ comment.author }}</h3>
+                        <p>{{ comment.content }}</p>
+                        <a href="#" class="thm-btn comment-one__btn">Reply</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Comment Form #}
+    <div class="comment-form">
+        <h3 class="comment-form__title">Leave a comment</h3>
+        <form action="#" method="post" class="comment-one__form">
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="comment-form__input-box">
+                        <input type="text" placeholder="Your Name" name="name" required>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="comment-form__input-box">
+                        <input type="email" placeholder="Email Address" name="email" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="comment-form__input-box text-message-box">
+                        <textarea name="message" placeholder="Write a Comment"></textarea>
+                    </div>
+                    <div class="comment-form__btn-box">
+                        <button type="submit" class="thm-btn comment-form__btn">Submit Comment</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

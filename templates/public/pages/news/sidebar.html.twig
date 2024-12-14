@@ -1,0 +1,29 @@
+{# templates/pages/news/sidebar.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}News Sidebar - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'News Sidebar',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'News Sidebar', path: null}
+        ]
+    } %}
+
+    {# News Sidebar Section #}
+    <section class="news-sidebar">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-8 col-lg-7">
+                    {% include 'public/components/news/articles-list.html.twig' with { articles: articles } %}
+                </div>
+                <div class="col-xl-4 col-lg-5">
+                    {% include 'public/components/news/sidebar.html.twig' with { sidebar: sidebar } %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

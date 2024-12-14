@@ -1,0 +1,66 @@
+{# templates/components/news/articles-list.html.twig #}
+<div class="blog-sidebar__left">
+    <div class="news-sidebar__content">
+        {% for article in articles %}
+            <div class="news-sidebar__single">
+                <div class="news-sidebar__img">
+                    <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+                    <div class="news-sidebar__date">
+                        <p>{{ article.date.day }}</p>
+                        <span>{{ article.date.month }}</span>
+                    </div>
+                </div>
+                <div class="news-sidebar__content-box">
+                    <ul class="list-unstyled news-sidebar__meta">
+                        <li>
+                            <a href="#"><i class="fas fa-user-circle"></i>by {{ article.author }}</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fas fa-comments"></i>{{ article.comments_count }} Comments</a>
+                        </li>
+                    </ul>
+                    <h3 class="news-sidebar__title">
+                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}">{{ article.title }}</a>
+                    </h3>
+                    <p class="news-sidebar__text">{{ article.excerpt }}</p>
+                    <div class="news-sidebar__bottom">
+                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}"
+                           class="news-sidebar__read-more">Read
+                            More</a>
+                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}" class="news-sidebar__arrow">
+                            <span class="icon-right-arrow"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Bottom Info Box #}
+    <div class="news-sidebar__bottom-box">
+        <div class="news-sidebar__bottom-box-icon">
+            <img src="{{ asset('landing/images/icon/news-sidebar-bottom-box-icon.png') }}" alt="">
+        </div>
+        <p class="news-sidebar__bottom-box-text">
+            There are many variations of passages of Lorem Ipsum available, but majority have suffered alteration in
+            some form, by injected humour, or randomised words which don't look even slightly believable.
+        </p>
+    </div>
+
+    {# Services Info #}
+    <div class="news-sidebar__delivering-services">
+        <div class="news-sidebar__delivering-services-icon">
+            <a href="#">
+                <img src="{{ asset('landing/images/icon/news-sidebar__delivering-services-icon.png') }}" alt="">
+            </a>
+        </div>
+        <h3 class="news-sidebar__delivering-services-title">
+            <a href="#">Take your startup to the next level</a>
+        </h3>
+    </div>
+
+    {# Load More Button #}
+    <div class="news-sidebar__load-more">
+        <a href="#" class="thm-btn news-sidebar__load-more-btn">Load More Posts</a>
+    </div>
+</div>
