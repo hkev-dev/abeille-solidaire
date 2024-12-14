@@ -1,0 +1,17 @@
+{# templates/components/faq/categories.html.twig #}
+<section class="faq-page-feature">
+    <div class="container">
+        <div class="row">
+            {% for category in categories %}
+                <div class="col-xl-2 col-lg-4 col-md-6 wow fadeInLeft" data-wow-delay="{{ loop.index * 100 }}ms">
+                    <div class="faq-page-feature__single">
+                        <div class="faq-page-feature__icon">
+                            <span class="{{ category.icon }}"></span>
+                        </div>
+                        <h4 class="faq-page-feature__title">{{ category.title }}</h4>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

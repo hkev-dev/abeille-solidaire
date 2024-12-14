@@ -1,0 +1,28 @@
+{# templates/pages/faq/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}FAQs - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Our FAQs',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'FAQs', path: null}
+        ]
+    } %}
+
+    {# FAQ Search Section #}
+    {% include 'public/components/faq/search.html.twig' %}
+
+    {# FAQ Categories Section #}
+    {% include 'public/components/faq/categories.html.twig' with {
+        categories: categories
+    } %}
+
+    {# FAQ Questions Section #}
+    {% include 'public/components/faq/questions.html.twig' with {
+        faqs: faqs
+    } %}
+{% endblock %}

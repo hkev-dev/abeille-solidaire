@@ -1,0 +1,46 @@
+{# templates/components/faq/questions.html.twig #}
+<section class="faq-page">
+    <div class="container">
+        <div class="row">
+            {# First Column #}
+            <div class="col-xl-6 col-lg-6">
+                <div class="faq-page__single">
+                    <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
+                        {% for faq in faqs.group1 %}
+                            <div class="accrodion{% if faq.active %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
+                                <div class="accrodion-title">
+                                    <h4>{{ faq.question }}</h4>
+                                </div>
+                                <div class="accrodion-content">
+                                    <div class="inner">
+                                        <p>{{ faq.answer }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# Second Column #}
+            <div class="col-xl-6 col-lg-6">
+                <div class="faq-page__single">
+                    <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-2">
+                        {% for faq in faqs.group2 %}
+                            <div class="accrodion{% if faq.active %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
+                                <div class="accrodion-title">
+                                    <h4>{{ faq.question }}</h4>
+                                </div>
+                                <div class="accrodion-content">
+                                    <div class="inner">
+                                        <p>{{ faq.answer }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
