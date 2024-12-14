@@ -1,0 +1,35 @@
+{# templates/pages/events/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Events - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header component #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Events',
+        subtitle: 'Check out our upcoming events',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Events', path: null}
+        ],
+        class: 'page-header--large',
+        background_image: 'assets/images/backgrounds/custom-bg.jpg',
+        show_shapes: false,
+        show_breadcrumbs: true
+    } %}
+
+    {# Events Grid Section #}
+    <section class="events-page">
+        <div class="container">
+            <div class="row">
+                {% for event in events %}
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        {% include 'public/components/events/event-card.html.twig' with {
+                            event: event
+                        } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

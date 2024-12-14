@@ -1,0 +1,47 @@
+{# templates/pages/events/details.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}{{ event.title }} - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header component #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Event Details',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Events', path: 'landing.events.index'},
+            {label: 'Event Details', path: null}
+        ]
+    } %}
+
+    {# Event Details Section #}
+    <section class="event-details">
+        <div class="container">
+            {# Event Header Image #}
+            <div class="row">
+                <div class="event-details__img">
+                    <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+                    <div class="event-details__date">
+                        <p>{{ event.date }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {# Event Content #}
+            <div class="event-details__bottom">
+                <div class="row">
+                    <div class="col-xl-8 col-lg-7">
+                        {% include 'public/components/events/event-content.html.twig' with {
+                            event: event
+                        } %}
+                    </div>
+                    <div class="col-xl-4 col-lg-5">
+                        {% include 'public/components/events/event-sidebar.html.twig' with {
+                            event: event
+                        } %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

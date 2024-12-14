@@ -1,0 +1,24 @@
+{# templates/components/events/event-list-item.html.twig #}
+<div class="events-list__single">
+    <div class="events-list__left">
+        <div class="events-list__img">
+            <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+            <div class="events-list__date">
+                <p>{{ event.date }}</p>
+            </div>
+        </div>
+        <div class="events-list__content">
+            <ul class="list-unstyled events-list__meta">
+                <li><i class="fas fa-clock"></i>{{ event.time }}</li>
+                <li><i class="fas fa-map-marker-alt"></i>{{ event.location }}</li>
+            </ul>
+            <h3 class="events-list__title">
+                <a href="{{ path('landing.events.details', {id: event.id}) }}">{{ event.title }}</a>
+            </h3>
+            <p class="events-list__text">{{ event.description }}</p>
+        </div>
+    </div>
+    <div class="events-list__btn-box">
+        <a href="{{ path('landing.events.details', {id: event.id}) }}" class="thm-btn events-list__btn">Join Event</a>
+    </div>
+</div>

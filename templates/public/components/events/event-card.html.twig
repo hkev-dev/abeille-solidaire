@@ -1,0 +1,23 @@
+{# templates/components/events/event-card.html.twig #}
+<div class="events-page__single">
+    <div class="events-page__img">
+        <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+        <div class="events-page__date">
+            <p>{{ event.date }}</p>
+        </div>
+    </div>
+    <div class="events-page__content">
+        <ul class="list-unstyled events-page__meta">
+            <li><i class="fas fa-clock"></i>{{ event.time }}</li>
+            <li><i class="fas fa-map-marker-alt"></i>{{ event.location }}</li>
+        </ul>
+        <h3 class="events-page__title">
+            <a href="{{ path('landing.events.details', {id: event.id}) }}">{{ event.title }}</a>
+        </h3>
+        <div class="events-page__read-more">
+            <a href="{{ path('landing.events.details', {id: event.id}) }}">
+                <span class="icon-right-arrow"></span> Read more
+            </a>
+        </div>
+    </div>
+</div>

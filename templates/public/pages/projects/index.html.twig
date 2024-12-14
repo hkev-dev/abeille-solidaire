@@ -5,29 +5,13 @@
 
 {% block content %}
     {# Page Header #}
-    <section class="page-header">
-        <div class="page-header-bg" style="background-image: url({{ asset('landing/images/backgrounds/page-header-bg.jpg') }})">
-        </div>
-        <div class="page-header-shape-1 float-bob-x">
-            <img src="{{ asset('landing/images/shapes/page-header-shape-1.png') }}" alt="">
-        </div>
-        <div class="page-header-shape-2 float-bob-y">
-            <img src="{{ asset('landing/images/shapes/page-header-shape-2.png') }}" alt="">
-        </div>
-        <div class="page-header-shape-3 float-bob-x">
-            <img src="{{ asset('landing/images/shapes/page-header-shape-3.png') }}" alt="">
-        </div>
-        <div class="container">
-            <div class="page-header__inner">
-                <ul class="thm-breadcrumb list-unstyled">
-                    <li><a href="{{ path('landing.home') }}">Home</a></li>
-                    <li><span>/</span></li>
-                    <li>Explore</li>
-                </ul>
-                <h2>Explore</h2>
-            </div>
-        </div>
-    </section>
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Projects',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Projects', path: null}
+        ]
+    } %}
 
     {# Project List Section #}
     <section class="project-page-one">

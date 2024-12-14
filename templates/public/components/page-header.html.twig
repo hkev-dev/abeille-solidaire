@@ -1,0 +1,50 @@
+{# templates/components/page-header.html.twig #}
+<section class="page-header {{ class|default('') }}">
+    {# Background Image #}
+    <div class="page-header-bg"
+         style="background-image: url({{ asset(background_image|default('assets/images/backgrounds/page-header-bg.jpg')) }})">
+    </div>
+
+    {# Decorative Shapes - Can be disabled #}
+    {% if show_shapes|default(true) %}
+        <div class="page-header-shape-1 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-1.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-2 float-bob-y">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-2.png') }}" alt="">
+        </div>
+        <div class="page-header-shape-3 float-bob-x">
+            <img src="{{ asset('landing/images/shapes/page-header-shape-3.png') }}" alt="">
+        </div>
+    {% endif %}
+
+    <div class="container">
+        <div class="page-header__inner">
+            {# Breadcrumb Navigation - Can be disabled #}
+            {% if show_breadcrumbs|default(true) %}
+                <ul class="thm-breadcrumb list-unstyled">
+                    {% for breadcrumb in breadcrumbs %}
+                        <li>
+                            {% if breadcrumb.path %}
+                                <a href="{{ path(breadcrumb.path) }}">{{ breadcrumb.label }}</a>
+                            {% else %}
+                                {{ breadcrumb.label }}
+                            {% endif %}
+                        </li>
+                        {% if not loop.last %}
+                            <li><span>/</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# Page Title #}
+            <h2>{{ title }}</h2>
+
+            {# Optional Subtitle #}
+            {% if subtitle is defined %}
+                <p class="page-header__subtitle">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>

@@ -1,0 +1,29 @@
+{# templates/pages/events/list.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Events List - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header component #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Events List',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Events', path: 'landing.events.index'},
+            {label: 'Events List', path: null}
+        ]
+    } %}
+
+    {# Events List Section #}
+    <section class="events-list">
+        <div class="container">
+            <div class="events-list__inner">
+                {% for event in events %}
+                    {% include 'public/components/events/event-list-item.html.twig' with {
+                        event: event
+                    } %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
