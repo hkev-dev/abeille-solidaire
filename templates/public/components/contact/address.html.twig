@@ -1,0 +1,30 @@
+{# templates/components/contact/address.html.twig #}
+<section class="address">
+    <div class="container">
+        <div class="row">
+            {% for item in addresses %}
+                <!--Address Single Start-->
+                <div class="col-xl-4 col-lg-4">
+                    <div class="address__single">
+                        <div class="address__title-box">
+                            <h4 class="address__title">{{ item.title }}</h4>
+                            <div class="address__icon">
+                                <span class="{{ item.icon }}"></span>
+                            </div>
+                        </div>
+                        {% if item.title == 'Contact' %}
+                            <p class="address__text">
+                                <a href="tel:{{ item.content.phone|replace({' ': ''}) }}" class="address__number">{{ item.content.phone }}</a>
+                                <a href="mailto:{{ item.content.email1 }}" class="address__email">{{ item.content.email1 }}</a>
+                                <a href="mailto:{{ item.content.email2 }}" class="address__email">{{ item.content.email2 }}</a>
+                            </p>
+                        {% else %}
+                            <p class="address__text">{{ item.content|raw }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <!--Address Single End-->
+            {% endfor %}
+        </div>
+    </div>
+</section>

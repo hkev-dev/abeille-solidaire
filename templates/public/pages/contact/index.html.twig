@@ -1,0 +1,26 @@
+{# templates/pages/contact/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Contact - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Contact',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Contact', path: null}
+        ]
+    } %}
+
+    {# Contact Form Section #}
+    {% include 'public/components/contact/form.html.twig' %}
+
+    {# Address Section #}
+    {% include 'public/components/contact/address.html.twig' with {
+        addresses: addresses
+    } %}
+
+    {# Google Map Section #}
+    {% include 'public/components/contact/map.html.twig' %}
+{% endblock %}
