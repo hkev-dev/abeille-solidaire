@@ -1,0 +1,25 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Administration - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Administration',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Administration', path: null}
+        ]
+    } %}
+
+    <section class="admin-dashboard">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>Welcome to Administration</h1>
+                    <p>You are logged in as: {{ app.user.userIdentifier }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
