@@ -1,0 +1,39 @@
+<section class="brand-one">
+    <div class="container">
+        <div class="brand-one__title"></div>
+        <div class="thm-swiper__slider swiper-container" data-swiper-options='{
+            "spaceBetween": 100,
+            "slidesPerView": 5,
+            "loop": true,
+            "navigation": {
+                "nextEl": "#brand-one__swiper-button-next",
+                "prevEl": "#brand-one__swiper-button-prev"
+            },
+            "autoplay": { "delay": 5000 },
+            "breakpoints": {
+                "0": { "spaceBetween": 30, "slidesPerView": 2 },
+                "375": { "spaceBetween": 30, "slidesPerView": 2 },
+                "575": { "spaceBetween": 30, "slidesPerView": 3 },
+                "767": { "spaceBetween": 50, "slidesPerView": 4 },
+                "991": { "spaceBetween": 50, "slidesPerView": 5 },
+                "1199": { "spaceBetween": 100, "slidesPerView": 5 }
+            }}'>
+            <div class="swiper-wrapper">
+                {% for i in 1..5 %}
+                    <div class="swiper-slide">
+                        <img src="{{ asset('landing/images/brand/brand-1-' ~ i ~ '.png') }}" alt="Brand {{ i }}">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- If we need navigation buttons -->
+        <div class="brand-one__nav">
+            <div class="swiper-button-prev" id="brand-one__swiper-button-next">
+                <i class="fas fa-angle-left"></i>
+            </div>
+            <div class="swiper-button-next" id="brand-one__swiper-button-prev">
+                <i class="fas fa-angle-right"></i>
+            </div>
+        </div>
+    </div>
+</section>

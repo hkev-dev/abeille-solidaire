@@ -1,0 +1,16 @@
+<div class="team-one__single">
+    <div class="team-one__img">
+        <img src="{{ asset('landing/images/team/' ~ member.image) }}" alt="{{ member.name }}">
+    </div>
+    <div class="team-one__content">
+        <h3 class="team-one__name">
+            <a href="#">{{ member.name }}</a>
+        </h3>
+        <p class="team-one__sub-title">{{ member.position }}</p>
+        <div class="team-one__social">
+            {% for platform, url in member.social %}
+                <a href="{{ url }}"><i class="fab fa-{{ platform }}"></i></a>
+            {% endfor %}
+        </div>
+    </div>
+</div>

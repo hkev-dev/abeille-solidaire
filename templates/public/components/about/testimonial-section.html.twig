@@ -1,0 +1,40 @@
+<section class="testimonial-two testimonial-three">
+    <div class="testimonial-two-bg" style="background-image: url({{ asset('landing/images/backgrounds/testimonial-two-bg.png') }});"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-4">
+                <div class="testimonial-two__left">
+                    <div class="section-title text-left">
+                        <span class="section-title__tagline">Our Testimonials</span>
+                        <h2 class="section-title__title">Client Reviews Directly from the Qrowd</h2>
+                    </div>
+                    <p class="testimonial-two__text">Nunc eleifend eget nunc eget quis not consequat. Etiam sed varius est. Proin et lacus odio.</p>
+                </div>
+            </div>
+            <div class="col-xl-8">
+                <div class="testimonial-two__right">
+                    <div class="testimonial-two__carousel owl-carousel owl-theme thm-owl__carousel" data-owl-options='{
+                        "loop": true,
+                        "autoplay": true,
+                        "margin": 30,
+                        "nav": true,
+                        "dots": false,
+                        "smartSpeed": 500,
+                        "autoplayTimeout": 10000,
+                        "navText": ["<span class=\"icon-right-arrow\"></span>","<span class=\"icon-right-arrow\"></span>"],
+                        "responsive": {
+                            "0": {"items": 1},
+                            "768": {"items": 2},
+                            "992": {"items": 2},
+                            "1200": {"items": 2}
+                        }
+                    }'>
+                        {% for testimonial in testimonials %}
+                            {% include 'public/components/about/testimonial-card.html.twig' with { testimonial: testimonial } %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

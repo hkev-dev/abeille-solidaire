@@ -1,0 +1,36 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}About || Qrowd || Qrowd HTML 5 Template{% endblock %}
+
+{% block content %}
+    {# Page Header Component #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'About',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'About', path: null}
+        ]
+    } %}
+
+    {# About Two Section #}
+    {% include 'public/components/about/about-two.html.twig' %}
+
+    {# Brand Section #}
+    {% include 'public/components/about/brand-section.html.twig' %}
+
+    {# Changing Section #}
+    {% include 'public/components/about/changing-section.html.twig' %}
+
+    {# Testimonial Section #}
+    {% include 'public/components/about/testimonial-section.html.twig' with {
+        testimonials: testimonials
+    } %}
+
+    {# Team Section #}
+    {% include 'public/components/about/team-section.html.twig' with {
+        members: team_members
+    } %}
+
+    {# Ready Section #}
+    {% include 'public/components/about/ready-section.html.twig' %}
+{% endblock %}
