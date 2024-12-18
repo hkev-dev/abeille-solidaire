@@ -5,18 +5,18 @@
             <img src="{{ asset('landing/images/shapes/site-footer-shape-1.png') }}" alt="">
         </div>
         <div class="container">
-            <div class="row">
+            <div class="row align-items-center">
                 {# About Widget #}
                 <div class="col-xl-4 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="100ms">
                     <div class="footer-widget__column footer-widget__about">
                         <div class="footer-widget__logo">
                             <a href="{{ path('landing.home') }}">
-                                <img src="{{ asset('landing/images/resources/footer-logo.png') }}" alt="">
+                                <img src="{{ asset('landing/images/resources/logo-3.png') }}" alt="" style="max-height: 200px; width: auto;">
                             </a>
                         </div>
                         <div class="footer-widget__about-text-box">
                             <p class="footer-widget__about-text">
-                                Lorem quas utamur delicata qui, vix ei prima mentitum omnesque. Duo corrumpit cotidieque ne.
+                                {{ site_config.description }}
                             </p>
                         </div>
                         <form class="footer-widget__subscribe-box">
@@ -37,11 +37,9 @@
                             <h3 class="footer-widget__title">Explore</h3>
                         </div>
                         <ul class="footer-widget__Explore-list list-unstyled">
-                            <li><a href="#">About</a></li>
-                            <li><a href="#">How it Works</a></li>
-                            <li><a href="#">Knowledge Hub</a></li>
-                            <li><a href="#">Success Stories</a></li>
-                            <li><a href="#">Contact</a></li>
+                            {% for item in site_config.footer_sections.explore %}
+                                <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -53,11 +51,9 @@
                             <h3 class="footer-widget__title">Fundraising</h3>
                         </div>
                         <ul class="footer-widget__Explore-list list-unstyled">
-                            <li><a href="#">Design</a></li>
-                            <li><a href="#">Education</a></li>
-                            <li><a href="#">Technology</a></li>
-                            <li><a href="#">Games</a></li>
-                            <li><a href="#">Film & Video</a></li>
+                            {% for item in site_config.footer_sections.fundraising %}
+                                <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -74,7 +70,7 @@
                                     <span class="icon-telephone"></span>
                                 </div>
                                 <div class="text">
-                                    <p><a href="tel:+9288006780">+92 ( 8800 ) - 6780</a></p>
+                                    <p><a href="tel:{{ site_config.contact.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">{{ site_config.contact.phone }}</a></p>
                                 </div>
                             </li>
                             <li>
@@ -82,7 +78,7 @@
                                     <span class="icon-email"></span>
                                 </div>
                                 <div class="text">
-                                    <p><a href="mailto:needhelp@company.com">needhelp@company.com</a></p>
+                                    <p><a href="mailto:{{ site_config.contact.email }}">{{ site_config.contact.email }}</a></p>
                                 </div>
                             </li>
                             <li>
@@ -90,15 +86,15 @@
                                     <span class="icon-pin"></span>
                                 </div>
                                 <div class="text">
-                                    <p>30 broklyn golden street line. New York</p>
+                                    <p>{{ site_config.contact.secondary_address }}</p>
                                 </div>
                             </li>
                         </ul>
                         <div class="site-footer__social">
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fab fa-facebook"></i></a>
-                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
-                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="{{ site_config.social.twitter }}"><i class="fab fa-twitter"></i></a>
+                            <a href="{{ site_config.social.facebook }}"><i class="fab fa-facebook"></i></a>
+                            <a href="{{ site_config.social.pinterest }}"><i class="fab fa-pinterest"></i></a>
+                            <a href="{{ site_config.social.instagram }}"><i class="fab fa-instagram"></i></a>
                         </div>
                     </div>
                 </div>
@@ -112,7 +108,7 @@
             <div class="row">
                 <div class="col-xl-12">
                     <div class="site-footer__bottom-inner">
-                        <p class="site-footer__bottom-text">© Copyright {{ "now"|date("Y") }} by <a href="#">Qrowd.com</a></p>
+                        <p class="site-footer__bottom-text">© Copyright {{ "now"|date("Y") }} by <a href="#">{{ site_name }}</a></p>
                     </div>
                 </div>
             </div>

@@ -1,42 +1,9 @@
-<li class="dropdown current megamenu">
+<li class="current">
     <a href="{{ path('landing.home') }}">Home</a>
-    <ul>
-        <li>
-            <section class="home-showcase">
-                <div class="container">
-                    <div class="home-showcase__inner">
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <div class="home-showcase__item">
-                                    <div class="home-showcase__image">
-                                        <img src="{{ asset('landing/images/home-showcase/home-showcase-1-1.jpg') }}" alt="">
-                                        <div class="home-showcase__buttons">
-                                            <a href="{{ path('landing.home') }}" class="thm-btn home-showcase__buttons__item">Multi
-                                                Page</a>
-                                            <a href="{{ path('landing.home') }}"
-                                               class="thm-btn home-showcase__buttons__item">One Page</a>
-                                        </div>
-                                    </div>
-                                    <h3 class="home-showcase__title">Home page 01</h3>
-                                </div>
-                            </div>
-                            {# Add other showcase items here #}
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </li>
-    </ul>
 </li>
 
-<li class="dropdown">
-    <a href="#">Pages</a>
-    <ul class="shadow-box">
-        <li><a href="{{ path('landing.about') }}">About</a></li>
-        <li><a href="#">Team</a></li>
-        <li><a href="#">Team Carousel</a></li>
-        {# Add other page links #}
-    </ul>
+<li class="link">
+    <a href="{{ path('landing.about') }}">About</a>
 </li>
 
 <li class="link">
@@ -69,3 +36,12 @@
 <li class="link">
     <a href="{{ path('landing.contact') }}">Contact</a>
 </li>
+
+{# <li class="dropdown">
+    <a href="#">Pages</a>
+    <ul class="shadow-box">
+        <li><a href="{{ path('landing.about') }}">About</a></li>
+        <li><a href="#">Team</a></li>
+        <li><a href="#">Team Carousel</a></li>
+    </ul>
+</li> #}

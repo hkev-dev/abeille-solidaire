@@ -1,5 +1,32 @@
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        site_name: '%env(SITE_NAME)%'
+        site_config:
+            description: "Lorem quas utamur delicata qui, vix ei prima mentitum omnesque. Duo corrumpit cotidieque ne."
+            contact:
+                address: "30 Commercial road fratton, Australia"
+                email: "needhelp@company.com"
+                phone: "+92 (8800) - 6780"
+                secondary_address: "30 broklyn golden street line. New York"
+            social:
+                twitter: "#"
+                facebook: "#"
+                pinterest: "#"
+                instagram: "#"
+            footer_sections:
+                explore:
+                    - { title: "About", url: "#" }
+                    - { title: "How it Works", url: "#" }
+                    - { title: "Knowledge Hub", url: "#" }
+                    - { title: "Success Stories", url: "#" }
+                    - { title: "Contact", url: "#" }
+                fundraising:
+                    - { title: "Design", url: "#" }
+                    - { title: "Education", url: "#" }
+                    - { title: "Technology", url: "#" }
+                    - { title: "Games", url: "#" }
+                    - { title: "Film & Video", url: "#" }
 
 when@test:
     twig:
