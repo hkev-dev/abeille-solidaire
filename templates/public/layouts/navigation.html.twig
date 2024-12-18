@@ -1,47 +1,45 @@
-<li class="current">
+<li class="{{ app.request.get('_route') starts with 'landing.home' ? 'current' : 'link' }}">
     <a href="{{ path('landing.home') }}">Home</a>
 </li>
 
-<li class="link">
+<li class="{{ app.request.get('_route') starts with 'landing.about' ? 'current' : 'link' }}">
     <a href="{{ path('landing.about') }}">About</a>
 </li>
 
-<li class="link">
+<li class="{{ app.request.get('_route') starts with 'landing.projects' ? 'current' : 'link' }}">
     <a href="{{ path('landing.projects.index') }}">Projects</a>
 </li>
 
-<li class="dropdown">
+<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current dropdown' : 'dropdown' }}">
     <a href="#">Events</a>
     <ul class="shadow-box">
-        <li><a href="{{ path('landing.events.index') }}">Events</a></li>
-        <li><a href="{{ path('landing.events.list') }}">Event List</a></li>
+        <li class="{{ app.request.get('_route') == 'landing.events.index' ? 'current' : '' }}">
+            <a href="{{ path('landing.events.index') }}">Events</a>
+        </li>
+        <li class="{{ app.request.get('_route') == 'landing.events.list' ? 'current' : '' }}">
+            <a href="{{ path('landing.events.list') }}">Event List</a>
+        </li>
         {# Add other page links #}
     </ul>
 </li>
 
-
-<li class="dropdown">
+<li class="{{ app.request.get('_route') starts with 'landing.news' ? 'current dropdown' : 'dropdown' }}">
     <a href="#">News</a>
     <ul class="shadow-box">
-        <li><a href="{{ path('landing.news.index') }}">News</a></li>
-        <li><a href="{{ path('landing.news.sidebar') }}">News Sidebar</a></li>
+        <li class="{{ app.request.get('_route') == 'landing.news.index' ? 'current' : '' }}">
+            <a href="{{ path('landing.news.index') }}">News</a>
+        </li>
+        <li class="{{ app.request.get('_route') == 'landing.news.sidebar' ? 'current' : '' }}">
+            <a href="{{ path('landing.news.sidebar') }}">News Sidebar</a>
+        </li>
         {# Add other page links #}
     </ul>
 </li>
 
-<li class="link">
+<li class="{{ app.request.get('_route') starts with 'landing.faq' ? 'current' : 'link' }}">
     <a href="{{ path('landing.faq') }}">FAQs</a>
 </li>
 
-<li class="link">
+<li class="{{ app.request.get('_route') starts with 'landing.contact' ? 'current' : 'link' }}">
     <a href="{{ path('landing.contact') }}">Contact</a>
 </li>
-
-{# <li class="dropdown">
-    <a href="#">Pages</a>
-    <ul class="shadow-box">
-        <li><a href="{{ path('landing.about') }}">About</a></li>
-        <li><a href="#">Team</a></li>
-        <li><a href="#">Team Carousel</a></li>
-    </ul>
-</li> #}

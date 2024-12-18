@@ -993,6 +993,14 @@ ul {
   color: var(--qrowd-black);
 }
 
+.main-menu .main-menu__list>li>ul>li.current>a,
+.main-menu .main-menu__list>li>ul>li>ul>li.current>a,
+.stricky-header .main-menu__list>li>ul>li.current>a,
+.stricky-header .main-menu__list>li>ul>li>ul>li.current>a {
+  background-color: var(--qrowd-extra);
+  color: var(--qrowd-black);
+}
+
 .main-menu .main-menu__list>li>ul>li>a::before,
 .main-menu .main-menu__list>li>ul>li>ul>li>a::before,
 .stricky-header .main-menu__list>li>ul>li>a::before,
@@ -1014,6 +1022,13 @@ ul {
 .main-menu .main-menu__list>li>ul>li>ul>li:hover>a::before,
 .stricky-header .main-menu__list>li>ul>li:hover>a::before,
 .stricky-header .main-menu__list>li>ul>li>ul>li:hover>a::before {
+  transform: translateY(-50%) scale(1);
+}
+
+.main-menu .main-menu__list>li>ul>li.current>a::before,
+.main-menu .main-menu__list>li>ul>li>ul>li.current>a::before,
+.stricky-header .main-menu__list>li>ul>li.current>a::before,
+.stricky-header .main-menu__list>li>ul>li>ul>li.current>a::before {
   transform: translateY(-50%) scale(1);
 }
 
