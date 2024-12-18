@@ -18,7 +18,7 @@
         <div class="swiper-wrapper">
             {% for slide in slides %}
                 <div class="swiper-slide">
-                    <div class="image-layer" style="background-image: url({{ asset(slide.image) }});"></div>
+                    <div class="image-layer" style="background-image: url({{ vich_uploader_asset(slide, 'imageFile') }});"></div>
                     
                     {# Slider Shapes #}
                     <div class="main-slider__shape-1">

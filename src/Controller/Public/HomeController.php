@@ -2,6 +2,7 @@
 
 namespace App\Controller\Public;
 
+use App\Repository\MainSliderRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,26 +10,10 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'landing.home')]
-    public function index(): Response
+    public function index(MainSliderRepository $mainSliderRepository): Response
     {
-        // Main Slider Data
-        $mainSlides = [
-            [
-                'image' => 'landing/images/backgrounds/main-slider-1-1.jpg',
-                'subtitle' => 'Raising Money is Easy Now!',
-                'title' => 'Ultimate <br> Crowdfunding <br> Platforms'
-            ],
-            [
-                'image' => 'landing/images/backgrounds/main-slider-1-2.jpg',
-                'subtitle' => 'Support Amazing Ideas!',
-                'title' => 'Innovative <br> Projects Need <br> Your Help'
-            ],
-            [
-                'image' => 'landing/images/backgrounds/main-slider-1-3.jpg',
-                'subtitle' => 'Make Dreams Come True!',
-                'title' => 'Revolutionary <br> Crowdfunding <br> Solutions'
-            ]
-        ];
+        // Get active slides from database
+        $mainSlides = $mainSliderRepository->findActiveSlides();
 
         // Categories Data
         $projectCategories = [
