@@ -15,33 +15,40 @@
 
     <section class="login-register">
         <div class="container">
-            <div class="login-register__warning">
-                <p>Demo accounts:</p>
-                <div><strong>Admin</strong>: <span>admin@example.com</span> / <span>admin123</span></div>
-                <div><strong>User</strong>: <span>user@example.com</span> / <span>user123</span></div>
-            </div>
             <div class="row justify-content-center">
                 <div class="col-lg-6">
-                    <h3 class="login-register__title">Login</h3>
+                    <h3 class="login-register__title">Login to Your Account</h3>
+                    
+                    {% include 'public/components/flash-messages.html.twig' %}
+                    
                     <form class="login-register__form" action="{{ path('app.login') }}" method="post">
                         {% if error %}
-                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div class="flex-grow-1">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                                </div>
+                            </div>
                         {% endif %}
+                        
                         <div class="contact-form__input-box">
-                            <input type="text" placeholder="Username or Email Address*" name="_username" value="{{ last_username }}" required>
+                            <input type="email" placeholder="Email Address*" name="_username" value="{{ last_username }}" required>
                         </div>
                         <div class="contact-form__input-box">
                             <input type="password" placeholder="Password*" name="_password" required>
                         </div>
+                        
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                        
                         <div class="login-register__checkbox">
-                            <input type="checkbox" id="login-register__password" name="_remember_me">
-                            <label for="login-register__password">Remember Me?</label>
+                            <input type="checkbox" id="login-register__remember" name="_remember_me">
+                            <label for="login-register__remember">Remember Me?</label>
                         </div>
+                        
                         <div class="login-register__info">
                             <button type="submit" class="thm-btn login-register__btn">Login</button>
                             <div class="login-register__text">
-                                <a href="{{ path('app.register') }}">Don't have an account? Register</a><br>
+                                <a href="{{ path('app.register') }}">Don't have an account? Register</a>
                             </div>
                         </div>
                     </form>

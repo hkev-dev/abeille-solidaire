@@ -1,0 +1,18 @@
+{% if app.flashes|length > 0 %}
+    <div class="flash-messages mb-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show mb-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        {% if label == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% else %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% endif %}
+                        <div class="flex-grow-1">{{ message }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

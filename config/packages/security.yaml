@@ -6,30 +6,17 @@ security:
             algorithm: auto
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory:
-            memory:
-                users:
-                    admin@example.com:
-                        password: '$2y$13$iIbQNnv9uboozYJHLkAzH.j/NrWxH2w4fJEqEpnBHctXmmwDLGzlO' # admin123
-                        roles: ['ROLE_ADMIN']
-                    user@example.com:
-                        password: '$2y$13$ltLOpIMFbz1kRIpKfZX63uVhPoNBNWL/6YJ/EcDDF/SbzkxSP9lWu' # user123
-                        roles: ['ROLE_USER']
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
-        # The chain provider is configured to first check the in-memory provider, then the database
-        chain_provider:
-            chain:
-                providers: ['users_in_memory', 'app_user_provider']
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: chain_provider  # Use the chain provider instead
+            provider: app_user_provider
             form_login:
                 login_path: app.login
                 check_path: app.login
@@ -41,10 +28,11 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
 
 when@test:
     security:
