@@ -2,6 +2,7 @@
 
 namespace App\Controller\Public;
 
+use App\Repository\CategoryRepository;
 use App\Repository\MainSliderRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,38 +11,16 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'landing.home')]
-    public function index(MainSliderRepository $mainSliderRepository): Response
+    public function index(
+        MainSliderRepository $mainSliderRepository,
+        CategoryRepository $categoryRepository
+    ): Response
     {
         // Get active slides from database
         $mainSlides = $mainSliderRepository->findActiveSlides();
 
-        // Categories Data
-        $projectCategories = [
-            [
-                'icon' => 'icon-online',
-                'name' => 'Technology'
-            ],
-            [
-                'icon' => 'icon-skincare',
-                'name' => 'Fashion'
-            ],
-            [
-                'icon' => 'icon-photograph',
-                'name' => 'Videos'
-            ],
-            [
-                'icon' => 'icon-translation',
-                'name' => 'Education'
-            ],
-            [
-                'icon' => 'icon-design-thinking',
-                'name' => 'Design'
-            ],
-            [
-                'icon' => 'icon-patient',
-                'name' => 'Medical'
-            ]
-        ];
+        // Get active categories from database
+        $projectCategories = $categoryRepository->findActiveCategories();
 
         // Featured Projects Data
         $featuredProjects = [
