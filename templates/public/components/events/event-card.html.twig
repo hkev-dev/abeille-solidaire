@@ -1,21 +1,31 @@
 {# templates/components/events/event-card.html.twig #}
 <div class="events-page__single">
     <div class="events-page__img">
-        <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+        <img src="{{ vich_uploader_asset(event, 'imageFile') }}" alt="{{ event.title }}">
         <div class="events-page__date">
-            <p>{{ event.date }}</p>
+            {% if event.details.endDate and event.details.startDate|date('m Y') == event.details.endDate|date('m Y') %}
+                <p>{{ event.details.startDate|date('d') }} - {{ event.details.endDate|date('d M, Y') }}</p>
+            {% else %}
+                <p>{{ event.details.startDate|date('d M, Y') }}</p>
+            {% endif %}
         </div>
     </div>
-    <div class="events-page__content">
+    <div class="events-page__content d-flex flex-column">
         <ul class="list-unstyled events-page__meta">
-            <li><i class="fas fa-clock"></i>{{ event.time }}</li>
-            <li><i class="fas fa-map-marker-alt"></i>{{ event.location }}</li>
+            <li>
+                <i class="fas fa-clock"></i>
+                {{ event.details.startTime|date('g:i A') }}
+                {%- if event.details.endTime -%}
+                    - {{ event.details.endTime|date('g:i A') }}
+                {%- endif -%}
+            </li>
+            <li><i class="fas fa-map-marker-alt"></i>{{ event.details.location }}</li>
         </ul>
-        <h3 class="events-page__title">
-            <a href="{{ path('landing.events.details', {id: event.id}) }}">{{ event.title }}</a>
+        <h3 class="events-page__title mt-2 flex-grow-1">
+            <a href="{{ path('landing.events.details', {slug: event.slug}) }}">{{ event.title }}</a>
         </h3>
-        <div class="events-page__read-more">
-            <a href="{{ path('landing.events.details', {id: event.id}) }}">
+        <div class="events-page__read-more mt-auto">
+            <a href="{{ path('landing.events.details', {slug: event.slug}) }}">
                 <span class="icon-right-arrow"></span> Read more
             </a>
         </div>

@@ -10,17 +10,8 @@
     <a href="{{ path('landing.projects.index') }}">Projects</a>
 </li>
 
-<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current dropdown' : 'dropdown' }}">
-    <a href="#">Events</a>
-    <ul class="shadow-box">
-        <li class="{{ app.request.get('_route') == 'landing.events.index' ? 'current' : '' }}">
-            <a href="{{ path('landing.events.index') }}">Events</a>
-        </li>
-        <li class="{{ app.request.get('_route') == 'landing.events.list' ? 'current' : '' }}">
-            <a href="{{ path('landing.events.list') }}">Event List</a>
-        </li>
-        {# Add other page links #}
-    </ul>
+<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current' : 'link' }}">
+    <a href="{{ path('landing.events.index') }}">Events</a>
 </li>
 
 <li class="{{ app.request.get('_route') starts with 'landing.news' ? 'current dropdown' : 'dropdown' }}">

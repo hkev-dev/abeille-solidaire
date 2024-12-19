@@ -20,9 +20,11 @@
             {# Event Header Image #}
             <div class="row">
                 <div class="event-details__img">
-                    <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+                    <img src="{{ vich_uploader_asset(event, 'imageFile') }}" alt="{{ event.title }}">
                     <div class="event-details__date">
-                        <p>{{ event.date }}</p>
+                        <p>{{ event.details.startDate|date('d M') }}
+                        {% if event.details.endDate %} - {{ event.details.endDate|date('d M') }}{% endif %}
+                        {{ event.details.startDate|date('Y') }}</p>
                     </div>
                 </div>
             </div>

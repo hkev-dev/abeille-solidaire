@@ -3,34 +3,48 @@
     <div class="event-details__details-box">
         <h5 class="event-details__details-box-title">Event Details</h5>
         <ul class="list-unstyled event-details__details-box-list">
-            <li>
-                <div class="left"><p>Starting Time:</p></div>
-                <div class="right"><p>{{ event.details.time }}</p></div>
-            </li>
-            <li>
-                <div class="left"><p>Date:</p></div>
-                <div class="right"><p>{{ event.details.date }}</p></div>
-            </li>
-            <li>
-                <div class="left"><p>Category:</p></div>
-                <div class="right"><p>{{ event.details.category }}</p></div>
-            </li>
-            <li>
-                <div class="left"><p>Phone:</p></div>
-                <div class="right">
-                    <p><a href="tel:{{ event.details.phone }}">{{ event.details.phone }}</a></p>
+            {% if event.details.endDate %}
+                <li class="d-flex align-items-start">
+                    <div class="left" style="flex: 0 0 100px"><p class="m-0">Duration:</p></div>
+                    <div class="right w-100"><p class="m-0 text-end">{{ event.details.startDate|date('d M') }} - {{ event.details.endDate|date('d M, Y') }}</p></div>
+                </li>
+            {% else %}
+                <li class="d-flex align-items-start">
+                    <div class="left" style="flex: 0 0 100px"><p class="m-0">Date:</p></div>
+                    <div class="right w-100"><p class="m-0 text-end">{{ event.details.startDate|date('d M, Y') }}</p></div>
+                </li>
+            {% endif %}
+            <li class="d-flex align-items-start">
+                <div class="left" style="flex: 0 0 100px"><p class="m-0">Time:</p></div>
+                <div class="right w-100">
+                    <p class="m-0 text-end">{{ event.details.startTime|date('g:i A') }}
+                    {%- if event.details.endTime -%}
+                        - {{ event.details.endTime|date('g:i A') }}
+                    {%- endif -%}</p>
                 </div>
             </li>
-            <li>
-                <div class="left"><p>Website:</p></div>
-                <div class="right">
-                    <p><a class="clr-primary" href="mailto:{{ event.details.email }}">{{ event.details.email }}</a></p>
+            <li class="d-flex align-items-start">
+                <div class="left" style="flex: 0 0 100px"><p class="m-0">Category:</p></div>
+                <div class="right w-100">
+                    <p class="m-0 text-end"><i class="{{ event.category.icon }}"></i> {{ event.category.name }}</p>
                 </div>
             </li>
-            <li>
-                <div class="left"><p>Location:</p></div>
-                <div class="right">
-                    <p class="clr-base">{{ event.details.location }}</p>
+            <li class="d-flex align-items-start">
+                <div class="left" style="flex: 0 0 100px"><p class="m-0">Contact:</p></div>
+                <div class="right w-100">
+                    <p class="m-0 text-end"><a href="tel:{{ event.details.phone }}">{{ event.details.phone }}</a></p>
+                </div>
+            </li>
+            <li class="d-flex align-items-start">
+                <div class="left" style="flex: 0 0 100px"><p class="m-0">Email:</p></div>
+                <div class="right w-100">
+                    <p class="m-0 text-end"><a href="mailto:{{ event.details.email }}">{{ event.details.email }}</a></p>
+                </div>
+            </li>
+            <li class="d-flex align-items-start">
+                <div class="left" style="flex: 0 0 100px"><p class="m-0">Venue:</p></div>
+                <div class="right w-100">
+                    <p class="m-0 text-end">{{ event.details.location }}</p>
                 </div>
             </li>
         </ul>

@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\CategoryRepository;
-use App\Trait\TimestampableTrait;
+use App\Entity\Trait\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]

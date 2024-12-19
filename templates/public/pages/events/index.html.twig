@@ -21,7 +21,7 @@
     {# Events Grid Section #}
     <section class="events-page">
         <div class="container">
-            <div class="row">
+            <div class="row gy-4">
                 {% for event in events %}
                     <div class="col-xl-4 col-lg-6 col-md-6">
                         {% include 'public/components/events/event-card.html.twig' with {
@@ -29,6 +29,12 @@
                         } %}
                     </div>
                 {% endfor %}
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    {{ knp_pagination_render(events, 'public/components/pagination.html.twig') }}
+                </div>
             </div>
         </div>
     </section>
