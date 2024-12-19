@@ -10,7 +10,7 @@
     <a href="{{ path('landing.projects.index') }}">Projects</a>
 </li>
 
-<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current' : '' }}">
+<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current' : 'link' }}">
     <a href="{{ path('landing.events.index') }}">Events</a>
 </li>
 
