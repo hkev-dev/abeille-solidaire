@@ -9068,17 +9068,11 @@ ul {
 
 .events-page__meta {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .events-page__meta>li {
   font-size: 14px;
   font-weight: 500;
-}
-
-.events-page__meta>li+li {
-  margin-left: 5px;
 }
 
 .events-page__meta>li>i {
@@ -9131,6 +9125,56 @@ ul {
   color: var(--qrowd-base);
 }
 
+.events-page__single {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
+}
+
+.events-page__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.events-page__content-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.events-page__title-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.events-page__title {
+    /* Ensure title takes maximum 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    margin-top: 10px;
+}
+
+.events-page__meta-wrapper {
+    margin-bottom: auto;
+}
+
+.events-page__read-more {
+    margin-top: auto;
+}
+
+.events-page .row{
+    --bs-gutter-y: 30px;
+}
+
+.events-page__single:last-child {
+    margin-bottom: 0;
+}
 /*--------------------------------------------------------------
 # Events List
 --------------------------------------------------------------*/

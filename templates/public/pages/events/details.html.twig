@@ -20,9 +20,11 @@
             {# Event Header Image #}
             <div class="row">
                 <div class="event-details__img">
-                    <img src="{{ asset(event.image) }}" alt="{{ event.title }}">
+                    <img src="{{ vich_uploader_asset(event, 'imageFile') }}" alt="{{ event.title }}">
                     <div class="event-details__date">
-                        <p>{{ event.date }}</p>
+                        <p>{{ event.details.startDate|date('d M') }}
+                        {% if event.details.endDate %} - {{ event.details.endDate|date('d M') }}{% endif %}
+                        {{ event.details.startDate|date('Y') }}</p>
                     </div>
                 </div>
             </div>
@@ -30,12 +32,12 @@
             {# Event Content #}
             <div class="event-details__bottom">
                 <div class="row">
-                    <div class="col-xl-8 col-lg-7">
+                    <div class="col-xl-7 col-lg-7">
                         {% include 'public/components/events/event-content.html.twig' with {
                             event: event
                         } %}
                     </div>
-                    <div class="col-xl-4 col-lg-5">
+                    <div class="col-xl-5 col-lg-5">
                         {% include 'public/components/events/event-sidebar.html.twig' with {
                             event: event
                         } %}

@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\MainSliderRepository;
-use App\Trait\TimestampableTrait;
+use App\Entity\Trait\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
