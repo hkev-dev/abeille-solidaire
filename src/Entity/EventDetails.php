@@ -22,11 +22,11 @@ class EventDetails
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $endDate = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $startTime = null;
+    #[ORM\Column(type: Types::TIME_MUTABLE)]
+    private ?\DateTimeInterface $startTime = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $endTime = null;
+    #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $endTime = null;
 
     #[ORM\Column(length: 255)]
     private ?string $phone = null;
@@ -75,23 +75,23 @@ class EventDetails
         return $this;
     }
 
-    public function getStartTime(): ?string
+    public function getStartTime(): ?\DateTimeInterface
     {
         return $this->startTime;
     }
 
-    public function setStartTime(string $startTime): self
+    public function setStartTime(\DateTimeInterface $startTime): self
     {
         $this->startTime = $startTime;
         return $this;
     }
 
-    public function getEndTime(): ?string
+    public function getEndTime(): ?\DateTimeInterface
     {
         return $this->endTime;
     }
 
-    public function setEndTime(?string $endTime): self
+    public function setEndTime(?\DateTimeInterface $endTime): self
     {
         $this->endTime = $endTime;
         return $this;

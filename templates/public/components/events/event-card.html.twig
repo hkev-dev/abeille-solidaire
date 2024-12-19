@@ -14,9 +14,9 @@
         <ul class="list-unstyled events-page__meta">
             <li>
                 <i class="fas fa-clock"></i>
-                {{ event.details.startTime }}
+                {{ event.details.startTime|date('g:i A') }}
                 {%- if event.details.endTime -%}
-                    - {{ event.details.endTime }}
+                    - {{ event.details.endTime|date('g:i A') }}
                 {%- endif -%}
             </li>
             <li><i class="fas fa-map-marker-alt"></i>{{ event.details.location }}</li>

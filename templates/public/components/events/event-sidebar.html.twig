@@ -21,9 +21,9 @@
             <li>
                 <div class="left"><p>Time:</p></div>
                 <div class="right">
-                    <p>{{ event.details.startTime }}
+                    <p>{{ event.details.startTime|date('g:i A') }}
                     {%- if event.details.endTime -%}
-                        - {{ event.details.endTime }}
+                        - {{ event.details.endTime|date('g:i A') }}
                     {%- endif -%}</p>
                 </div>
             </li>

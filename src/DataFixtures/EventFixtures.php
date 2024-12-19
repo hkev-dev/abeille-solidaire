@@ -20,6 +20,11 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
     ) {
     }
 
+    private function createTimeFromString(string $timeString): \DateTime
+    {
+        return \DateTime::createFromFormat('g:i A', $timeString);
+    }
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
@@ -184,12 +189,17 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
             $content->setEvent($event);
             $event->setContent($content);
 
-            // Create and set details
+            // Create and set details with proper time handling
             $details = new EventDetails();
             $details->setStartDate(new \DateTime($eventData['details']['startDate']));
             $details->setEndDate($eventData['details']['endDate'] ? new \DateTime($eventData['details']['endDate']) : null);
-            $details->setStartTime($eventData['details']['startTime']);
-            $details->setEndTime($eventData['details']['endTime']);
+            
+            // Convert time strings to DateTime objects
+            $details->setStartTime($this->createTimeFromString($eventData['details']['startTime']));
+            if ($eventData['details']['endTime']) {
+                $details->setEndTime($this->createTimeFromString($eventData['details']['endTime']));
+            }
+            
             $details->setPhone($eventData['details']['phone']);
             $details->setEmail($eventData['details']['email']);
             $details->setLocation($eventData['details']['location']);
