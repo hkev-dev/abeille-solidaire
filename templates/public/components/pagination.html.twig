@@ -1,0 +1,35 @@
+{% if pageCount > 1 %}
+    <nav>
+        <ul class="pagination d-flex align-items-center justify-content-center gap-2">
+            {% if first is defined and current != first %}
+                <li>
+                    <a class="thm-btn" href="{{ path(route, query|merge({(pageParameterName): first})) }}">&lt;&lt;</a>
+                </li>
+            {% endif %}
+
+            {% if previous is defined %}
+                <li>
+                    <a class="thm-btn" href="{{ path(route, query|merge({(pageParameterName): previous})) }}">&lt;</a>
+                </li>
+            {% endif %}
+
+            {% for page in pagesInRange %}
+                <li>
+                    <a class="thm-btn {% if page == current %}active{% endif %}" href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+                </li>
+            {% endfor %}
+
+            {% if next is defined %}
+                <li>
+                    <a class="thm-btn" href="{{ path(route, query|merge({(pageParameterName): next})) }}">&gt;</a>
+                </li>
+            {% endif %}
+
+            {% if last is defined and current != last %}
+                <li>
+                    <a class="thm-btn" href="{{ path(route, query|merge({(pageParameterName): last})) }}">&gt;&gt;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

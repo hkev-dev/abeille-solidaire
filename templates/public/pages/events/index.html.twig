@@ -30,6 +30,12 @@
                     </div>
                 {% endfor %}
             </div>
+            
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    {{ knp_pagination_render(events, 'public/components/pagination.html.twig') }}
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}
