@@ -1,0 +1,45 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}{{ category.name|default('Category') }} - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: category.name|default('Category'),
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'News', path: 'landing.news.index'},
+            {label: category.name|default('Category'), path: null}
+        ]
+    } %}
+
+    <section class="news-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-8 col-lg-7">
+                    {% if articles is defined and articles|length > 0 %}
+                        <div class="row">
+                            {% for article in articles %}
+                                <div class="col-xl-6 col-lg-6 col-md-6">
+                                    {% include 'public/components/news/news-card.html.twig' with {article: article} %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="col-12">
+                            <p class="text-center">No articles found in category "{{ category.name|default('Unknown') }}"</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-xl-4 col-lg-5">
+                    {% include 'public/components/news/sidebar.html.twig' with {
+                        searchForm: searchForm,
+                        latestArticles: latestArticles,
+                        categories: categories,
+                        tags: tags
+                    } %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

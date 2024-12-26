@@ -21,3 +21,8 @@ vich_uploader:
             uri_prefix: /uploads/events
             upload_destination: '%kernel.project_dir%/public/uploads/events'
             namer: Vich\UploaderBundle\Naming\UniqidNamer
+
+        news:
+            uri_prefix: /uploads/news
+            upload_destination: '%kernel.project_dir%/public/uploads/news'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer

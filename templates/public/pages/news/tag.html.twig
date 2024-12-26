@@ -1,0 +1,46 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Articles tagged with "{{ tag }}" - Qrowd Crowdfunding Platform{% endblock %}
+
+{% block content %}
+    {# Include page header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Articles tagged with "' ~ tag ~ '"',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'News', path: 'landing.news.index'},
+            {label: tag, path: null}
+        ]
+    } %}
+
+    {# News Section #}
+    <section class="news-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-8 col-lg-7">
+                    <div class="row">
+                        {% if articles|length > 0 %}
+                            {% for article in articles %}
+                                <div class="col-xl-6 col-lg-6 col-md-6">
+                                    {% include 'public/components/news/news-card.html.twig' with {article: article} %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <p class="text-center">No articles found with tag "{{ tag }}"</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-5">
+                    {% include 'public/components/news/sidebar.html.twig' with {
+                        searchForm: searchForm,
+                        latestArticles: latestArticles,
+                        categories: categories,
+                        tags: tags
+                    } %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

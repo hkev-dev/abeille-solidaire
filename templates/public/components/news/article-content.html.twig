@@ -2,10 +2,12 @@
 <div class="news-details__left">
     {# Article Image #}
     <div class="news-details__img">
-        <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+        {% if article.image %}
+            <img src="{{ vich_uploader_asset(article, 'imageFile') }}" alt="{{ article.title }}">
+        {% endif %}
         <div class="news-details__date">
-            <p>{{ article.date.day }}</p>
-            <span>{{ article.date.month }}</span>
+            <p>{{ article.createdAt|date('d') }}</p>
+            <span>{{ article.createdAt|date('F')|lower }}</span>
         </div>
     </div>
 
@@ -16,7 +18,7 @@
                 <a href="#"><i class="fas fa-user-circle"></i> by {{ article.author }}</a>
             </li>
             <li>
-                <a href="#"><i class="fas fa-comments"></i> {{ article.comments_count }} Comments</a>
+                <a href="#"><i class="fas fa-comments"></i> {{ article.commentsCount }} Comments</a>
             </li>
         </ul>
         <h3 class="news-details__title">{{ article.title }}</h3>
@@ -30,7 +32,7 @@
         <p class="news-details__tags">
             <span>Tags</span>
             {% for tag in article.tags %}
-                <a href="#">{{ tag }}</a>
+                <a href="{{ path('landing.news.tag', {tag: tag}) }}">{{ tag }}</a>
             {% endfor %}
         </p>
         <div class="news-details__social-list">
@@ -48,12 +50,16 @@
             {% for comment in article.comments %}
                 <div class="comment-one__single">
                     <div class="comment-one__image">
-                        <img src="{{ asset(comment.image) }}" alt="{{ comment.author }}">
+                        {% if comment.image %}
+                            <img src="{{ vich_uploader_asset(comment, 'imageFile') }}" alt="{{ comment.author }}">
+                        {% endif %}
                     </div>
                     <div class="comment-one__content">
                         <h3>{{ comment.author }}</h3>
                         <p>{{ comment.content }}</p>
-                        <a href="#" class="thm-btn comment-one__btn">Reply</a>
+                        <div class="comment-one__date">
+                            {{ comment.createdAt|date('M d, Y') }}
+                        </div>
                     </div>
                 </div>
             {% endfor %}
@@ -63,29 +69,29 @@
     {# Comment Form #}
     <div class="comment-form">
         <h3 class="comment-form__title">Leave a comment</h3>
-        <form action="#" method="post" class="comment-one__form">
+        {{ form_start(commentForm, {'attr': {'class': 'comment-one__form'}}) }}
             <div class="row">
                 <div class="col-xl-6">
                     <div class="comment-form__input-box">
-                        <input type="text" placeholder="Your Name" name="name" required>
+                        {{ form_widget(commentForm.author, {'attr': {'placeholder': 'Your Name'}}) }}
                     </div>
                 </div>
                 <div class="col-xl-6">
                     <div class="comment-form__input-box">
-                        <input type="email" placeholder="Email Address" name="email" required>
+                        {{ form_widget(commentForm.email, {'attr': {'placeholder': 'Email Address'}}) }}
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-xl-12">
                     <div class="comment-form__input-box text-message-box">
-                        <textarea name="message" placeholder="Write a Comment"></textarea>
+                        {{ form_widget(commentForm.content, {'attr': {'placeholder': 'Write a Comment'}}) }}
                     </div>
                     <div class="comment-form__btn-box">
                         <button type="submit" class="thm-btn comment-form__btn">Submit Comment</button>
                     </div>
                 </div>
             </div>
-        </form>
+        {{ form_end(commentForm) }}
     </div>
 </div>

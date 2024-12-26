@@ -2,14 +2,16 @@
 <div class="news-one__single">
     <div class="news-one__img-box">
         <div class="news-one__img">
-            <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+            {% if article.image %}
+                <img src="{{ vich_uploader_asset(article, 'imageFile') }}" alt="{{ article.title }}">
+            {% endif %}
             <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
                 <span class="news-one__plus"></span>
             </a>
         </div>
         <div class="news-one__date">
-            <p>{{ article.date.day }}</p>
-            <span>{{ article.date.month }}</span>
+            <p>{{ article.createdAt|date('d') }}</p>
+            <span>{{ article.createdAt|date('F')|lower }}</span>
         </div>
     </div>
     <div class="news-one__content">
@@ -21,7 +23,7 @@
             </li>
             <li>
                 <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
-                    <i class="fas fa-comments"></i>{{ article.comments_count }} Comments
+                    <i class="fas fa-comments"></i>{{ article.commentsCount }} Comments
                 </a>
             </li>
         </ul>

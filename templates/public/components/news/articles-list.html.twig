@@ -4,10 +4,12 @@
         {% for article in articles %}
             <div class="news-sidebar__single">
                 <div class="news-sidebar__img">
-                    <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+                    {% if article.image %}
+                        <img src="{{ vich_uploader_asset(article, 'imageFile') }}" alt="{{ article.title }}">
+                    {% endif %}
                     <div class="news-sidebar__date">
-                        <p>{{ article.date.day }}</p>
-                        <span>{{ article.date.month }}</span>
+                        <p>{{ article.createdAt|date('d') }}</p>
+                        <span>{{ article.createdAt|date('F')|lower }}</span>
                     </div>
                 </div>
                 <div class="news-sidebar__content-box">
@@ -16,7 +18,7 @@
                             <a href="#"><i class="fas fa-user-circle"></i>by {{ article.author }}</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fas fa-comments"></i>{{ article.comments_count }} Comments</a>
+                            <a href="#"><i class="fas fa-comments"></i>{{ article.commentsCount }} Comments</a>
                         </li>
                     </ul>
                     <h3 class="news-sidebar__title">
@@ -35,6 +37,10 @@
             </div>
         {% endfor %}
     </div>
+
+    {% if articles.haveToPaginate is defined and articles.haveToPaginate %}
+        {{ knp_pagination_render(articles) }}
+    {% endif %}
 
     {# Bottom Info Box #}
     <div class="news-sidebar__bottom-box">
