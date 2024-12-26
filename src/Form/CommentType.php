@@ -25,7 +25,6 @@ class CommentType extends AbstractType
             ->add('email', EmailType::class, [
                 'label' => false,
                 'required' => true,
-                'mapped' => false,
                 'attr' => [
                     'placeholder' => 'Email Address'
                 ]

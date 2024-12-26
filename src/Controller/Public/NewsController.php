@@ -49,6 +49,7 @@ class NewsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $comment->setArticle($article);
+
             $this->entityManager->persist($comment);
             $this->entityManager->flush();
 
@@ -79,9 +80,25 @@ class NewsController extends AbstractController
             $articles = $this->newsRepository->searchByTerm($term);
         }
 
+        // Get latest articles for sidebar
+        $latestArticles = $this->newsRepository->findLatest(3);
+
+        // Get categories for sidebar
+        $categories = $this->categoryRepository->findByOrderedByName();
+
+        // Get all unique tags from the found articles
+        $tags = [];
+        foreach ($articles as $article) {
+            $tags = array_merge($tags, $article->getTags());
+        }
+        $tags = array_unique($tags);
+
         return $this->render('public/pages/news/search.html.twig', [
             'searchForm' => $form->createView(),
-            'articles' => $articles
+            'articles' => $articles,
+            'latestArticles' => $latestArticles,
+            'categories' => $categories,
+            'tags' => $tags
         ]);
     }
 
