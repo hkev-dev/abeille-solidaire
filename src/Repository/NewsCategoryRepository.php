@@ -42,7 +42,7 @@ class NewsCategoryRepository extends ServiceEntityRepository
     public function findOneBySlugWithArticles(string $slug): ?NewsCategory
     {
         return $this->createQueryBuilder('c')
-            ->addSelect('a')
+            ->addSelect('a')  // Change: Use addSelect instead of including 'a' in select
             ->leftJoin('c.articles', 'a')
             ->where('c.slug = :slug')
             ->setParameter('slug', $slug)

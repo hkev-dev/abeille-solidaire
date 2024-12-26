@@ -20,8 +20,8 @@ class NewsArticleRepository extends ServiceEntityRepository
 
     public function findLatest(int $limit = 3): array
     {
-        return $this->createQueryBuilder('n')
-            ->orderBy('n.createdAt', 'DESC')
+        return $this->createQueryBuilder('a')
+            ->orderBy('a.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -29,11 +29,12 @@ class NewsArticleRepository extends ServiceEntityRepository
 
     public function searchByTerm(string $term): array
     {
-        return $this->createQueryBuilder('n')
-            ->where('n.title LIKE :term')
-            ->orWhere('n.content LIKE :term')
-            ->setParameter('term', '%' . $term . '%')
-            ->orderBy('n.createdAt', 'DESC')
+        return $this->createQueryBuilder('a')
+            ->where('LOWER(a.title) LIKE LOWER(:term)')
+            ->orWhere('LOWER(a.content) LIKE LOWER(:term)')
+            ->orWhere('LOWER(a.excerpt) LIKE LOWER(:term)')
+            ->setParameter('term', '%' . strtolower($term) . '%')
+            ->orderBy('a.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -48,11 +49,29 @@ class NewsArticleRepository extends ServiceEntityRepository
 
     public function findByTag(string $tag): array
     {
-        return $this->createQueryBuilder('n')
-            ->andWhere('JSON_CONTAINS(n.tags, :tag) = 1')
-            ->setParameter('tag', json_encode($tag))
-            ->orderBy('n.date', 'DESC')
-            ->getQuery()
-            ->getResult();
+        $conn = $this->getEntityManager()->getConnection();
+        $platform = $conn->getDatabasePlatform()->getName();
+
+        $qb = $this->createQueryBuilder('a');
+
+        if ($platform === 'postgresql') {
+            // Use native query for PostgreSQL
+            $sql = 'SELECT a.* FROM news_article a WHERE a.tags::jsonb @> :tags';
+            $stmt = $conn->prepare($sql);
+            $result = $stmt->executeQuery(['tags' => json_encode([$tag])]);
+
+            return array_map(
+                fn(array $data) => $this->getEntityManager()->getRepository(NewsArticle::class)->find($data['id']),
+                $result->fetchAllAssociative()
+            );
+        } else {
+            // MySQL version
+            return $qb
+                ->where("JSON_CONTAINS(a.tags, :tag_json) = 1")
+                ->setParameter('tag_json', json_encode($tag))
+                ->orderBy('a.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult();
+        }
     }
 }

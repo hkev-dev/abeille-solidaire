@@ -90,9 +90,31 @@ class NewsController extends AbstractController
     {
         $articles = $this->newsRepository->findByTag($tag);
 
+        // Create search form for sidebar
+        $searchForm = $this->createForm(NewsSearchType::class, null, [
+            'action' => $this->generateUrl('landing.news.search')
+        ]);
+
+        // Get latest articles for sidebar
+        $latestArticles = $this->newsRepository->findLatest(3);
+
+        // Get categories for sidebar
+        $categories = $this->categoryRepository->findByOrderedByName();
+
+        // Collect all unique tags from articles
+        $allTags = [];
+        foreach ($articles as $article) {
+            $allTags = array_merge($allTags, $article->getTags());
+        }
+        $tags = array_unique($allTags);
+
         return $this->render('public/pages/news/tag.html.twig', [
             'tag' => $tag,
-            'articles' => $articles
+            'articles' => $articles,
+            'searchForm' => $searchForm->createView(),
+            'latestArticles' => $latestArticles,
+            'categories' => $categories,
+            'tags' => $tags
         ]);
     }
 
@@ -110,11 +132,23 @@ class NewsController extends AbstractController
             'action' => $this->generateUrl('landing.news.search')
         ]);
 
+        // Get latest articles for sidebar
+        $latestArticles = $this->newsRepository->findLatest(3);
+
+        // Get all unique tags from the category's articles
+        $tags = [];
+        foreach ($category->getArticles() as $article) {
+            $tags = array_merge($tags, $article->getTags());
+        }
+        $tags = array_unique($tags);
+
         return $this->render('public/pages/news/category.html.twig', [
             'category' => $category,
             'articles' => $category->getArticles(),
             'searchForm' => $searchForm->createView(),
-            'categories' => $this->categoryRepository->findByOrderedByName()
+            'categories' => $this->categoryRepository->findByOrderedByName(),
+            'latestArticles' => $latestArticles,
+            'tags' => $tags
         ]);
     }
 }
