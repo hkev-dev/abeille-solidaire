@@ -8,6 +8,7 @@ use App\Form\NewsSearchType;
 use App\Repository\NewsArticleRepository;
 use App\Repository\NewsCategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,14 +20,17 @@ class NewsController extends AbstractController
     public function __construct(
         private readonly NewsArticleRepository  $newsRepository,
         private readonly NewsCategoryRepository $categoryRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly PaginatorInterface $paginator
     ) {}
 
     #[Route('/', name: 'index')]
     public function index(Request $request): Response
     {
-        $page = $request->query->getInt('page', 1);
-        $articles = $this->newsRepository->getPaginatedArticles($page);
+        $articles = $this->newsRepository->getPaginatedArticles(
+            $request->query->getInt('page', 1),
+            6 // Number of items per page
+        );
 
         return $this->render('public/pages/news/index.html.twig', [
             'news' => $articles
@@ -77,21 +81,25 @@ class NewsController extends AbstractController
         $articles = [];
         if ($form->isSubmitted() && $form->isValid()) {
             $term = $form->get('query')->getData();
-            $articles = $this->newsRepository->searchByTerm($term);
+            $articles = $this->newsRepository->getPaginatedSearchResults(
+                $term,
+                $request->query->getInt('page', 1),
+                6
+            );
         }
 
         // Get latest articles for sidebar
         $latestArticles = $this->newsRepository->findLatest(3);
-
-        // Get categories for sidebar
         $categories = $this->categoryRepository->findByOrderedByName();
 
-        // Get all unique tags from the found articles
+        // Get all unique tags from articles
         $tags = [];
-        foreach ($articles as $article) {
-            $tags = array_merge($tags, $article->getTags());
+        if (!empty($articles)) {
+            foreach ($articles as $article) {
+                $tags = array_merge($tags, $article->getTags());
+            }
+            $tags = array_unique($tags);
         }
-        $tags = array_unique($tags);
 
         return $this->render('public/pages/news/search.html.twig', [
             'searchForm' => $form->createView(),
@@ -103,27 +111,28 @@ class NewsController extends AbstractController
     }
 
     #[Route('/tag/{tag}', name: 'tag')]
-    public function byTag(string $tag): Response
+    public function byTag(string $tag, Request $request): Response
     {
-        $articles = $this->newsRepository->findByTag($tag);
+        $articles = $this->newsRepository->getPaginatedByTag(
+            $tag,
+            $request->query->getInt('page', 1),
+            6
+        );
 
         // Create search form for sidebar
         $searchForm = $this->createForm(NewsSearchType::class, null, [
             'action' => $this->generateUrl('landing.news.search')
         ]);
 
-        // Get latest articles for sidebar
         $latestArticles = $this->newsRepository->findLatest(3);
-
-        // Get categories for sidebar
         $categories = $this->categoryRepository->findByOrderedByName();
 
-        // Collect all unique tags from articles
-        $allTags = [];
+        // Get all unique tags from articles
+        $tags = [];
         foreach ($articles as $article) {
-            $allTags = array_merge($allTags, $article->getTags());
+            $tags = array_merge($tags, $article->getTags());
         }
-        $tags = array_unique($allTags);
+        $tags = array_unique($tags);
 
         return $this->render('public/pages/news/tag.html.twig', [
             'tag' => $tag,
@@ -136,7 +145,7 @@ class NewsController extends AbstractController
     }
 
     #[Route('/category/{slug}', name: 'category')]
-    public function byCategory(string $slug): Response
+    public function byCategory(string $slug, Request $request): Response
     {
         $category = $this->categoryRepository->findOneBySlugWithArticles($slug);
 
@@ -144,24 +153,29 @@ class NewsController extends AbstractController
             throw $this->createNotFoundException('Category not found');
         }
 
+        $articles = $this->paginator->paginate(
+            $category->getArticles(),
+            $request->query->getInt('page', 1),
+            6
+        );
+
         // Create search form for sidebar
         $searchForm = $this->createForm(NewsSearchType::class, null, [
             'action' => $this->generateUrl('landing.news.search')
         ]);
 
-        // Get latest articles for sidebar
         $latestArticles = $this->newsRepository->findLatest(3);
 
         // Get all unique tags from the category's articles
         $tags = [];
-        foreach ($category->getArticles() as $article) {
+        foreach ($articles as $article) {
             $tags = array_merge($tags, $article->getTags());
         }
         $tags = array_unique($tags);
 
         return $this->render('public/pages/news/category.html.twig', [
             'category' => $category,
-            'articles' => $category->getArticles(),
+            'articles' => $articles,
             'searchForm' => $searchForm->createView(),
             'categories' => $this->categoryRepository->findByOrderedByName(),
             'latestArticles' => $latestArticles,

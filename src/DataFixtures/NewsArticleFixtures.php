@@ -10,8 +10,9 @@ use Faker\Factory;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\KernelInterface;
 use App\Entity\NewsCategory;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
-class NewsArticleFixtures extends Fixture implements DependentFixtureInterface
+class NewsArticleFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     public function __construct(
         private KernelInterface $kernel,
@@ -42,6 +43,46 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface
             'title' => 'Impact of Technology on Crowdfunding',
             'excerpt' => 'How technological advances are shaping the future of crowdfunding platforms.',
             'tags' => ['Technology', 'Innovation', 'Digital']
+        ],
+        [
+            'title' => 'Environmental Projects Leading Crowdfunding Success',
+            'excerpt' => 'How green initiatives are becoming the most funded projects on crowdfunding platforms.',
+            'tags' => ['Environment', 'Sustainability', 'Green Projects']
+        ],
+        [
+            'title' => 'Community-Based Funding Initiatives',
+            'excerpt' => 'Local communities are leveraging crowdfunding to bring their projects to life.',
+            'tags' => ['Community', 'Local Projects', 'Social Impact']
+        ],
+        [
+            'title' => 'Blockchain and Crowdfunding',
+            'excerpt' => 'Exploring the integration of blockchain technology in modern crowdfunding platforms.',
+            'tags' => ['Blockchain', 'Technology', 'Innovation']
+        ],
+        [
+            'title' => 'Art and Creative Projects Funding Guide',
+            'excerpt' => 'A comprehensive guide for artists seeking crowdfunding success.',
+            'tags' => ['Art', 'Creative', 'Funding']
+        ],
+        [
+            'title' => 'Education Projects Through Crowdfunding',
+            'excerpt' => 'How educators are using crowdfunding to enhance learning experiences.',
+            'tags' => ['Education', 'Learning', 'Schools']
+        ],
+        [
+            'title' => 'Healthcare Innovations via Crowdfunding',
+            'excerpt' => 'Medical projects finding success through community support.',
+            'tags' => ['Healthcare', 'Medical', 'Innovation']
+        ],
+        [
+            'title' => 'Small Business Crowdfunding Success Stories',
+            'excerpt' => 'Local businesses that thrived through crowdfunding support.',
+            'tags' => ['Business', 'Success Stories', 'Local']
+        ],
+        [
+            'title' => 'Global Impact of Social Crowdfunding',
+            'excerpt' => 'How international communities benefit from crowdfunding initiatives.',
+            'tags' => ['Global', 'Social Impact', 'International']
         ]
     ];
 
@@ -49,7 +90,10 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface
         'Sarah Johnson' => 'landing/images/blog/author-1.jpg',
         'Michael Chen' => 'landing/images/blog/author-2.jpg',
         'Emma Thompson' => 'landing/images/blog/author-3.jpg',
-        'David Wilson' => 'landing/images/blog/author-4.jpg'
+        'David Wilson' => 'landing/images/blog/author-4.jpg',
+        'Lisa Rodriguez' => 'landing/images/blog/author-5.jpg',
+        'James Smith' => 'landing/images/blog/author-6.jpg',
+        'Anna Wong' => 'landing/images/blog/author-7.jpg'
     ];
 
     public function load(ObjectManager $manager): void
@@ -105,17 +149,33 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface
         $sections = [];
 
         // Introduction
-        $sections[] = $faker->paragraph(3);
+        $sections[] = $faker->paragraph(4);
+
+        // Key Points
+        $sections[] = '<h2>Key Points</h2>';
+        for ($i = 0; $i < 3; $i++) {
+            $sections[] = sprintf('• %s', $faker->sentence(10));
+        }
 
         // Main content sections
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 0; $i < 4; $i++) {
             $sections[] = sprintf('<h3>%s</h3>', $faker->sentence());
+            $sections[] = $faker->paragraph(5);
             $sections[] = $faker->paragraph(4);
-            $sections[] = $faker->paragraph(3);
+
+            // Add some bullet points
+            if ($i % 2 == 0) {
+                $sections[] = '<ul>';
+                for ($j = 0; $j < 3; $j++) {
+                    $sections[] = sprintf('<li>%s</li>', $faker->sentence());
+                }
+                $sections[] = '</ul>';
+            }
         }
 
         // Conclusion
         $sections[] = '<h3>Conclusion</h3>';
+        $sections[] = $faker->paragraph(4);
         $sections[] = $faker->paragraph(3);
 
         return implode("\n\n", array_map(fn($section) => "<p>$section</p>", $sections));
@@ -126,5 +186,10 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface
         return [
             NewsCategoryFixtures::class,
         ];
+    }
+
+    public static function getGroups(): array
+    {
+        return ['NewsArticleFixtures'];
     }
 }

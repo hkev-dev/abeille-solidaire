@@ -568,22 +568,11 @@
         margin-top: 50px;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    .news-sidebar__content .card-title {
+        min-height: 3rem;
+    }
 
 }
-
-
 
 
 
@@ -1215,12 +1204,14 @@
         padding: 49px 30px 18px;
     }
 
-
-
-
-
-
-
+    .news-sidebar__content .card-title {
+        min-height: auto;
+        -webkit-line-clamp: 3;
+    }
+    
+    .news-sidebar__img {
+        aspect-ratio: 16/10;
+    }
 
 }
 
@@ -1451,6 +1442,10 @@
 
     .main-header-three__top {
         display: none;
+    }
+
+    .news-sidebar__content .card-title {
+        min-height: 3rem;
     }
 
 

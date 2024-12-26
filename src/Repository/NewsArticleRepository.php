@@ -47,6 +47,56 @@ class NewsArticleRepository extends ServiceEntityRepository
         return $this->paginator->paginate($qb, $page, $limit);
     }
 
+    public function getPaginatedSearchResults(string $term, int $page = 1, int $limit = 6): PaginationInterface
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->where('LOWER(a.title) LIKE LOWER(:term)')
+            ->orWhere('LOWER(a.content) LIKE LOWER(:term)')
+            ->orWhere('LOWER(a.excerpt) LIKE LOWER(:term)')
+            ->setParameter('term', '%' . strtolower($term) . '%')
+            ->orderBy('a.createdAt', 'DESC');
+
+        return $this->paginator->paginate($qb, $page, $limit);
+    }
+
+    public function getPaginatedByTag(string $tag, int $page = 1, int $limit = 6): PaginationInterface
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $platform = $conn->getDatabasePlatform()->getName();
+
+        if ($platform === 'postgresql') {
+            // PostgreSQL: Use raw SQL for JSON containment
+            $sql = 'SELECT n.* FROM news_article n WHERE n.tags::jsonb @> :tags';
+            $result = $conn->executeQuery($sql, ['tags' => json_encode([$tag])]);
+            $ids = array_column($result->fetchAllAssociative(), 'id');
+            
+            $qb = $this->createQueryBuilder('a')
+                ->where('a.id IN (:ids)')
+                ->setParameter('ids', $ids ?: [0]) // Prevent empty IN clause
+                ->orderBy('a.createdAt', 'DESC');
+        } else {
+            // MySQL version
+            $qb = $this->createQueryBuilder('a')
+                ->where("JSON_CONTAINS(a.tags, :tag) = 1")
+                ->setParameter('tag', json_encode($tag))
+                ->orderBy('a.createdAt', 'DESC');
+        }
+
+        return $this->paginator->paginate(
+            $qb->getQuery(),
+            $page,
+            $limit
+        );
+    }
+
+    private function isPostgres(): bool
+    {
+        return $this->getEntityManager()
+            ->getConnection()
+            ->getDatabasePlatform()
+            ->getName() === 'postgresql';
+    }
+
     public function findByTag(string $tag): array
     {
         $conn = $this->getEntityManager()->getConnection();

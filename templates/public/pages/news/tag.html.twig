@@ -1,10 +1,11 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Articles tagged with "{{ tag }}" - Qrowd Crowdfunding Platform{% endblock %}
+{% block title %}Articles tagged with "{{ tag }}" - Qrowd Crowdfunding Platform
+{% endblock %}
 
 {% block content %}
-    {# Include page header #}
-    {% include 'public/components/page-header.html.twig' with {
+	{# Include page header #}
+	{% include 'public/components/page-header.html.twig' with {
         title: 'Articles tagged with "' ~ tag ~ '"',
         breadcrumbs: [
             {label: 'Home', path: 'landing.home'},
@@ -13,34 +14,43 @@
         ]
     } %}
 
-    {# News Section #}
-    <section class="news-page">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-8 col-lg-7">
-                    <div class="row">
-                        {% if articles|length > 0 %}
-                            {% for article in articles %}
-                                <div class="col-xl-6 col-lg-6 col-md-6">
-                                    {% include 'public/components/news/news-card.html.twig' with {article: article} %}
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12">
-                                <p class="text-center">No articles found with tag "{{ tag }}"</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-xl-4 col-lg-5">
-                    {% include 'public/components/news/sidebar.html.twig' with {
+	{# News Section #}
+	<section class="news-page">
+		<div class="container">
+			<div class="row">
+				<div class="col-xl-8 col-lg-7">
+					<div class="row">
+						{% if articles|length > 0 %}
+							<div class="row">
+								{% for article in articles %}
+									<div class="col-xl-6 col-lg-6 col-md-6 mb-4">
+										{% include 'public/components/news/news-card.html.twig' with {article: article} %}
+									</div>
+								{% endfor %}
+							</div>
+
+							<div class="row mt-5">
+								<div class="col-12 d-flex justify-content-center">
+									{{ knp_pagination_render(articles, 'public/components/pagination.html.twig') }}
+								</div>
+							</div>
+
+						{% else %}
+							<div class="col-12">
+								<p class="text-center">No articles found with tag "{{ tag }}"</p>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+				<div class="col-xl-4 col-lg-5">
+					{% include 'public/components/news/sidebar.html.twig' with {
                         searchForm: searchForm,
                         latestArticles: latestArticles,
                         categories: categories,
                         tags: tags
                     } %}
-                </div>
-            </div>
-        </div>
-    </section>
+				</div>
+			</div>
+		</div>
+	</section>
 {% endblock %}
