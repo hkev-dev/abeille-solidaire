@@ -1,78 +1,59 @@
 {# templates/components/news/sidebar.html.twig #}
 <div class="sidebar">
-    {# Search Box #}
-    <div class="sidebar__single sidebar__search">
-        <form action="#" method="get" class="sidebar__search-form">
-            <input type="search" name="q" placeholder="Search here" required>
-            <button type="submit"><i class="icon-magnifying-glass"></i></button>
-        </form>
-    </div>
+	{# Search Box #}
+	<div class="sidebar__single sidebar__search">
+		{{ form_start(searchForm, {'attr': {'class': 'sidebar__search-form'}}) }}
+		{{ form_widget(searchForm.query, {'attr': {'placeholder': 'Search here'}}) }}
+		<button type="submit"><i class="icon-magnifying-glass"></i></button>
+		{{ form_end(searchForm) }}
+	</div>
 
-    {# Latest Posts #}
-    <div class="sidebar__single sidebar__post">
-        <h3 class="sidebar__title">Latest Posts</h3>
-        <ul class="sidebar__post-list list-unstyled">
-            {% for post in sidebar.latest_posts %}
-                <li>
-                    <div class="sidebar__post-image">
-                        <img src="{{ asset(post.image) }}" alt="{{ post.title }}">
-                    </div>
-                    <div class="sidebar__post-content">
-                        <h3>
-                            <span class="sidebar__post-content-meta">
-                                <i class="fas fa-clock"></i>{{ post.date }}
-                            </span>
-                            <a href="#">{{ post.title }}</a>
-                        </h3>
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
+	{# Latest Posts #}
+	<div class="sidebar__single sidebar__post">
+		<h3 class="sidebar__title">Latest Posts</h3>
+		<ul class="sidebar__post-list list-unstyled">
+			{% for article in latestArticles %}
+				<li>
+					<div class="sidebar__post-image">
+						{% if article.image %}
+							<img src="{{ vich_uploader_asset(article, 'imageFile') }}" alt="{{ article.title }}">
+						{% endif %}
+					</div>
+					<div class="sidebar__post-content">
+						<h3>
+							<span class="sidebar__post-content-meta">
+								<i class="fas fa-clock"></i>
+								{{ article.createdAt|date('d M, Y') }}
+							</span>
+							<a href="{{ path('landing.news.details', {slug: article.slug}) }}">{{ article.title }}</a>
+						</h3>
+					</div>
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
 
-    {# Categories #}
-    <div class="sidebar__single sidebar__category">
-        <h3 class="sidebar__title">Categories</h3>
-        <ul class="sidebar__category-list list-unstyled">
-            {% for category in sidebar.categories %}
-                <li {% if category == 'Charity' %}class="active"{% endif %}>
-                    <a href="#">{{ category }}<span class="icon-right-arrow"></span></a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
+	{# Categories #}
+	<div class="sidebar__single sidebar__category">
+		<h3 class="sidebar__title">Categories</h3>
+		<ul class="sidebar__category-list list-unstyled">
+			{% for category in categories %}
+				<li>
+					<a href="{{ path('landing.news.category', {slug: category.slug}) }}">
+						{{ category.name }}<span class="icon-right-arrow"></span>
+					</a>
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
 
-    {# Tags #}
-    <div class="sidebar__single sidebar__tags">
-        <h3 class="sidebar__title">Tags</h3>
-        <div class="sidebar__tags-list">
-            {% for tag in sidebar.tags %}
-                <a href="#">{{ tag }}</a>
-            {% endfor %}
-        </div>
-    </div>
-
-    {# Comments Widget #}
-    <div class="sidebar__single sidebar__comments">
-        <h3 class="sidebar__title">Comments</h3>
-        <ul class="sidebar__comments-list list-unstyled">
-            <li>
-                <div class="sidebar__comments-icon">
-                    <i class="fas fa-comment"></i>
-                </div>
-                <div class="sidebar__comments-text-box">
-                    <p>A Wordpress Commenter <br> on Launch New Mobile App</p>
-                </div>
-            </li>
-            <li>
-                <div class="sidebar__comments-icon">
-                    <i class="fas fa-comment"></i>
-                </div>
-                <div class="sidebar__comments-text-box">
-                    <p><span>John Doe on</span> Template:</p>
-                    <h5>Comments</h5>
-                </div>
-            </li>
-        </ul>
-    </div>
+	{# Tags #}
+	<div class="sidebar__single sidebar__tags">
+		<h3 class="sidebar__title">Tags</h3>
+		<div class="sidebar__tags-list">
+			{% for tag in tags %}
+				<a href="{{ path('landing.news.tag', {tag: tag}) }}">{{ tag }}</a>
+			{% endfor %}
+		</div>
+	</div>
 </div>

@@ -1,0 +1,53 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Search Results - Qrowd Crowdfunding Platform
+{% endblock %}
+
+{% block content %}
+	{# Include page header #}
+	{% include 'public/components/page-header.html.twig' with {
+        title: 'Search Results',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'News', path: 'landing.news.index'},
+            {label: 'Search', path: null}
+        ]
+    } %}
+
+	<section class="news-page">
+		<div class="container">
+			<div class="row">
+				<div class="col-xl-8 col-lg-7">
+					{% if articles is not empty %}
+						<div class="row">
+							{% for article in articles %}
+								<div class="col-xl-6 col-lg-6 col-md-6 mb-4">
+
+
+									{% include 'public/components/news/news-card.html.twig' with {article: article} %}
+								</div>
+							{% endfor %}
+						</div>
+
+						<div class="row mt-5">
+							<div class="col-12 d-flex justify-content-center">
+								{{ knp_pagination_render(articles, 'public/components/pagination.html.twig') }}
+							</div>
+						</div>
+
+					{% else %}
+						<p>No articles found matching your search criteria.</p>
+					{% endif %}
+				</div>
+				<div class="col-xl-4 col-lg-5">
+					{% include 'public/components/news/sidebar.html.twig' with {
+                        searchForm: searchForm,
+                        latestArticles: latestArticles,
+                        categories: categories,
+                        tags: tags
+                    } %}
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}

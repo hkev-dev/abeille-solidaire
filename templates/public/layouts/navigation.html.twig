@@ -14,17 +14,8 @@
     <a href="{{ path('landing.events.index') }}">Events</a>
 </li>
 
-<li class="{{ app.request.get('_route') starts with 'landing.news' ? 'current dropdown' : 'dropdown' }}">
-    <a href="#">News</a>
-    <ul class="shadow-box">
-        <li class="{{ app.request.get('_route') == 'landing.news.index' ? 'current' : '' }}">
-            <a href="{{ path('landing.news.index') }}">News</a>
-        </li>
-        <li class="{{ app.request.get('_route') == 'landing.news.sidebar' ? 'current' : '' }}">
-            <a href="{{ path('landing.news.sidebar') }}">News Sidebar</a>
-        </li>
-        {# Add other page links #}
-    </ul>
+<li class="{{ app.request.get('_route') starts with 'landing.news' ? 'current' : 'link' }}">
+    <a href="{{ path('landing.news.index') }}">News</a>
 </li>
 
 <li class="{{ app.request.get('_route') starts with 'landing.faq' ? 'current' : 'link' }}">

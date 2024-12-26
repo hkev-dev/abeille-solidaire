@@ -1,40 +1,64 @@
 {# templates/components/news/articles-list.html.twig #}
 <div class="blog-sidebar__left">
     <div class="news-sidebar__content">
-        {% for article in articles %}
-            <div class="news-sidebar__single">
-                <div class="news-sidebar__img">
-                    <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
-                    <div class="news-sidebar__date">
-                        <p>{{ article.date.day }}</p>
-                        <span>{{ article.date.month }}</span>
+        <div class="row g-4">
+            {% for article in articles %}
+                <div class="col-12">
+                    <div class="card h-100"> {# Force full height #}
+                        <div class="row g-0 h-100">
+                            <div class="col-md-4">
+                                <div class="news-sidebar__img h-100">
+                                    {% if article.image %}
+                                        <img src="{{ vich_uploader_asset(article, 'imageFile') }}" 
+                                             alt="{{ article.title }}"
+                                             class="img-fluid h-100 w-100 object-fit-cover">
+                                    {% endif %}
+                                    <div class="news-sidebar__date position-absolute bottom-0 start-0 m-3">
+                                        <p class="mb-0">{{ article.createdAt|date('d') }}</p>
+                                        <span>{{ article.createdAt|date('F')|lower }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body d-flex flex-column h-100">
+                                    <div class="news-sidebar__meta mb-2">
+                                        <ul class="list-unstyled news-sidebar__meta mb-2">
+                                            <li class="d-inline-block me-3">
+                                                <i class="fas fa-user-circle me-1"></i>
+                                                <span>by {{ article.author }}</span>
+                                            </li>
+                                            <li class="d-inline-block">
+                                                <i class="fas fa-comments me-1"></i>
+                                                <span>{{ article.commentsCount }} Comments</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <h3 class="card-title h5 text-truncate-3 mb-3">
+                                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}" 
+                                           class="text-decoration-none stretched-link">{{ article.title }}</a>
+                                    </h3>
+                                    <p class="card-text text-truncate-2">{{ article.excerpt }}</p>
+                                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <a href="{{ path('landing.news.details', {slug: article.slug}) }}"
+                                               class="btn btn-primary">Read More</a>
+                                            <span class="icon-right-arrow"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="news-sidebar__content-box">
-                    <ul class="list-unstyled news-sidebar__meta">
-                        <li>
-                            <a href="#"><i class="fas fa-user-circle"></i>by {{ article.author }}</a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fas fa-comments"></i>{{ article.comments_count }} Comments</a>
-                        </li>
-                    </ul>
-                    <h3 class="news-sidebar__title">
-                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}">{{ article.title }}</a>
-                    </h3>
-                    <p class="news-sidebar__text">{{ article.excerpt }}</p>
-                    <div class="news-sidebar__bottom">
-                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}"
-                           class="news-sidebar__read-more">Read
-                            More</a>
-                        <a href="{{ path('landing.news.details', {slug: article.slug}) }}" class="news-sidebar__arrow">
-                            <span class="icon-right-arrow"></span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
+
+    {% if articles.haveToPaginate is defined and articles.haveToPaginate %}
+        <div class="mt-4">
+            {{ knp_pagination_render(articles) }}
+        </div>
+    {% endif %}
 
     {# Bottom Info Box #}
     <div class="news-sidebar__bottom-box">

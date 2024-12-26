@@ -1,41 +1,47 @@
 {# templates/components/news/news-card.html.twig #}
-<div class="news-one__single">
+<div class="news-one__single d-flex flex-column h-100">
     <div class="news-one__img-box">
         <div class="news-one__img">
-            <img src="{{ asset(article.image) }}" alt="{{ article.title }}">
+            {% if article.image %}
+                <img src="{{ vich_uploader_asset(article, 'imageFile') }}" alt="{{ article.title }}">
+            {% endif %}
             <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
                 <span class="news-one__plus"></span>
             </a>
         </div>
         <div class="news-one__date">
-            <p>{{ article.date.day }}</p>
-            <span>{{ article.date.month }}</span>
+            <p>{{ article.createdAt|date('d') }}</p>
+            <span>{{ article.createdAt|date('F')|lower }}</span>
         </div>
     </div>
-    <div class="news-one__content">
-        <ul class="news-one__meta list-unstyled">
-            <li>
-                <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
-                    <i class="fas fa-user-circle"></i>by {{ article.author }}
-                </a>
-            </li>
-            <li>
-                <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
-                    <i class="fas fa-comments"></i>{{ article.comments_count }} Comments
-                </a>
-            </li>
-        </ul>
-        <h3 class="news-one__title">
-            <a href="{{ path('landing.news.details', {slug: article.slug}) }}">{{ article.title }}</a>
-        </h3>
-        <div class="news-one__bottom">
-            <div class="news-one__button">
-                <a href="{{ path('landing.news.details', {slug: article.slug}) }}">Read more</a>
+    <div class="news-one__content d-flex flex-column flex-grow-1">
+        <div class="news-one__content-inner d-flex flex-column h-100">
+            <ul class="news-one__meta list-unstyled">
+                <li>
+                    <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
+                        <i class="fas fa-user-circle"></i>by {{ article.author }}
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
+                        <i class="fas fa-comments"></i>{{ article.commentsCount }} Comments
+                    </a>
+                </li>
+            </ul>
+            <div class="news-one__title-wrapper flex-grow-1">
+                <h3 class="news-one__title">
+                    <a href="{{ path('landing.news.details', {slug: article.slug}) }}">{{ article.title }}</a>
+                </h3>
             </div>
-            <div class="news-one__arrow">
-                <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
-                    <span class="icon-right-arrow"></span>
-                </a>
+            <div class="news-one__bottom mt-auto">
+                <div class="news-one__button">
+                    <a href="{{ path('landing.news.details', {slug: article.slug}) }}">Read more</a>
+                </div>
+                <div class="news-one__arrow">
+                    <a href="{{ path('landing.news.details', {slug: article.slug}) }}">
+                        <span class="icon-right-arrow"></span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
