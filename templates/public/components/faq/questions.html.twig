@@ -1,5 +1,29 @@
-{# templates/components/faq/questions.html.twig #}
+{% macro highlight_text(text, query) %}
+    {% if query is defined and query %}
+        {{ text|highlight_search(query) }}
+    {% else %}
+        {{ text }}
+    {% endif %}
+{% endmacro %}
+
+{% import _self as helpers %}
+
 <section class="faq-page">
+    {% if searchQuery is defined and searchQuery %}
+        <div class="container mb-4">
+            <div class="row">
+                <div class="col-12">
+                    <h3>Search Results for: "{{ searchQuery }}"</h3>
+                    {% if searchResults|length == 0 %}
+                        <p>No FAQs found matching your search.</p>
+                    {% else %}
+                        <p>Found {{ searchResults|length }} matching results</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <div class="container">
         <div class="row">
             {# First Column #}
@@ -7,13 +31,13 @@
                 <div class="faq-page__single">
                     <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
                         {% for faq in faqs.group1 %}
-                            <div class="accrodion{% if faq.active %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
+                            <div class="accrodion{% if searchQuery is defined and searchQuery and faq.id in searchResults %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
                                 <div class="accrodion-title">
-                                    <h4>{{ faq.question }}</h4>
+                                    <h4>{{ helpers.highlight_text(faq.question, searchQuery) }}</h4>
                                 </div>
                                 <div class="accrodion-content">
                                     <div class="inner">
-                                        <p>{{ faq.answer }}</p>
+                                        <p>{{ helpers.highlight_text(faq.answer, searchQuery) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -27,13 +51,13 @@
                 <div class="faq-page__single">
                     <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-2">
                         {% for faq in faqs.group2 %}
-                            <div class="accrodion{% if faq.active %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
+                            <div class="accrodion{% if searchQuery is defined and searchQuery and faq.id in searchResults %} active{% endif %}{% if loop.last %} last-chiled{% endif %}">
                                 <div class="accrodion-title">
-                                    <h4>{{ faq.question }}</h4>
+                                    <h4>{{ helpers.highlight_text(faq.question, searchQuery) }}</h4>
                                 </div>
                                 <div class="accrodion-content">
                                     <div class="inner">
-                                        <p>{{ faq.answer }}</p>
+                                        <p>{{ helpers.highlight_text(faq.answer, searchQuery) }}</p>
                                     </div>
                                 </div>
                             </div>

@@ -8,8 +8,8 @@
                         <span class="section-title__tagline">Frequently asked questions</span>
                         <h2 class="section-title__title">How can We Help you?</h2>
                     </div>
-                    <form action="#" class="faq__search-form">
-                        <input type="search" name="q" placeholder="Search here anything..." required>
+                    <form action="{{ path('landing.faq') }}" method="GET" class="faq__search-form">
+                        <input type="search" name="q" value="{{ searchQuery|default('') }}" placeholder="Search here anything...">
                         <button type="submit"><i class="icon-magnifying-glass"></i></button>
                     </form>
                 </div>

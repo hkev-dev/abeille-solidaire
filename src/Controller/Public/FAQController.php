@@ -2,6 +2,8 @@
 
 namespace App\Controller\Public;
 
+use App\Repository\CategoryRepository;
+use App\Repository\FAQRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,71 +12,24 @@ use Symfony\Component\Routing\Attribute\Route;
 class FAQController extends AbstractController
 {
     #[Route('/faq', name: 'landing.faq')]
-    public function index(): Response
+    public function index(Request $request, CategoryRepository $categoryRepository, FAQRepository $faqRepository): Response
     {
-        $faqCategories = [
-            [
-                'icon' => 'icon-handshake',
-                'title' => 'Backers'
-            ],
-            [
-                'icon' => 'icon-coins',
-                'title' => 'Compaigns'
-            ],
-            [
-                'icon' => 'icon-bonus',
-                'title' => 'Payments'
-            ],
-            [
-                'icon' => 'icon-entrepreneur',
-                'title' => 'Entrepreneur'
-            ],
-            [
-                'icon' => 'icon-fingerprint-scan',
-                'title' => 'Legal'
-            ],
-            [
-                'icon' => 'icon-account-1',
-                'title' => 'Account'
-            ]
-        ];
+        $query = $request->query->get('q');
+        $categories = $categoryRepository->findActiveCategories();
 
-        $faqs = [
-            'group1' => [
-                [
-                    'question' => 'Is my campaign allowed on qrowd?',
-                    'answer' => 'There are many variations of passages the majority have suffered alteration in some fo injected humour, or randomised words believable.',
-                    'active' => false
-                ],
-                [
-                    'question' => 'How to soft launch your campaign',
-                    'answer' => 'There are many variations of passages the majority have suffered alteration in some fo injected humour, or randomised words believable.',
-                    'active' => true
-                ],
-                // Add more FAQs...
-            ],
-            'group2' => [
-                [
-                    'question' => 'How to soft launch your campaign',
-                    'answer' => 'There are many variations of passages the majority have suffered alteration in some fo injected humour, or randomised words believable.',
-                    'active' => false
-                ],
-                [
-                    'question' => 'Is my campaign allowed on qrowd?',
-                    'answer' => 'There are many variations of passages the majority have suffered alteration in some fo injected humour, or randomised words believable.',
-                    'active' => true
-                ],
-                [
-                    'question' => 'How to soft launch your campaign',
-                    'answer' => 'There are many variations of passages the majority have suffered alteration in some fo injected humour, or randomised words believable.',
-                    'active' => false
-                ]
-            ]
+        $allFaqs = $faqRepository->findActiveFAQs();
+        $searchResults = $query ? $faqRepository->searchFAQs($query) : [];
+
+        $groupedFaqs = [
+            'group1' => array_slice($allFaqs, 0, ceil(count($allFaqs) / 2)),
+            'group2' => array_slice($allFaqs, ceil(count($allFaqs) / 2))
         ];
 
         return $this->render('public/pages/faq/index.html.twig', [
-            'categories' => $faqCategories,
-            'faqs' => $faqs
+            'categories' => $categories,
+            'faqs' => $groupedFaqs,
+            'searchQuery' => $query,
+            'searchResults' => array_map(fn($faq) => $faq->getId(), $searchResults)
         ]);
     }
 }
