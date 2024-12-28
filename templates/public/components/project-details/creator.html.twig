@@ -1,11 +1,15 @@
 {# templates/components/project-details/creator.html.twig #}
 <div class="project-details-top__person">
     <div class="project-details-top__person-img">
-        <img src="{{ asset(creator.image) }}" alt="{{ creator.name }}">
+        {% if project.creator.avatar %}
+            <img src="{{ vich_uploader_asset(project.creator, 'avatarFile') }}" alt="{{ project.creator.fullName }}">
+        {% else %}
+            <img src="{{ asset('landing/images/default-avatar.jpg') }}" alt="{{ project.creator.fullName }}">
+        {% endif %}
     </div>
     <div class="project-details-top__person-content">
-        <h5><span>by</span>{{ creator.name }}</h5>
-        <p>{{ creator.campaigns }} Campaigns / {{ creator.backed }} Backed</p>
+        <h5><span>by</span>{{ project.creator.name }}</h5>
+        <p>{{ project.creator.projects|length }} Campaigns / {{ project.creator.backedProjects|default(0) }} Backed</p>
     </div>
 </div>
 <ul class="list-unstyled project-details-top__money">

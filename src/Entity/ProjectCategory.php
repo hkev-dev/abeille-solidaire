@@ -2,13 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\CategoryRepository;
+use App\Repository\ProjectCategoryRepository;
 use App\Entity\Trait\TimestampableTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CategoryRepository::class)]
+#[ORM\Entity(repositoryClass: ProjectCategoryRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-class Category
+class ProjectCategory
 {
     use TimestampableTrait;
 
@@ -28,6 +30,14 @@ class Category
 
     #[ORM\Column]
     private ?bool $isActive = true;
+
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Project::class)]
+    private Collection $projects;
+
+    public function __construct()
+    {
+        $this->projects = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -76,5 +86,10 @@ class Category
     {
         $this->isActive = $isActive;
         return $this;
+    }
+
+    public function getProjects(): Collection
+    {
+        return $this->projects;
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Category;
+use App\Entity\ProjectCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
-class CategoryFixtures extends Fixture
+class ProjectCategoryFixtures extends Fixture
 {
     public const CATEGORIES = [
         [
@@ -50,16 +50,15 @@ class CategoryFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         foreach (self::CATEGORIES as $categoryData) {
-            $category = new Category();
+            $category = new ProjectCategory();
             $category->setName($categoryData['name']);
             $category->setIcon($categoryData['icon']);
             $category->setProjectCount($categoryData['projectCount']);
             $category->setIsActive($categoryData['isActive']);
 
             $manager->persist($category);
-            
-            // Store reference for potential future relations
-            $this->addReference('category_' . strtolower($categoryData['name']), $category);
+
+            $this->addReference('project_category_' . strtolower($categoryData['name']), $category);
         }
 
         $manager->flush();

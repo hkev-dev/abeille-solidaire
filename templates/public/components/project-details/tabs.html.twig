@@ -11,7 +11,7 @@
         {# Story Tab #}
         <div class="tab active-tab" id="story">
             <div class="project-details__tab-box-story">
-                <p class="project-details__tab-box-story-text">{{ story }}</p>
+                {# <p class="project-details__tab-box-story-text">Story</p> #}
                 {% include 'public/components/project-details/story-content.html.twig' %}
             </div>
         </div>
@@ -19,35 +19,47 @@
         {# FAQs Tab #}
         <div class="tab" id="faqs">
             <div class="project-details__faq">
-                <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
-                    {% for faq in faqs %}
-                        <div class="accrodion{% if loop.first %} active{% endif %}">
-                            <div class="accrodion-title">
-                                <h4>{{ faq.question }}</h4>
-                            </div>
-                            <div class="accrodion-content">
-                                <div class="inner">
-                                    <p>{{ faq.answer }}</p>
+                {% if faqs is empty %}
+                    <div class="project-details__faq-empty">
+                        <p>No frequently asked questions available for this project yet.</p>
+                    </div>
+                {% else %}
+                    <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
+                        {% for faq in faqs %}
+                            <div class="accrodion{% if loop.first %} active{% endif %}">
+                                <div class="accrodion-title">
+                                    <h4>{{ faq.question }}</h4>
+                                </div>
+                                <div class="accrodion-content">
+                                    <div class="inner">
+                                        <p>{{ faq.answer }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         {# Updates Tab #}
         <div class="tab" id="updates">
             <div class="project-details__updates">
-                {% for update in updates %}
-                    <div class="project-details__updates-single{% if loop.last %} mrb-0{% endif %}">
-                        <div class="project-details__updates-title-box">
-                            <p class="project-details__updates-sub-title">{{ update.time }}</p>
-                            <h5 class="project-details__updates-title">{{ update.title }}</h5>
-                        </div>
-                        <p class="project-details__updates-text-1">{{ update.content }}</p>
+                {% if updates is empty %}
+                    <div class="project-details__updates-single">
+                        <p class="project-details__updates-text-1">No updates yet.</p>
                     </div>
-                {% endfor %}
+                {% else %}
+                    {% for update in updates %}
+                        <div class="project-details__updates-single{% if loop.last %} mrb-0{% endif %}">
+                            <div class="project-details__updates-title-box">
+                                <p class="project-details__updates-sub-title">{{ update.time }}</p>
+                                <h5 class="project-details__updates-title">{{ update.title }}</h5>
+                            </div>
+                            <p class="project-details__updates-text-1">{{ update.content }}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
 
