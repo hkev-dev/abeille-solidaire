@@ -1,35 +1,52 @@
 {# templates/components/project-details/creator.html.twig #}
 <div class="project-details-top__person">
-    <div class="project-details-top__person-img">
-        {% if project.creator.avatar %}
-            <img src="{{ vich_uploader_asset(project.creator, 'avatarFile') }}" alt="{{ project.creator.fullName }}">
-        {% else %}
-            <img src="{{ asset('landing/images/default-avatar.jpg') }}" alt="{{ project.creator.fullName }}">
-        {% endif %}
-    </div>
-    <div class="project-details-top__person-content">
-        <h5><span>by</span>{{ project.creator.name }}</h5>
-        <p>{{ project.creator.projects|length }} Campaigns / {{ project.creator.backedProjects|default(0) }} Backed</p>
-    </div>
+	<div class="project-details-top__person-img">
+		{% if project.creator.avatar %}
+			<img src="{{ vich_uploader_asset(project.creator, 'avatarFile') }}" alt="{{ project.creator.fullName }}">
+		{% else %}
+			<img src="{{ asset('landing/images/default-avatar.jpg') }}" alt="{{ project.creator.fullName }}">
+		{% endif %}
+	</div>
+	<div class="project-details-top__person-content">
+		<h5>
+			<span>by</span>
+			{{ project.creator.name }}</h5>
+		<p>{{ project.creator.projects|length }}
+			Campaigns /
+			{{ project.creator.backedProjects|default(0) }}
+			Backed</p>
+	</div>
 </div>
 <ul class="list-unstyled project-details-top__money">
-    <li>$10</li>
-    <li>$20</li>
-    <li>$30</li>
+	<li>$10</li>
+	<li>$20</li>
+	<li>$30</li>
 </ul>
 <div class="project-details-top__quantity-btn-social">
-    <div class="quantity-box">
-        <button type="button" class="sub"><i class="fa fa-minus"></i></button>
-        <input type="number" id="1" value="00" />
-        <button type="button" class="add"><i class="fa fa-plus"></i></button>
-    </div>
-    <div class="project-details-top__btn-box">
-        <a href="{{ path('landing.projects.details', {id: project.id}) }}" class="thm-btn project-details-top__btn">Back this Project</a>
-    </div>
-    <div class="project-details-top__social">
-        <a href="#"><i class="fab fa-twitter"></i></a>
-        <a href="#"><i class="fab fa-facebook"></i></a>
-        <a href="#"><i class="fab fa-pinterest-p"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-    </div>
+	<div class="quantity-box">
+		<button type="button" class="sub">
+			<i class="fa fa-minus"></i>
+		</button>
+		<input type="number" id="1" value="00"/>
+		<button type="button" class="add">
+			<i class="fa fa-plus"></i>
+		</button>
+	</div>
+	<div class="project-details-top__btn-box">
+		<a href="{{ path('landing.projects.details', {slug: project.slug}) }}" class="thm-btn project-details-top__btn">Back this Project</a>
+	</div>
+	<div class="project-details-top__social">
+		<a href="#">
+			<i class="fab fa-twitter"></i>
+		</a>
+		<a href="#">
+			<i class="fab fa-facebook"></i>
+		</a>
+		<a href="#">
+			<i class="fab fa-pinterest-p"></i>
+		</a>
+		<a href="#">
+			<i class="fab fa-instagram"></i>
+		</a>
+	</div>
 </div>

@@ -36,10 +36,14 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'details')]
-    public function details(Project $project): Response
+    #[Route('/{slug}', name: 'details')]
+    public function details(string $slug): Response
     {
-        // Using ParamConverter to automatically fetch the project
+        $project = $this->projectRepository->findOneBySlug($slug);
+
+        if (!$project) {
+            throw $this->createNotFoundException('Project not found');
+        }
 
         // Get similar projects (same category, excluding current project)
         $similarProjects = $this->projectRepository->findBy(

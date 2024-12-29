@@ -1,49 +1,54 @@
 {# templates/components/project-card.html.twig #}
 <div class="project-one__single">
-    <div class="project-one__img-box">
-        <div class="project-one__img">
-            {% if project.image %}
-                <img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
-            {% endif %}
-        </div>
-        <div class="project-one__icon">
-            <i class="far fa-heart"></i>
-        </div>
-    </div>
-    <div class="project-one__content">
-        <div class="project-one__tag">
-            <p>{{ project.category.name }}</p>
-        </div>
-        <h3 class="project-one__title">
-            <a href="{{ path('landing.projects.details', {id: project.id}) }}">{{ project.title }}</a>
-        </h3>
-        <div class="project-one__remaing">
-            <div class="icon">
-                <i class="fa fa-clock"></i>
-            </div>
-            <div class="text">
-                <p>{{ project.daysLeft }} Days Remaining</p>
-            </div>
-        </div>
-        <div class="progress-levels">
-            <div class="progress-box">
-                <div class="inner count-box">
-                    <div class="text">Raised</div>
-                    <div class="bar">
-                        <div class="bar-innner">
-                            <div class="skill-percent">
-                                <span class="count-text" data-speed="3000" data-stop="{{ project.progress|round }}">0</span>
-                                <span class="percent">%</span>
-                            </div>
-                            <div class="bar-fill" data-percent="{{ project.progress|round }}"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="project-one__goals">
-            <p class="project-one__goals-one">Achieved:<span>{{ project.pledged|number_format }} €</span></p>
-            <p class="project-one__goals-one">Goal:<span>{{ project.goal|number_format }} €</span></p>
-        </div>
-    </div>
+	<div class="project-one__img-box">
+		<div class="project-one__img">
+			{% if project.image %}
+				<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
+			{% endif %}
+		</div>
+		<div class="project-one__icon">
+			<i class="far fa-heart"></i>
+		</div>
+	</div>
+	<div class="project-one__content">
+		<div class="project-one__tag">
+			<p>{{ project.category.name }}</p>
+		</div>
+		<h3 class="project-one__title">
+			<a href="{{ path('landing.projects.details', {slug: project.slug}) }}">{{ project.title }}</a>
+		</h3>
+		<div class="project-one__remaing">
+			<div class="icon">
+				<i class="fa fa-clock"></i>
+			</div>
+			<div class="text">
+				<p>{{ project.daysLeft }}
+					Days Remaining</p>
+			</div>
+		</div>
+		<div class="progress-levels">
+			<div class="progress-box">
+				<div class="inner count-box">
+					<div class="text">Raised</div>
+					<div class="bar">
+						<div class="bar-innner">
+							<div class="skill-percent">
+								<span class="count-text" data-speed="3000" data-stop="{{ project.progress|round }}">0</span>
+								<span class="percent">%</span>
+							</div>
+							<div class="bar-fill" data-percent="{{ project.progress|round }}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="project-one__goals">
+			<p class="project-one__goals-one">Achieved:<span>{{ project.pledged|number_format }}
+					€</span>
+			</p>
+			<p class="project-one__goals-one">Goal:<span>{{ project.goal|number_format }}
+					€</span>
+			</p>
+		</div>
+	</div>
 </div>
