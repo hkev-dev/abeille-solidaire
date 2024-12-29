@@ -26,6 +26,20 @@ class UserFixtures extends Fixture
             'roles' => ['ROLE_USER']
         ],
         [
+            'email' => 'alice.wonder@example.com',
+            'username' => 'alice_wonder',
+            'name' => 'Alice Wonder',
+            'password' => 'password123',
+            'roles' => ['ROLE_USER']
+        ],
+        [
+            'email' => 'bob.builder@example.com',
+            'username' => 'bob_builder',
+            'name' => 'Bob Builder',
+            'password' => 'password123',
+            'roles' => ['ROLE_USER']
+        ],
+        [
             'email' => 'admin@example.com',
             'username' => 'admin',
             'name' => 'Admin User',

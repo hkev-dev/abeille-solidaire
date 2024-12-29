@@ -4,21 +4,32 @@ namespace App\Controller\Public;
 
 use App\Repository\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Project;
 
 #[Route('/projects', name: 'landing.projects.')]
 class ProjectController extends AbstractController
 {
     public function __construct(
-        private ProjectRepository $projectRepository
+        private ProjectRepository $projectRepository,
+        private PaginatorInterface $paginator
     ) {}
 
     #[Route('/', name: 'index')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $projects = $this->projectRepository->findAll();
+        $query = $this->projectRepository->createQueryBuilder('p')
+            ->orderBy('p.createdAt', 'DESC')
+            ->getQuery();
+
+        $projects = $this->paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            9 // Number of items per page
+        );
 
         return $this->render('public/pages/projects/index.html.twig', [
             'projects' => $projects

@@ -8,40 +8,30 @@ use App\Entity\ProjectReview;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Faker\Factory;
 
 class ProjectReviewFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $reviews = [
-            [
-                'project' => 'audiophile_first_smart_wireless_headphones',
-                'author' => 'jane_smith',
-                'comment' => 'The features look amazing! Looking forward to testing the noise cancellation.',
-                'rating' => 5
-            ],
-            [
-                'project' => 'audiophile_first_smart_wireless_headphones',
-                'author' => 'john_doe',
-                'comment' => 'Innovative concept, especially the AI features.',
-                'rating' => 4
-            ],
-            [
-                'project' => 'eco_friendly_fashion_collection',
-                'author' => 'john_doe',
-                'comment' => 'Love the sustainable approach to fashion.',
-                'rating' => 5
-            ]
-        ];
+        $faker = Factory::create();
+        $userRepository = $manager->getRepository(User::class);
+        $users = $userRepository->findAll();
 
-        foreach ($reviews as $reviewData) {
-            $review = new ProjectReview();
-            $review->setProject($this->getReference('project_' . $reviewData['project'], Project::class))
-                ->setAuthor($this->getReference('user_' . $reviewData['author'], User::class))
-                ->setComment($reviewData['comment'])
-                ->setRating($reviewData['rating']);
+        // For each project (0-19 as per ProjectFixtures), create 2-5 reviews
+        for ($i = 0; $i < 20; $i++) {
+            $project = $this->getReference('project_' . $i, Project::class);
+            $numReviews = $faker->numberBetween(2, 5);
 
-            $manager->persist($review);
+            for ($j = 0; $j < $numReviews; $j++) {
+                $review = new ProjectReview();
+                $review->setProject($project)
+                    ->setAuthor($faker->randomElement($users))
+                    ->setComment($faker->realText(200))
+                    ->setRating($faker->numberBetween(3, 5)); // Slightly biased towards positive reviews
+
+                $manager->persist($review);
+            }
         }
 
         $manager->flush();

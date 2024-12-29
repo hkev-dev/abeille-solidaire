@@ -8,57 +8,26 @@ use Doctrine\Persistence\ObjectManager;
 
 class ProjectCategoryFixtures extends Fixture
 {
-    public const CATEGORIES = [
-        [
-            'name' => 'Technology',
-            'icon' => 'icon-online',
-            'projectCount' => 15,
-            'isActive' => true
-        ],
-        [
-            'name' => 'Fashion',
-            'icon' => 'icon-skincare',
-            'projectCount' => 8,
-            'isActive' => true
-        ],
-        [
-            'name' => 'Videos',
-            'icon' => 'icon-photograph',
-            'projectCount' => 12,
-            'isActive' => true
-        ],
-        [
-            'name' => 'Education',
-            'icon' => 'icon-translation',
-            'projectCount' => 20,
-            'isActive' => true
-        ],
-        [
-            'name' => 'Design',
-            'icon' => 'icon-design-thinking',
-            'projectCount' => 10,
-            'isActive' => true
-        ],
-        [
-            'name' => 'Medical',
-            'icon' => 'icon-patient',
-            'projectCount' => 5,
-            'isActive' => true
-        ]
+    private array $categories = [
+        'technology' => ['name' => 'Technology', 'icon' => 'fas fa-microchip'],
+        'fashion' => ['name' => 'Fashion', 'icon' => 'fas fa-tshirt'],
+        'design' => ['name' => 'Design', 'icon' => 'fas fa-pencil-ruler'],
+        'food' => ['name' => 'Food', 'icon' => 'fas fa-utensils'],
+        'art' => ['name' => 'Art', 'icon' => 'fas fa-palette'],
+        'games' => ['name' => 'Games', 'icon' => 'fas fa-gamepad']
     ];
 
     public function load(ObjectManager $manager): void
     {
-        foreach (self::CATEGORIES as $categoryData) {
+        foreach ($this->categories as $slug => $data) {
             $category = new ProjectCategory();
-            $category->setName($categoryData['name']);
-            $category->setIcon($categoryData['icon']);
-            $category->setProjectCount($categoryData['projectCount']);
-            $category->setIsActive($categoryData['isActive']);
+            $category->setName($data['name'])
+                    ->setIcon($data['icon'])
+                    ->setIsActive(true)
+                    ->setProjectCount(0);
 
             $manager->persist($category);
-
-            $this->addReference('project_category_' . strtolower($categoryData['name']), $category);
+            $this->addReference('project_category_' . $slug, $category);
         }
 
         $manager->flush();

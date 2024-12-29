@@ -97,7 +97,7 @@ class ProjectUpdate
         if ($interval->h > 0) {
             return $interval->h . ' Hours Ago';
         }
-        
+
         return 'Just Now';
     }
 }
