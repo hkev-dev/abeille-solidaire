@@ -16,7 +16,11 @@ class ProjectUpdate
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\ManyToOne(inversedBy: 'updates')]
     #[ORM\JoinColumn(nullable: false)]
@@ -30,11 +34,6 @@ class ProjectUpdate
 
     #[ORM\Column]
     private bool $isMilestone = false;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getProject(): ?Project
     {

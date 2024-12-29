@@ -3,57 +3,31 @@
 namespace App\Controller\Public;
 
 use App\Repository\MainSliderRepository;
+use App\Repository\NewsArticleRepository;
 use App\Repository\ProjectCategoryRepository;
+use App\Repository\ProjectRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'landing.home')]
     public function index(
-        MainSliderRepository $mainSliderRepository,
-        ProjectCategoryRepository $categoryRepository
-    ): Response {
+        MainSliderRepository      $mainSliderRepository,
+        ProjectCategoryRepository $categoryRepository,
+        ProjectRepository         $projectRepository,
+        NewsArticleRepository     $newsRepository
+    ): Response
+    {
         // Get active slides from database
         $mainSlides = $mainSliderRepository->findActiveSlides();
 
         // Get active categories from database
         $projectCategories = $categoryRepository->findActiveCategories();
 
-        // Featured Projects Data
-        $featuredProjects = [
-            [
-                'id' => 1,
-                'image' => 'landing/images/project/project-1-1.jpg',
-                'title' => 'AudioPhile – First Smart Wireless Headphones',
-                'category' => 'Technology',
-                'remainingDays' => 275,
-                'progressPercentage' => 70,
-                'achievedAmount' => 39000,
-                'goalAmount' => 55000
-            ],
-            [
-                'id' => 2,
-                'image' => 'landing/images/project/project-1-2.jpg',
-                'title' => 'Bourne – Travel Briefcase and Padfolio',
-                'category' => 'Fashion',
-                'remainingDays' => 180,
-                'progressPercentage' => 80,
-                'achievedAmount' => 45000,
-                'goalAmount' => 60000
-            ],
-            [
-                'id' => 3,
-                'image' => 'landing/images/project/project-1-3.jpg',
-                'title' => 'OfficeX – Luxury Seating for your Office',
-                'category' => 'Design',
-                'remainingDays' => 90,
-                'progressPercentage' => 90,
-                'achievedAmount' => 52000,
-                'goalAmount' => 65000
-            ]
-        ];
+        // Get featured projects from database (3 most funded active projects)
+        $featuredProjects = $projectRepository->findActive();
 
         // Why Choose Content
         $whyChooseContent = [
@@ -70,32 +44,8 @@ class HomeController extends AbstractController
             ]
         ];
 
-        // Recommended Projects
-        $recommendedProjectsList = [
-            [
-                'id' => 4,
-                'image' => 'landing/images/resources/recommended-1-1.jpg',
-                'title' => 'OfficeX – Luxury Seating for your Office',
-                'category' => 'Design',
-                'remainingDays' => 20,
-                'progressPercentage' => 70,
-                'currentAmount' => 35000,
-                'goalAmount' => 55000,
-                'backersCount' => 12
-            ],
-            [
-                'id' => 5,
-                'image' => 'landing/images/resources/recommended-1-2.jpg',
-                'title' => 'AudioPhile – First Smart Wireless Headphones',
-                'category' => 'Technology',
-                'remainingDays' => 20,
-                'progressPercentage' => 70,
-                'currentAmount' => 35000,
-                'goalAmount' => 55000,
-                'backersCount' => 12
-            ],
-            // Add more recommended projects...
-        ];
+        // Get recommended projects from database
+        $recommendedProjectsList = $projectRepository->findActive();
 
         // Testimonials
         $testimonialsList = [
@@ -135,33 +85,8 @@ class HomeController extends AbstractController
             // Add more brands...
         ];
 
-        // Latest News
-        $latestNews = [
-            [
-                'image' => 'landing/images/blog/news-1-1.jpg',
-                'title' => 'Money markets rates finding the best accounts',
-                'slug' => 'money-markets-rates',
-                'date' => new \DateTime('2024-02-28'),
-                'author' => 'Admin',
-                'commentsCount' => 2
-            ],
-            [
-                'image' => 'landing/images/blog/news-1-2.jpg',
-                'title' => 'Future where technology creates good jobs',
-                'slug' => 'future-technology-jobs',
-                'date' => new \DateTime('2024-02-27'),
-                'author' => 'Admin',
-                'commentsCount' => 4
-            ],
-            [
-                'image' => 'landing/images/blog/news-1-3.jpg',
-                'title' => 'The life of entrepreneur & business co founders',
-                'slug' => 'entrepreneur-life',
-                'date' => new \DateTime('2024-02-26'),
-                'author' => 'Admin',
-                'commentsCount' => 6
-            ]
-        ];
+        // Get latest news from database
+        $latestNews = $newsRepository->findLatest();
 
         // Ready Section Content
         $readyContent = [
@@ -172,7 +97,7 @@ class HomeController extends AbstractController
         // Video Section
         $videoContent = [
             'videoUrl' => 'https://www.youtube.com/watch?v=Get7rqXYrbQ',
-            'videoTitle' => 'Qrowd is evolving the way<br>individuals works'
+            'videoTitle' => 'Abeille Solidaire is evolving the way<br>individuals works'
         ];
 
         return $this->render('public/pages/home.html.twig', [

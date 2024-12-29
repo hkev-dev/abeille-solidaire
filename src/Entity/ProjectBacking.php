@@ -16,7 +16,11 @@ class ProjectBacking
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\ManyToOne(inversedBy: 'backings')]
     #[ORM\JoinColumn(nullable: false)]
@@ -34,11 +38,6 @@ class ProjectBacking
 
     #[ORM\Column]
     private bool $isAnonymous = false;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getProject(): ?Project
     {

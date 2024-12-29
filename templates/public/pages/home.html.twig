@@ -15,7 +15,7 @@
 
     {# Featured Projects #}
     {% include 'public/components/projects.html.twig' with {
-        projects: featuredProjects
+        projects: featuredProjects|slice(0, 3)
     } %}
 
     <div class="black-bg background-repeat-no background-position-top-right"
@@ -35,7 +35,7 @@
 
     {# Recommended Projects #}
     {% include 'public/components/recommended.html.twig' with {
-        recommendedProjects: recommendedProjectsList
+        recommendedProjects: recommendedProjectsList|slice(0, 4)
     } %}
 
     {# Video Section #}

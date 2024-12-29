@@ -39,12 +39,4 @@ class ProjectStoryRepository extends ServiceEntityRepository
         }
     }
 
-    public function findByProject($projectId): ?ProjectStory
-    {
-        return $this->createQueryBuilder('ps')
-            ->andWhere('ps.project = :projectId')
-            ->setParameter('projectId', $projectId)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
 }

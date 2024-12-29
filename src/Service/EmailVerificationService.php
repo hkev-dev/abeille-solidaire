@@ -3,18 +3,18 @@
 namespace App\Service;
 
 use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
 readonly class EmailVerificationService
 {
     public function __construct(
-        private MailerInterface       $mailer,
-        private UrlGeneratorInterface $urlGenerator,
+        private MailerInterface        $mailer,
+        private UrlGeneratorInterface  $urlGenerator,
         private EntityManagerInterface $entityManager
     )
     {
@@ -36,7 +36,7 @@ readonly class EmailVerificationService
             'token' => $token
         ], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        $email = (new TemplatedEmail())
+        $email = new TemplatedEmail()
             ->from('no-reply@qrowd.com')
             ->sender('Qrowd Platform <noreply@qrowd.com>')
             ->to($user->getEmail())

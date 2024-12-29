@@ -10,7 +10,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture
 {
-    private const STATIC_USERS = [
+    private const array STATIC_USERS = [
         [
             'email' => 'john.doe@example.com',
             'username' => 'john_doe',
@@ -50,7 +50,9 @@ class UserFixtures extends Fixture
 
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher
-    ) {}
+    )
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {

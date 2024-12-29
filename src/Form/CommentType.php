@@ -36,8 +36,7 @@ class CommentType extends AbstractType
                     'placeholder' => 'Write your comment here...',
                     'rows' => 5
                 ]
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

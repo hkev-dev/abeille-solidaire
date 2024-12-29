@@ -11,11 +11,12 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
+readonly class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
-    ) {
+        private EntityManagerInterface $entityManager
+    )
+    {
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface

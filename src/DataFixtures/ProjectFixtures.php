@@ -8,9 +8,9 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Faker\Factory;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ProjectFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -24,8 +24,10 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
     ];
 
     public function __construct(
-        private KernelInterface $kernel,
-    ) {}
+        private readonly ParameterBagInterface $parameterBag
+    )
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -34,7 +36,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         // Generate 20 projects
         for ($i = 0; $i < 20; $i++) {
             $project = new Project();
-            $project->setTitle($faker->catchPhrase())
+            $project->setTitle($faker->sentence())
                 ->setDescription($faker->paragraphs(2, true))
                 ->setGoal($faker->numberBetween(10000, 100000))
                 ->setPledged($faker->numberBetween(0, 90000))
@@ -46,9 +48,9 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
 
             // Handle image upload - cycle through existing images
             $imageFile = $faker->randomElement($this->images);
-            $sourcePath = $this->kernel->getProjectDir() . '/assets/landing/images/' . $imageFile;
+            $sourcePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/' . $imageFile;
             if (file_exists($sourcePath)) {
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/projects';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/projects';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -72,14 +74,6 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $manager->flush();
-    }
-
-    private function slugify(string $text): string
-    {
-        // Replace all special characters and spaces with underscores
-        $text = preg_replace('/[^\p{L}\p{N}]+/u', '_', $text);
-        $text = trim($text, '_');
-        return strtolower($text);
     }
 
     public function getDependencies(): array

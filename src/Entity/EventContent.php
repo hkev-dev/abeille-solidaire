@@ -11,7 +11,11 @@ class EventContent
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\OneToOne(inversedBy: 'content')]
     private ?Event $event = null;
@@ -21,11 +25,6 @@ class EventContent
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $requirements = null;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getEvent(): ?Event
     {

@@ -4,9 +4,9 @@ namespace App\DataFixtures;
 
 use App\Entity\Project;
 use App\Entity\ProjectReward;
-use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 
 class ProjectRewardFixtures extends Fixture implements DependentFixtureInterface

@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Repository\FAQRepository;
 use App\Entity\Trait\TimestampableTrait;
+use App\Repository\FAQRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FAQRepository::class)]
@@ -15,7 +15,11 @@ class FAQ
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $question = null;
@@ -28,11 +32,6 @@ class FAQ
 
     #[ORM\Column]
     private ?int $position = 0;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getQuestion(): ?string
     {

@@ -15,8 +15,7 @@ class NewsSearchType extends AbstractType
             ->add('query', SearchType::class, [
                 'label' => false,
                 'required' => false,
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -40,7 +40,9 @@
                             {# Project Image #}
                             <div class="project-one__img-box">
                                 <div class="project-one__img">
-                                    <img src="{{ asset(project.image) }}" alt="{{ project.title }}">
+                                    {% if project.image %}
+                                        <img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
+                                    {% endif %}
                                 </div>
                                 <div class="project-one__icon">
                                     <i class="far fa-heart"></i>
@@ -50,10 +52,10 @@
                             {# Project Content #}
                             <div class="project-one__content">
                                 <div class="project-one__tag">
-                                    <p>{{ project.category }}</p>
+                                    <p>{{ project.category.name }}</p>
                                 </div>
                                 <h3 class="project-one__title">
-                                    <a href="#">
+                                    <a href="{{ path('landing.projects.details', {slug: project.slug}) }}">
                                         {{ project.title }}
                                     </a>
                                 </h3>
@@ -62,7 +64,7 @@
                                         <i class="fa fa-clock"></i>
                                     </div>
                                     <div class="text">
-                                        <p>{{ project.remainingDays }} Days Remaining</p>
+                                        <p>{{ project.daysLeft }} Days Remaining</p>
                                     </div>
                                 </div>
 
@@ -75,10 +77,10 @@
                                                 <div class="bar-innner">
                                                     <div class="skill-percent">
                                                         <span class="count-text" data-speed="3000" 
-                                                              data-stop="{{ project.progressPercentage }}">0</span>
+                                                              data-stop="{{ project.progress|round }}">0</span>
                                                         <span class="percent">%</span>
                                                     </div>
-                                                    <div class="bar-fill" data-percent="{{ project.progressPercentage }}"></div>
+                                                    <div class="bar-fill" data-percent="{{ project.progress|round }}"></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -88,10 +90,10 @@
                                 {# Project Goals #}
                                 <div class="project-one__goals">
                                     <p class="project-one__goals-one">
-                                        Achieved:<span>${{ project.achievedAmount|number_format(0, '.', ',') }}</span>
+                                        Achieved:<span>{{ project.pledged|number_format(0, '.', ',') }} €</span>
                                     </p>
                                     <p class="project-one__goals-one">
-                                        Goal:<span>${{ project.goalAmount|number_format(0, '.', ',') }}</span>
+                                        Goal:<span>{{ project.goal|number_format(0, '.', ',') }} €</span>
                                     </p>
                                 </div>
                             </div>

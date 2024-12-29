@@ -15,7 +15,11 @@ class ProjectFAQ
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\ManyToOne(inversedBy: 'faqs')]
     #[ORM\JoinColumn(nullable: false)]
@@ -26,11 +30,6 @@ class ProjectFAQ
 
     #[ORM\Column(type: 'text')]
     private ?string $answer = null;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getProject(): ?Project
     {

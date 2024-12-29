@@ -19,7 +19,11 @@ class ProjectStory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\Column(type: Types::JSON)]
     private array $keyPoints = [];
@@ -42,11 +46,6 @@ class ProjectStory
     #[ORM\OneToOne(inversedBy: 'story')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Project $project = null;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getKeyPoints(): array
     {

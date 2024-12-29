@@ -22,9 +22,9 @@ class ProjectCategoryFixtures extends Fixture
         foreach ($this->categories as $slug => $data) {
             $category = new ProjectCategory();
             $category->setName($data['name'])
-                    ->setIcon($data['icon'])
-                    ->setIsActive(true)
-                    ->setProjectCount(0);
+                ->setIcon($data['icon'])
+                ->setIsActive(true)
+                ->setProjectCount(0);
 
             $manager->persist($category);
             $this->addReference('project_category_' . $slug, $category);

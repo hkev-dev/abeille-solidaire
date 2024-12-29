@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Repository\MainSliderRepository;
 use App\Entity\Trait\TimestampableTrait;
+use App\Repository\MainSliderRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
@@ -18,16 +18,34 @@ class MainSlider
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[Vich\UploadableField(mapping: 'slides', fileNameProperty: 'imageName', size: 'imageSize')]
     private ?File $imageFile = null;
 
     #[ORM\Column(nullable: true)]
-    private ?string $imageName = null;
+    public ?string $imageName = null {
+        get {
+            return $this->imageName;
+        }
+        set {
+            $this->imageName = $value;
+        }
+    }
 
     #[ORM\Column(nullable: true)]
-    private ?int $imageSize = null;
+    public ?int $imageSize = null {
+        get {
+            return $this->imageSize;
+        }
+        set {
+            $this->imageSize = $value;
+        }
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $subtitle = null;
@@ -55,31 +73,6 @@ class MainSlider
     public function getImageFile(): ?File
     {
         return $this->imageFile;
-    }
-
-    public function setImageName(?string $imageName): void
-    {
-        $this->imageName = $imageName;
-    }
-
-    public function getImageName(): ?string
-    {
-        return $this->imageName;
-    }
-    
-    public function setImageSize(?int $imageSize): void
-    {
-        $this->imageSize = $imageSize;
-    }
-
-    public function getImageSize(): ?int
-    {
-        return $this->imageSize;
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getSubtitle(): ?string

@@ -22,7 +22,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -33,7 +37,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\OneToMany(mappedBy: 'creator', targetEntity: Project::class)]
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
     private Collection $projects;
 
     #[ORM\Column]
@@ -63,18 +67,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
-    #[ORM\OneToMany(mappedBy: 'backer', targetEntity: ProjectBacking::class)]
+    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
     private Collection $backedProjects;
 
     public function __construct()
     {
         $this->projects = new ArrayCollection();
         $this->backedProjects = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getName(): ?string
@@ -110,11 +109,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProjects(): Collection
-    {
-        return $this->projects;
-    }
-
     public function addProject(Project $project): self
     {
         if (!$this->projects->contains($project)) {
@@ -135,6 +129,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function getProjects(): Collection
+    {
+        return $this->projects;
     }
 
     public function getBackedCount(): int

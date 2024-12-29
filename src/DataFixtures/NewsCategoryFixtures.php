@@ -8,7 +8,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class NewsCategoryFixtures extends Fixture
 {
-    private const CATEGORIES = [
+    private const array CATEGORIES = [
         'Crowdfunding News',
         'Success Stories',
         'Platform Updates',
@@ -21,7 +21,7 @@ class NewsCategoryFixtures extends Fixture
         foreach (self::CATEGORIES as $index => $name) {
             $category = new NewsCategory();
             $category->setName($name);
-            
+
             $manager->persist($category);
             $this->addReference('news_category_' . $index, $category);
         }

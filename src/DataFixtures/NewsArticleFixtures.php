@@ -3,22 +3,25 @@
 namespace App\DataFixtures;
 
 use App\Entity\NewsArticle;
+use App\Entity\NewsCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Faker\Generator;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\KernelInterface;
-use App\Entity\NewsCategory;
-use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 class NewsArticleFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     public function __construct(
-        private KernelInterface $kernel,
-    ) {}
+        private readonly ParameterBagInterface $parameterBag
+    )
+    {
+    }
 
-    private const ARTICLES = [
+    private const array ARTICLES = [
         [
             'title' => 'How Crowdfunding Is Changing The World',
             'excerpt' => 'Discover the revolutionary impact of crowdfunding on global innovation and social causes.',
@@ -86,7 +89,7 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface, 
         ]
     ];
 
-    private const AUTHORS = [
+    private const array AUTHORS = [
         'Sarah Johnson' => 'landing/images/blog/author-1.jpg',
         'Michael Chen' => 'landing/images/blog/author-2.jpg',
         'Emma Thompson' => 'landing/images/blog/author-3.jpg',
@@ -116,9 +119,9 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface, 
             $imageNumber = ($index % 6) + 1;
             $sourceImage = "news-1-{$imageNumber}.jpg";
 
-            $sourcePath = $this->kernel->getProjectDir() . '/assets/landing/images/blog/' . $sourceImage;
+            $sourcePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/blog/' . $sourceImage;
             if (file_exists($sourcePath)) {
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/news';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/news';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -144,7 +147,7 @@ class NewsArticleFixtures extends Fixture implements DependentFixtureInterface, 
         $manager->flush();
     }
 
-    private function generateContent(\Faker\Generator $faker): string
+    private function generateContent(Generator $faker): string
     {
         $sections = [];
 

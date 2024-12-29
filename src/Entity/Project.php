@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
-use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -22,7 +22,11 @@ class Project
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
@@ -59,22 +63,22 @@ class Project
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 
-    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectUpdate::class)]
+    #[ORM\OneToMany(targetEntity: ProjectUpdate::class, mappedBy: 'project')]
     private Collection $updates;
 
-    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectReview::class)]
+    #[ORM\OneToMany(targetEntity: ProjectReview::class, mappedBy: 'project')]
     private Collection $reviews;
 
-    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectReward::class)]
+    #[ORM\OneToMany(targetEntity: ProjectReward::class, mappedBy: 'project')]
     private Collection $rewards;
 
-    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectFAQ::class)]
+    #[ORM\OneToMany(targetEntity: ProjectFAQ::class, mappedBy: 'project')]
     private Collection $faqs;
 
-    #[ORM\OneToOne(mappedBy: 'project', targetEntity: ProjectStory::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: ProjectStory::class, mappedBy: 'project', cascade: ['persist', 'remove'])]
     private ?ProjectStory $story = null;
 
-    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectBacking::class)]
+    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'project')]
     private Collection $backings;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -91,11 +95,6 @@ class Project
     }
 
     // Add getters and setters for all properties
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getTitle(): ?string
     {
@@ -268,6 +267,21 @@ class Project
         return $this->reviews;
     }
 
+    public function getRewards(): Collection
+    {
+        return $this->rewards;
+    }
+
+    public function getFaqs(): Collection
+    {
+        return $this->faqs;
+    }
+
+    public function getBackings(): Collection
+    {
+        return $this->backings;
+    }
+
     public function addReview(ProjectReview $review): static
     {
         if (!$this->reviews->contains($review)) {
@@ -285,11 +299,6 @@ class Project
             }
         }
         return $this;
-    }
-
-    public function getRewards(): Collection
-    {
-        return $this->rewards;
     }
 
     public function addReward(ProjectReward $reward): static
@@ -311,11 +320,6 @@ class Project
         return $this;
     }
 
-    public function getFaqs(): Collection
-    {
-        return $this->faqs;
-    }
-
     public function addFaq(ProjectFAQ $faq): static
     {
         if (!$this->faqs->contains($faq)) {
@@ -333,11 +337,6 @@ class Project
             }
         }
         return $this;
-    }
-
-    public function getBackings(): Collection
-    {
-        return $this->backings;
     }
 
     public function addBacking(ProjectBacking $backing): static

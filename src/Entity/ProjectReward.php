@@ -15,7 +15,11 @@ class ProjectReward
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\ManyToOne(inversedBy: 'rewards')]
     #[ORM\JoinColumn(nullable: false)]
@@ -35,11 +39,6 @@ class ProjectReward
 
     #[ORM\Column]
     private int $backerCount = 0;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getProject(): ?Project
     {

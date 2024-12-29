@@ -12,24 +12,4 @@ class ProjectBackingRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ProjectBacking::class);
     }
-
-    public function findByProject($projectId)
-    {
-        return $this->createQueryBuilder('pb')
-            ->andWhere('pb.project = :projectId')
-            ->setParameter('projectId', $projectId)
-            ->orderBy('pb.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findByUser($userId)
-    {
-        return $this->createQueryBuilder('pb')
-            ->andWhere('pb.backer = :userId')
-            ->setParameter('userId', $userId)
-            ->orderBy('pb.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
 }

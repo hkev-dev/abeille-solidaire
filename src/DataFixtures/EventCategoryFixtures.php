@@ -8,7 +8,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class EventCategoryFixtures extends Fixture
 {
-    public const CATEGORIES = [
+    public const array CATEGORIES = [
         'workshop' => [
             'name' => 'Workshop',
             'icon' => 'fas fa-chalkboard-teacher'
@@ -29,7 +29,7 @@ class EventCategoryFixtures extends Fixture
             $category = new EventCategory();
             $category->setName($categoryData['name']);
             $category->setIcon($categoryData['icon']);
-            
+
             $manager->persist($category);
             $this->addReference('event_category_' . $key, $category);
         }

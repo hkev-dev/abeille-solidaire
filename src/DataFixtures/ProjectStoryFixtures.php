@@ -7,9 +7,10 @@ use App\Entity\ProjectStory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Faker\Factory;
+use Faker\Provider\Lorem;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ProjectStoryFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -34,13 +35,15 @@ class ProjectStoryFixtures extends Fixture implements DependentFixtureInterface
     ];
 
     public function __construct(
-        private KernelInterface $kernel,
-    ) {}
+        private readonly ParameterBagInterface $parameterBag
+    )
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
-        $faker->addProvider(new \Faker\Provider\Lorem($faker));
+        $faker->addProvider(new Lorem($faker));
 
         $projects = $manager->getRepository(Project::class)->findAll();
 
@@ -54,9 +57,9 @@ class ProjectStoryFixtures extends Fixture implements DependentFixtureInterface
             $story->setParagraphs($this->staticStoryData['paragraphs']);
 
             // Handle main image (just first one)
-            $mainImagePath = $this->kernel->getProjectDir() . '/assets/landing/images/' . $this->staticStoryData['galleryImages']['main'][0];
+            $mainImagePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/' . $this->staticStoryData['galleryImages']['main'][0];
             if (file_exists($mainImagePath)) {
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/projects/stories/main';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/projects/stories/main';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -76,9 +79,9 @@ class ProjectStoryFixtures extends Fixture implements DependentFixtureInterface
             }
 
             // Handle secondary image
-            $secondaryImagePath = $this->kernel->getProjectDir() . '/assets/landing/images/' . $this->staticStoryData['galleryImages']['secondary'];
+            $secondaryImagePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/' . $this->staticStoryData['galleryImages']['secondary'];
             if (file_exists($secondaryImagePath)) {
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/projects/stories/secondary';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/projects/stories/secondary';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }

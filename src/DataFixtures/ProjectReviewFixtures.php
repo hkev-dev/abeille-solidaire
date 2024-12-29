@@ -2,12 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\User;
 use App\Entity\Project;
 use App\Entity\ProjectReview;
-use Doctrine\Persistence\ObjectManager;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 
 class ProjectReviewFixtures extends Fixture implements DependentFixtureInterface
@@ -27,7 +27,7 @@ class ProjectReviewFixtures extends Fixture implements DependentFixtureInterface
                 $review = new ProjectReview();
                 $review->setProject($project)
                     ->setAuthor($faker->randomElement($users))
-                    ->setComment($faker->realText(200))
+                    ->setComment($faker->realText())
                     ->setRating($faker->numberBetween(3, 5)); // Slightly biased towards positive reviews
 
                 $manager->persist($review);
