@@ -2,6 +2,7 @@
 
 namespace App\Controller\Public;
 
+use App\Entity\Project;
 use App\Repository\ProjectRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,6 +41,7 @@ class ProjectController extends AbstractController
     #[Route('/{slug}', name: 'details')]
     public function details(string $slug): Response
     {
+        /** @var Project $project */
         $project = $this->projectRepository->findOneBySlug($slug);
 
         if (!$project) {
@@ -54,8 +56,8 @@ class ProjectController extends AbstractController
         );
 
         // Filter out the current project from similar projects
-        $similarProjects = array_values(array_filter($similarProjects, function ($p) use ($project) {
-            return $p->getId() !== $project->getId();
+        $similarProjects = array_values(array_filter($similarProjects, function (Project $p) use ($project) {
+            return $p->id !== $project->id;
         }));
 
         return $this->render('public/pages/projects/details.html.twig', [
