@@ -1,25 +1,30 @@
 {# templates/components/project-details/reviews.html.twig #}
 <div class="project-details__reviews">
-    <div class="project-details__review-one">
-        <h3 class="project-details__review-title">{{ reviews|length }} comments</h3>
-        {% for review in reviews %}
-            <div class="project-details__review-single">
-                <div class="project-details__review-image">
-                    <img src="{{ asset(review.image) }}" alt="{{ review.author }}">
-                </div>
-                <div class="project-details__review-content">
-                    <h3>{{ review.author }}</h3>
-                    <p>{{ review.comment }}</p>
-                    <div class="project-details__review-star">
-                        {% for i in 1..5 %}
-                            <i class="fa fa-star{% if i > review.rating %}-o{% endif %}"></i>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+	<div class="project-details__review-one">
+		<h3 class="project-details__review-title">{{ reviews|length }}
+			comments</h3>
+		{% for review in reviews %}
+			<div class="project-details__review-single">
+				<div class="project-details__review-image">
+					{% if review.author.avatar %}
+						<img src="{{ vich_uploader_asset(review.author, 'avatarFile') }}" alt="{{ review.author.fullName }}">
+					{% else %}
+						<img src="{{ asset('landing/images/default-avatar.jpg') }}" alt="{{ review.author.fullName }}">
+					{% endif %}
+				</div>
+				<div class="project-details__review-content">
+					<h3>{{ review.author.name }}</h3>
+					<p>{{ review.comment }}</p>
+					<div class="project-details__review-star">
+						{% for i in 1..5 %}
+							<i class="fa fa-star{% if i > review.rating %}-o{% endif %}"></i>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	</div>
 
-    {# Review Form #}
-    {% include 'public/components/project-details/review-form.html.twig' %}
+	{# Review Form #}
+	{% include 'public/components/project-details/review-form.html.twig' %}
 </div>

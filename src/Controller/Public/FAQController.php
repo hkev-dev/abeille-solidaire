@@ -2,17 +2,17 @@
 
 namespace App\Controller\Public;
 
-use App\Repository\CategoryRepository;
 use App\Repository\FAQRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\ProjectCategoryRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class FAQController extends AbstractController
 {
     #[Route('/faq', name: 'landing.faq')]
-    public function index(Request $request, CategoryRepository $categoryRepository, FAQRepository $faqRepository): Response
+    public function index(Request $request, ProjectCategoryRepository $categoryRepository, FAQRepository $faqRepository): Response
     {
         $query = $request->query->get('q');
         $categories = $categoryRepository->findActiveCategories();

@@ -26,3 +26,23 @@ vich_uploader:
             uri_prefix: /uploads/news
             upload_destination: '%kernel.project_dir%/public/uploads/news'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+        projects:
+            uri_prefix: /uploads/projects
+            upload_destination: '%kernel.project_dir%/public/uploads/projects'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+        project_story_main:
+            uri_prefix: /uploads/projects/stories/main
+            upload_destination: '%kernel.project_dir%/public/uploads/projects/stories/main'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            
+        project_story_secondary:
+            uri_prefix: /uploads/projects/stories/secondary
+            upload_destination: '%kernel.project_dir%/public/uploads/projects/stories/secondary'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+        user_avatars:
+            uri_prefix: /uploads/users/avatars
+            upload_destination: '%kernel.project_dir%/public/uploads/users/avatars'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer

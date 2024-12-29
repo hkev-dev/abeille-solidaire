@@ -6,10 +6,11 @@
             <div class="bar">
                 <div class="bar-innner">
                     <div class="skill-percent">
-                        <span class="count-text" data-speed="3000" data-stop="{{ project.progress }}">0</span>
+<span class="count-text" data-speed="3000" data-stop="{{ project.progress|round }}">0</span>
+
                         <span class="percent">%</span>
                     </div>
-                    <div class="bar-fill" data-percent="{{ project.progress }}"></div>
+                    <div class="bar-fill" data-percent="{{ project.progress|round }}"></div>
                 </div>
             </div>
         </div>

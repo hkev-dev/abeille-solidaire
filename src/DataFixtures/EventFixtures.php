@@ -17,8 +17,7 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(
         private KernelInterface $kernel,
-    ) {
-    }
+    ) {}
 
     private function createTimeFromString(string $timeString): \DateTime
     {
@@ -39,7 +38,7 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
             // Handle image upload - cycle through existing images
             $imageNumber = ($i % 4) + 1; // This will cycle through 1-4
             $sourceImage = "events-page-img-1-{$imageNumber}.jpg";
-            
+
             // Handle image upload
             $sourcePath = $this->kernel->getProjectDir() . '/assets/landing/images/events/' . $sourceImage;
             if (file_exists($sourcePath)) {
@@ -73,7 +72,7 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
             $details = new EventDetails();
             $details->setStartDate($faker->dateTimeBetween('now', '+6 months'));
             $details->setEndDate($faker->boolean(70) ? $faker->dateTimeBetween('+1 day', '+6 months') : null);
-            
+
             // Random time between 8 AM and 8 PM
             $startHour = $faker->numberBetween(8, 20);
             $startTime = new \DateTime();
@@ -86,7 +85,7 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
                 $endTime->modify('+' . $faker->numberBetween(2, 4) . ' hours');
                 $details->setEndTime($endTime);
             }
-            
+
             $details->setPhone($faker->phoneNumber());
             $details->setEmail($faker->email());
             $details->setLocation($faker->address());
