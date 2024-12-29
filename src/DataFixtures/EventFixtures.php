@@ -3,31 +3,33 @@
 namespace App\DataFixtures;
 
 use App\Entity\Event;
+use App\Entity\EventCategory;
 use App\Entity\EventContent;
 use App\Entity\EventDetails;
-use App\Entity\EventCategory;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Faker\Factory;
+use Faker\Provider\Lorem;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class EventFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(
-        private KernelInterface $kernel,
-    ) {}
-
-    private function createTimeFromString(string $timeString): \DateTime
+        private readonly ParameterBagInterface $parameterBag
+    )
     {
-        return \DateTime::createFromFormat('g:i A', $timeString);
     }
 
+    /**
+     * @throws \DateMalformedStringException
+     */
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
-        $faker->addProvider(new \Faker\Provider\Lorem($faker));
+        $faker->addProvider(new Lorem($faker));
 
         // Generate 20 events (original 4 + 16 more)
         for ($i = 0; $i < 20; $i++) {
@@ -40,9 +42,9 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
             $sourceImage = "events-page-img-1-{$imageNumber}.jpg";
 
             // Handle image upload
-            $sourcePath = $this->kernel->getProjectDir() . '/assets/landing/images/events/' . $sourceImage;
+            $sourcePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/events/' . $sourceImage;
             if (file_exists($sourcePath)) {
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/events';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/events';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -75,7 +77,7 @@ class EventFixtures extends Fixture implements DependentFixtureInterface
 
             // Random time between 8 AM and 8 PM
             $startHour = $faker->numberBetween(8, 20);
-            $startTime = new \DateTime();
+            $startTime = new DateTime();
             $startTime->setTime($startHour, 0);
             $details->setStartTime($startTime);
 

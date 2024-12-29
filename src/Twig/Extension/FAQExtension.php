@@ -10,7 +10,7 @@ class FAQExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('highlight_search', [$this, 'highlightSearch'], ['is_safe' => ['html']]),
+            new TwigFilter('highlight_search', $this->highlightSearch(...), ['is_safe' => ['html']]),
         ];
     }
 

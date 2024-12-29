@@ -16,7 +16,11 @@ class Comment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
@@ -42,24 +46,16 @@ class Comment
     #[ORM\PrePersist]
     public function updateArticleCommentsCount(): void
     {
-        if ($this->article) {
-            $this->article->incrementCommentsCount();
-        }
+        $this->article?->incrementCommentsCount();
     }
 
     #[ORM\PreRemove]
     public function decrementArticleCommentsCount(): void
     {
-        if ($this->article) {
-            $this->article->decrementCommentsCount();
-        }
+        $this->article?->decrementCommentsCount();
     }
 
     // Getters and setters with fluent interface
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getArticle(): ?NewsArticle
     {

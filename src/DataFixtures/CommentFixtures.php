@@ -17,14 +17,14 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
 
         foreach (range(0, 4) as $articleIndex) {
             $commentsCount = $faker->numberBetween(3, 8);
-            
+
             for ($i = 0; $i < $commentsCount; $i++) {
                 $comment = new Comment();
                 $comment->setArticle($this->getReference('article_' . $articleIndex, NewsArticle::class))
                     ->setAuthor($faker->name)
                     ->setEmail($faker->email)
                     ->setContent($this->generateComment($faker));
-                
+
                 $manager->persist($comment);
             }
         }
@@ -35,7 +35,7 @@ class CommentFixtures extends Fixture implements DependentFixtureInterface
     private function generateComment(\Faker\Generator $faker): string
     {
         $type = $faker->randomElement(['positive', 'question', 'suggestion']);
-        
+
         return match ($type) {
             'positive' => $faker->randomElement([
                 'Great article! ' . $faker->sentence(2),

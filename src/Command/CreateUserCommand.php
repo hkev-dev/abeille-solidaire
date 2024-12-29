@@ -19,10 +19,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class CreateUserCommand extends Command
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher,
-        private ValidatorInterface $validator
-    ) {
+        private readonly EntityManagerInterface      $entityManager,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private ValidatorInterface                   $validator
+    )
+    {
         parent::__construct();
     }
 
@@ -31,7 +32,7 @@ class CreateUserCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $io->title('Interactive User Creation');
-        
+
         // Show a warning about production usage
         $io->caution('Be careful when creating users in production!');
 
@@ -60,7 +61,7 @@ class CreateUserCommand extends Command
         });
 
         // Confirm password
-        $confirm = $io->askHidden('Confirm password', function ($confirm) use ($password) {
+        $io->askHidden('Confirm password', function ($confirm) use ($password) {
             if ($confirm !== $password) {
                 throw new \RuntimeException('Passwords do not match!');
             }
@@ -101,7 +102,7 @@ class CreateUserCommand extends Command
 
         $progress->advance();
         $progress->setMessage('Encoding password...');
-        
+
         $user->setPassword(
             $this->passwordHasher->hashPassword($user, $password)
         );

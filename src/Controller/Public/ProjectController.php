@@ -3,20 +3,21 @@
 namespace App\Controller\Public;
 
 use App\Repository\ProjectRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Knp\Component\Pager\PaginatorInterface;
-use App\Entity\Project;
 
 #[Route('/projects', name: 'landing.projects.')]
 class ProjectController extends AbstractController
 {
     public function __construct(
-        private ProjectRepository $projectRepository,
-        private PaginatorInterface $paginator
-    ) {}
+        private readonly ProjectRepository  $projectRepository,
+        private readonly PaginatorInterface $paginator
+    )
+    {
+    }
 
     #[Route('/', name: 'index')]
     public function index(Request $request): Response

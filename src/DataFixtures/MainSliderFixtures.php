@@ -5,14 +5,15 @@ namespace App\DataFixtures;
 use App\Entity\MainSlider;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 class MainSliderFixtures extends Fixture
 {
     public function __construct(
-        private KernelInterface $kernel,
-    ) {
+        private readonly ParameterBagInterface $parameterBag
+    )
+    {
     }
 
     public function load(ObjectManager $manager): void
@@ -46,10 +47,10 @@ class MainSliderFixtures extends Fixture
             $slide->setIsActive(true);
 
             // Handle file upload
-            $sourcePath = $this->kernel->getProjectDir() . '/assets/landing/images/backgrounds/' . $slideData['sourceImage'];
+            $sourcePath = $this->parameterBag->get('kernel.project_dir') . '/assets/landing/images/backgrounds/' . $slideData['sourceImage'];
             if (file_exists($sourcePath)) {
                 // Create uploads directory if it doesn't exist
-                $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/slides';
+                $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/slides';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }

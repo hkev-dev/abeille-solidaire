@@ -13,7 +13,11 @@ class EventCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -21,17 +25,12 @@ class EventCategory
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $icon = null;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Event::class)]
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'category')]
     private Collection $events;
 
     public function __construct()
     {
         $this->events = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getName(): ?string
@@ -53,6 +52,27 @@ class EventCategory
     public function setIcon(?string $icon): self
     {
         $this->icon = $icon;
+        return $this;
+    }
+
+    public function addEvent(Event $event): self
+    {
+        if (!$this->events->contains($event)) {
+            $this->events[] = $event;
+            $event->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(Event $event): self
+    {
+        if ($this->events->removeElement($event)) {
+            if ($event->getCategory() === $this) {
+                $event->setCategory(null);
+            }
+        }
+
         return $this;
     }
 

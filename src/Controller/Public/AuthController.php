@@ -74,7 +74,7 @@ class AuthController extends AbstractController
 
             // Send verification email
             $emailVerificationService->sendVerificationEmail($user);
-            
+
             // Flush again after email service sets the tokens
             $entityManager->flush();
 

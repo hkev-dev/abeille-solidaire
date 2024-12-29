@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\ProjectCategory;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ProjectCategoryRepository extends ServiceEntityRepository
 {

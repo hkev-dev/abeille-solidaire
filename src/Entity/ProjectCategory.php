@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Repository\ProjectCategoryRepository;
 use App\Entity\Trait\TimestampableTrait;
+use App\Repository\ProjectCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -31,17 +31,12 @@ class ProjectCategory
     #[ORM\Column]
     private ?bool $isActive = true;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Project::class)]
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'category')]
     private Collection $projects;
 
     public function __construct()
     {
         $this->projects = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getName(): ?string
@@ -92,4 +87,5 @@ class ProjectCategory
     {
         return $this->projects;
     }
+
 }

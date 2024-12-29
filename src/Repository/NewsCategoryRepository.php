@@ -22,21 +22,6 @@ class NewsCategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return NewsCategory[] Returns an array of active categories with their article counts
-     */
-    public function findWithArticleCounts(): array
-    {
-        return $this->createQueryBuilder('c')
-            ->select('c', 'COUNT(a.id) as articleCount')
-            ->leftJoin('c.articles', 'a')
-            ->groupBy('c.id')
-            ->having('articleCount > 0')
-            ->orderBy('articleCount', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
      * Find category by slug with its articles
      */
     public function findOneBySlugWithArticles(string $slug): ?NewsCategory
