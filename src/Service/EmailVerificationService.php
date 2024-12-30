@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -13,9 +12,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 readonly class EmailVerificationService
 {
     public function __construct(
-        private MailerInterface        $mailer,
-        private UrlGeneratorInterface  $urlGenerator,
-        private EntityManagerInterface $entityManager
+        private MailerInterface       $mailer,
+        private UrlGeneratorInterface $urlGenerator
     )
     {
     }
@@ -37,8 +35,8 @@ readonly class EmailVerificationService
         ], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $email = new TemplatedEmail()
-            ->from('no-reply@qrowd.com')
-            ->sender('Qrowd Platform <noreply@qrowd.com>')
+            ->from('noreply@abeillesolidaire.club')
+            ->sender('Abeille Solidaire <noreply@abeillesolidaire.club>')
             ->to($user->getEmail())
             ->subject('Please verify your email')
             ->htmlTemplate('emails/verification.html.twig')
