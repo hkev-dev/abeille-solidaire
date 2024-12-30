@@ -25,26 +25,26 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
 
     public function __construct(
         private readonly ParameterBagInterface $parameterBag
-    )
-    {
-    }
+    ) {}
 
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
 
-        // Generate 20 projects
-        for ($i = 0; $i < 20; $i++) {
+        // Create projects for each creator
+        foreach ($this->creators as $index => $username) {
+            $creator = $this->getReference('user_' . $username, User::class);
             $project = new Project();
-            $project->setTitle($faker->sentence())
-                ->setDescription($faker->paragraphs(2, true))
-                ->setGoal($faker->numberBetween(10000, 100000))
-                ->setPledged($faker->numberBetween(0, 90000))
-                ->setBackers($faker->numberBetween(0, 500))
+            $project->setTitle('Project by ' . $creator->getName())
+                ->setDescription($faker->paragraphs(3, true))
+                ->setGoal($creator->getCurrentFlower()->getDonationAmount() * 4) // Goal is 4x the flower amount
+                ->setPledged(0)
+                ->setBackers(0)
                 ->setLocation($faker->city . ', ' . $faker->country)
                 ->setEndDate($faker->dateTimeBetween('+1 month', '+6 months'))
                 ->setCategory($this->getReference('project_category_' . $faker->randomElement($this->categories), ProjectCategory::class))
-                ->setCreator($this->getReference('user_' . $faker->randomElement($this->creators), User::class));
+                ->setCreator($creator)
+                ->setIsActive(true);
 
             // Handle image upload - cycle through existing images
             $imageFile = $faker->randomElement($this->images);
@@ -70,7 +70,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $manager->persist($project);
-            $this->addReference('project_' . $i, $project);
+            // Use index to ensure unique references
+            $this->addReference('project_' . $username, $project);
         }
 
         $manager->flush();
@@ -79,7 +80,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-            ProjectCategoryFixtures::class,
+            FlowerFixtures::class,
+            ProjectCategoryFixtures::class, // Changed from CategoryFixtures
             UserFixtures::class,
         ];
     }

@@ -11,6 +11,8 @@ use Faker\Factory;
 
 class ProjectFAQFixtures extends Fixture implements DependentFixtureInterface
 {
+    private array $creators = ['john_doe', 'jane_smith', 'alice_wonder', 'bob_builder'];
+
     private array $commonQuestions = [
         'What is your return policy?' => 'We offer a 30-day money-back guarantee on all our products.',
         'Do you ship internationally?' => 'Yes, we ship to most countries worldwide.',
@@ -23,38 +25,43 @@ class ProjectFAQFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create();
 
-        // For each project (0-19 as per ProjectFixtures), create 3-5 FAQs
-        for ($i = 0; $i < 20; $i++) {
-            $project = $this->getReference('project_' . $i, Project::class);
-            $numFaqs = $faker->numberBetween(3, 5);
+        // Create FAQs for each creator's project
+        foreach ($this->creators as $username) {
+            try {
+                $project = $this->getReference('project_' . $username, Project::class);
+                $numFaqs = $faker->numberBetween(3, 5);
 
-            // Add some common questions
-            $questions = $this->commonQuestions;
+                // Add some common questions
+                $questions = $this->commonQuestions;
 
-            // Add project-specific questions
-            for ($j = 0; $j < $numFaqs; $j++) {
-                $faq = new ProjectFAQ();
+                // Add project-specific questions
+                for ($j = 0; $j < $numFaqs; $j++) {
+                    $faq = new ProjectFAQ();
 
-                if (!empty($questions)) {
-                    // Use a common question 70% of the time
-                    if ($faker->boolean(70)) {
-                        $question = array_key_first($questions);
-                        $answer = $questions[$question];
-                        unset($questions[$question]);
+                    if (!empty($questions)) {
+                        // Use a common question 70% of the time
+                        if ($faker->boolean(70)) {
+                            $question = array_key_first($questions);
+                            $answer = $questions[$question];
+                            unset($questions[$question]);
+                        } else {
+                            $question = $faker->sentence(rand(4, 8)) . '?';
+                            $answer = $faker->paragraph(rand(2, 4));
+                        }
                     } else {
                         $question = $faker->sentence(rand(4, 8)) . '?';
                         $answer = $faker->paragraph(rand(2, 4));
                     }
-                } else {
-                    $question = $faker->sentence(rand(4, 8)) . '?';
-                    $answer = $faker->paragraph(rand(2, 4));
+
+                    $faq->setProject($project)
+                        ->setQuestion($question)
+                        ->setAnswer($answer);
+
+                    $manager->persist($faq);
                 }
-
-                $faq->setProject($project)
-                    ->setQuestion($question)
-                    ->setAnswer($answer);
-
-                $manager->persist($faq);
+            } catch (\Exception $e) {
+                // Log or handle the case where project reference is not found
+                continue;
             }
         }
 

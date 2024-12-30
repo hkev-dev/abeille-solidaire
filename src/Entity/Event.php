@@ -19,11 +19,7 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null {
-        get {
-            return $this->id;
-        }
-    }
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
@@ -47,6 +43,11 @@ class Event
     #[ORM\Column(length: 255, unique: true)]
     #[Slug(fields: ['title'])]
     private ?string $slug = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getTitle(): ?string
     {

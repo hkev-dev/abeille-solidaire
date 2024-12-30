@@ -12,25 +12,39 @@ use Faker\Factory;
 
 class ProjectReviewFixtures extends Fixture implements DependentFixtureInterface
 {
+    private array $creators = ['john_doe', 'jane_smith', 'alice_wonder', 'bob_builder'];
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
         $userRepository = $manager->getRepository(User::class);
         $users = $userRepository->findAll();
 
-        // For each project (0-19 as per ProjectFixtures), create 2-5 reviews
-        for ($i = 0; $i < 20; $i++) {
-            $project = $this->getReference('project_' . $i, Project::class);
-            $numReviews = $faker->numberBetween(2, 5);
+        // Create reviews for each creator's project
+        foreach ($this->creators as $username) {
+            try {
+                $project = $this->getReference('project_' . $username, Project::class);
+                $numReviews = $faker->numberBetween(2, 5);
 
-            for ($j = 0; $j < $numReviews; $j++) {
-                $review = new ProjectReview();
-                $review->setProject($project)
-                    ->setAuthor($faker->randomElement($users))
-                    ->setComment($faker->realText())
-                    ->setRating($faker->numberBetween(3, 5)); // Slightly biased towards positive reviews
+                for ($j = 0; $j < $numReviews; $j++) {
+                    $reviewer = $faker->randomElement($users);
 
-                $manager->persist($review);
+                    // Skip if reviewer is the project creator
+                    if ($reviewer === $project->getCreator()) {
+                        continue;
+                    }
+
+                    $review = new ProjectReview();
+                    $review->setProject($project)
+                        ->setAuthor($reviewer)
+                        ->setComment($faker->realText())
+                        ->setRating($faker->numberBetween(3, 5)); // Slightly biased towards positive reviews
+
+                    $manager->persist($review);
+                }
+            } catch (\Exception $e) {
+                // Log or handle the case where project reference is not found
+                continue;
             }
         }
 

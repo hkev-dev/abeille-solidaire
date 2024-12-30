@@ -22,11 +22,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null {
-        get {
-            return $this->id;
-        }
-    }
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -70,10 +66,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
     private Collection $backedProjects;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $walletBalance = 0.0;
+
+    #[ORM\ManyToOne(targetEntity: Flower::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Flower $currentFlower = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'referrals')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?self $referrer = null;
+
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'referrer')]
+    private Collection $referrals;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $projectDescription = null;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
+    private Collection $donationsMade;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'recipient')]
+    private Collection $donationsReceived;
+
+    #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
+    private Collection $withdrawals;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
         $this->backedProjects = new ArrayCollection();
+        $this->referrals = new ArrayCollection();
+        $this->donationsMade = new ArrayCollection();
+        $this->donationsReceived = new ArrayCollection();
+        $this->withdrawals = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getName(): ?string
@@ -252,5 +283,69 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->avatar = $avatar;
         return $this;
+    }
+
+    public function getWalletBalance(): float
+    {
+        return $this->walletBalance;
+    }
+
+    public function setWalletBalance(float $walletBalance): self
+    {
+        $this->walletBalance = $walletBalance;
+        return $this;
+    }
+
+    public function getCurrentFlower(): ?Flower
+    {
+        return $this->currentFlower;
+    }
+
+    public function setCurrentFlower(?Flower $flower): self
+    {
+        $this->currentFlower = $flower;
+        return $this;
+    }
+
+    public function getReferrer(): ?self
+    {
+        return $this->referrer;
+    }
+
+    public function setReferrer(?self $referrer): self
+    {
+        $this->referrer = $referrer;
+        return $this;
+    }
+
+    public function getReferrals(): Collection
+    {
+        return $this->referrals;
+    }
+
+    public function getProjectDescription(): ?string
+    {
+        return $this->projectDescription;
+    }
+
+    public function setProjectDescription(?string $projectDescription): self
+    {
+        $this->projectDescription = $projectDescription;
+        return $this;
+    }
+
+    public function getDonationsMade(): Collection
+    {
+        return $this->donationsMade;
+    }
+
+    public function getDonationsReceived(): Collection
+    {
+        return $this->donationsReceived;
+    }
+
+    public function getWithdrawals(): Collection
+    {
+        return $this->withdrawals;
     }
 }

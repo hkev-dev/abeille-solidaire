@@ -85,6 +85,9 @@ class Project
     #[Gedmo\Slug(fields: ['title'])]
     private ?string $slug = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isActive = true;
+
     public function __construct()
     {
         $this->updates = new ArrayCollection();
@@ -383,6 +386,17 @@ class Project
     public function setSlug(?string $slug): static
     {
         $this->slug = $slug;
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
         return $this;
     }
 }

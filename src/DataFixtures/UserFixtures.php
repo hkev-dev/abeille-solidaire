@@ -2,13 +2,15 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Flower;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class UserFixtures extends Fixture
+class UserFixtures extends Fixture implements DependentFixtureInterface
 {
     private const array STATIC_USERS = [
         [
@@ -48,11 +50,11 @@ class UserFixtures extends Fixture
         ]
     ];
 
+    private ?User $firstUser = null;
+
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher
-    )
-    {
-    }
+    ) {}
 
     public function load(ObjectManager $manager): void
     {
@@ -90,7 +92,9 @@ class UserFixtures extends Fixture
             ->setUsername($userData['username'])
             ->setName($userData['name'])
             ->setRoles($userData['roles'])
-            ->setIsVerified(true);
+            ->setIsVerified(true)
+            ->setWalletBalance(0.0)
+            ->setCurrentFlower($this->getReference('flower_1', Flower::class));
 
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -98,7 +102,23 @@ class UserFixtures extends Fixture
         );
         $user->setPassword($hashedPassword);
 
+        // Store first user for referral
+        if ($this->firstUser === null && !in_array('ROLE_ADMIN', $userData['roles'])) {
+            $this->firstUser = $user;
+        }
+        // Set referrer for non-admin users after first user
+        elseif (!in_array('ROLE_ADMIN', $userData['roles']) && $this->firstUser !== null) {
+            $user->setReferrer($this->firstUser);
+        }
+
         $manager->persist($user);
         $this->addReference('user_' . $userData['username'], $user);
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            FlowerFixtures::class,
+        ];
     }
 }
