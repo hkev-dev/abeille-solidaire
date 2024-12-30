@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\RegistrationType;
 use App\Repository\UserRepository;
 use App\Service\EmailVerificationService;
+use App\Service\ReferralService;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +20,10 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
 {
+    public function __construct(
+        private readonly ReferralService $referralService,
+    ) {}
+
     #[Route('/login', name: 'app.login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -55,18 +60,36 @@ class AuthController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface      $entityManager,
         EmailVerificationService    $emailVerificationService
-    ): Response
-    {
+    ): Response {
         $dto = new RegistrationDTO();
+
+        // Pre-fill referral code from query parameter if present
+        if ($request->query->has('ref')) {
+            $dto->referralCode = $request->query->get('ref');
+        }
+
         $form = $this->createForm(RegistrationType::class, $dto);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Validate referral code
+            $referrer = $this->referralService->validateReferralCode($dto->referralCode);
+            if (!$referrer) {
+                $this->addFlash('error', 'Invalid referral code.');
+                return $this->redirectToRoute('app.register');
+            }
+
             $user = new User();
             $user->setEmail($dto->email);
             $user->setUsername($dto->username);
+            $user->setFirstName($dto->firstName);
+            $user->setLastName($dto->lastName);
+            $user->setProjectDescription($dto->projectDescription);
             $user->setPassword($passwordHasher->hashPassword($user, $dto->password));
             $user->setIsVerified(false); // Explicitly set false
+
+            // Setup referral relationship and initial flower
+            $this->referralService->setupNewUser($user, $referrer);
 
             // First persist to get the ID
             $entityManager->persist($user);
@@ -92,8 +115,7 @@ class AuthController extends AbstractController
         string                 $token,
         EntityManagerInterface $entityManager,
         UserRepository         $userRepository
-    ): Response
-    {
+    ): Response {
         $user = $userRepository->findOneBy(['verificationToken' => $token]);
 
         if (!$user || $user->getVerificationTokenExpiresAt() < new \DateTime()) {

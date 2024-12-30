@@ -16,37 +16,47 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         [
             'email' => 'john.doe@example.com',
             'username' => 'john_doe',
-            'name' => 'John Doe',
+            'firstName' => 'John',
+            'lastName' => 'Doe',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Building a sustainable farming community in rural areas.'
         ],
         [
             'email' => 'jane.smith@example.com',
             'username' => 'jane_smith',
-            'name' => 'Jane Smith',
+            'firstName' => 'Jane',
+            'lastName' => 'Smith',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Creating an educational program for underprivileged children.'
         ],
         [
             'email' => 'alice.wonder@example.com',
             'username' => 'alice_wonder',
-            'name' => 'Alice Wonder',
+            'firstName' => 'Alice',
+            'lastName' => 'Wonder',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Developing a renewable energy initiative for local communities.'
         ],
         [
             'email' => 'bob.builder@example.com',
             'username' => 'bob_builder',
-            'name' => 'Bob Builder',
+            'firstName' => 'Bob',
+            'lastName' => 'Builder',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Building affordable housing for low-income families.'
         ],
         [
             'email' => 'admin@example.com',
             'username' => 'admin',
-            'name' => 'Admin User',
+            'firstName' => 'Admin',
+            'lastName' => 'User',
             'password' => 'admin123',
-            'roles' => ['ROLE_ADMIN']
+            'roles' => ['ROLE_ADMIN'],
+            'projectDescription' => 'Platform administration and support.'
         ]
     ];
 
@@ -74,9 +84,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $userData = [
                 'email' => $faker->email(),
                 'username' => str_replace('.', '_', $username),
-                'name' => $firstName . ' ' . $lastName,
+                'firstName' => $firstName,
+                'lastName' => $lastName,
                 'password' => 'password123',
-                'roles' => ['ROLE_USER']
+                'roles' => ['ROLE_USER'],
+                'projectDescription' => $faker->paragraphs(2, true)
             ];
 
             $this->createUser($manager, $userData);
@@ -90,11 +102,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $user = new User();
         $user->setEmail($userData['email'])
             ->setUsername($userData['username'])
-            ->setName($userData['name'])
+            ->setFirstName($userData['firstName'])
+            ->setLastName($userData['lastName'])
+            ->setName($userData['firstName'] . ' ' . $userData['lastName']) // Set the name field
             ->setRoles($userData['roles'])
             ->setIsVerified(true)
             ->setWalletBalance(0.0)
-            ->setCurrentFlower($this->getReference('flower_1', Flower::class));
+            ->setCurrentFlower($this->getReference('flower_1', Flower::class))
+            ->setProjectDescription($userData['projectDescription'])
+            ->setReferralCode($this->generateReferralCode());
 
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -113,6 +129,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($user);
         $this->addReference('user_' . $userData['username'], $user);
+    }
+
+    private function generateReferralCode(): string
+    {
+        return bin2hex(random_bytes(16)); // Generates a 32-character hex string
     }
 
     public function getDependencies(): array

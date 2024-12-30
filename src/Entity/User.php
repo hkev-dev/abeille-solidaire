@@ -24,7 +24,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -92,6 +92,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
     private Collection $withdrawals;
 
+    #[ORM\Column(length: 255)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lastName = null;
+
+    #[ORM\Column(length: 32, unique: true)]
+    private ?string $referralCode = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -109,10 +118,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getName(): ?string
     {
+        // If name is null, generate it from firstName and lastName
+        if ($this->name === null && ($this->firstName !== null || $this->lastName !== null)) {
+            return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
+        }
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
         return $this;
@@ -347,5 +360,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getWithdrawals(): Collection
     {
         return $this->withdrawals;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): self
+    {
+        $this->lastName = $lastName;
+        return $this;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->referralCode;
+    }
+
+    public function setReferralCode(string $referralCode): self
+    {
+        $this->referralCode = $referralCode;
+        return $this;
     }
 }

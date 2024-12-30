@@ -1,7 +1,7 @@
 {# templates/pages/auth/register.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Register - Qrowd Crowdfunding Platform{% endblock %}
+{% block title %}Register - Abeilles Solidaires{% endblock %}
 
 {% block content %}
     {# Page Header #}
@@ -16,27 +16,46 @@
     <section class="login-register">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     {% include 'public/components/flash-messages.html.twig' %}
-                    <h3 class="login-register__title">Create New Account</h3>
+                    <h3 class="login-register__title text-center mb-4">Join Abeilles Solidaires</h3>
                     {{ form_start(form, {'attr': {'class': 'login-register__form'}}) }}
-                        {{ form_row(form.username) }}
-                        {{ form_row(form.email) }}
-                        {{ form_row(form.password) }}
-                        {{ form_row(form.confirmPassword) }}
-                        
-                        <div class="login-register__checkbox">
-                            {{ form_widget(form.agreeTerms, {'id': 'login-register__policy'}) }}
-                            <label for="login-register__policy">
-                                I accept the <a href="#"> Terms of Service </a> &nbsp;and <a href="#"> Privacy Policy </a>
-                            </label>
-                            {{ form_errors(form.agreeTerms) }}
+                        <div class="row">
+                            {# Left Column #}
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(form.firstName) }}</div>
+                                    <div class="col-md-6">{{ form_row(form.lastName) }}</div>
+                                </div>
+                                {{ form_row(form.email) }}
+                                {{ form_row(form.username) }}
+                                {{ form_row(form.password) }}
+                                {{ form_row(form.confirmPassword) }}
+                            </div>
+                            
+                            {# Right Column #}
+                            <div class="col-md-6">
+                                {{ form_row(form.referralCode) }}
+                                {{ form_row(form.projectDescription) }}
+                            </div>
                         </div>
-                        
-                        <div class="login-register__info">
-                            <button type="submit" class="thm-btn login-register__btn">Register</button>
-                            <div class="login-register__text">
-                                <a href="{{ path('app.login') }}">Already have an account? Login</a>
+
+                        {# Footer Elements - Full Width #}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="login-register__checkbox mb-3">
+                                    {{ form_widget(form.agreeTerms) }}
+                                    <label for="registration_agreeTerms">
+                                        I accept the <a href="#">Terms of Service</a> &nbsp; and 
+                                        <a href="#">Privacy Policy</a>
+                                    </label>
+                                    {{ form_errors(form.agreeTerms) }}
+                                </div>
+                                
+                                <button type="submit" class="thm-btn login-register__btn w-100">Register</button>
+                                <div class="login-register__text text-center mt-3">
+                                    <a href="{{ path('app.login') }}">Already have an account? Login</a>
+                                </div>
                             </div>
                         </div>
                     {{ form_end(form) }}
