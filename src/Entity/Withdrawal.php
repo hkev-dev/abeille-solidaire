@@ -19,6 +19,10 @@ class Withdrawal
     public const STATUS_PROCESSED = 'processed';
     public const STATUS_FAILED = 'failed';
 
+    public const FEE_PERCENTAGE = 0.06; // 6%
+    public const MIN_AMOUNT = 50.00;
+    public const MAX_AMOUNT = 10000.00;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -46,9 +50,13 @@ class Withdrawal
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $failureReason = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $feeAmount;
+
     public function __construct()
     {
         $this->requestedAt = new \DateTimeImmutable();
+        $this->feeAmount = 0.0;
     }
 
     public function getId(): ?int
@@ -74,7 +82,20 @@ class Withdrawal
 
     public function setAmount(float $amount): self
     {
+        if ($amount < self::MIN_AMOUNT) {
+            throw new \InvalidArgumentException(sprintf(
+                'Withdrawal amount must be at least %.2f€',
+                self::MIN_AMOUNT
+            ));
+        }
+        if ($amount > self::MAX_AMOUNT) {
+            throw new \InvalidArgumentException(sprintf(
+                'Withdrawal amount cannot exceed %.2f€',
+                self::MAX_AMOUNT
+            ));
+        }
         $this->amount = $amount;
+        $this->calculateFee();
         return $this;
     }
 
@@ -146,5 +167,20 @@ class Withdrawal
     public function isFailed(): bool
     {
         return $this->status === self::STATUS_FAILED;
+    }
+
+    public function getFeeAmount(): float
+    {
+        return $this->feeAmount;
+    }
+
+    public function calculateFee(): void
+    {
+        $this->feeAmount = round($this->amount * self::FEE_PERCENTAGE, 2);
+    }
+
+    public function getNetAmount(): float
+    {
+        return $this->amount - $this->feeAmount;
     }
 }

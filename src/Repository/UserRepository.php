@@ -72,4 +72,25 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
         return (float) $result ?? 0.0;
     }
+
+    public function findExpiredWaitingUsers(\DateTime $threshold): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.registrationPaymentStatus = :status')
+            ->andWhere('u.waitingSince < :threshold')
+            ->setParameter('status', 'pending')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findPendingRegistrations(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.registrationPaymentStatus = :status')
+            ->setParameter('status', 'pending')
+            ->orderBy('u.waitingSince', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

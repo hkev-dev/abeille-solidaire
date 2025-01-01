@@ -31,13 +31,6 @@ class RegistrationType extends AbstractType
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
-            ->add('username', TextType::class, [
-                'attr' => [
-                    'placeholder' => 'Username*'
-                ],
-                'label' => false,
-                'row_attr' => ['class' => 'contact-form__input-box']
-            ])
             ->add('email', EmailType::class, [
                 'attr' => [
                     'placeholder' => 'Email Address*'

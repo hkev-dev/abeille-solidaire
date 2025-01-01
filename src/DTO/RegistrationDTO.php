@@ -19,10 +19,6 @@ class RegistrationDTO
     public string $email;
 
     #[Assert\NotBlank]
-    #[Assert\Length(min: 3)]
-    public string $username;
-
-    #[Assert\NotBlank]
     #[Assert\Length(min: 8, minMessage: 'Password must be at least 8 characters long')]
     public string $password;
 

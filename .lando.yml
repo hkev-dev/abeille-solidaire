@@ -9,28 +9,8 @@ config:
 services:
   appserver:
     build_as_root:
-      - curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash
-      - apt update && apt install -y symfony-cli
-    build:
-      - |
-        if [ ! -f composer.json ]; then
-          mkdir tmp && cd tmp
-          symfony new --version=7.2 --webapp --no-git .
-          # Move all hidden files except . and ..
-          for file in .[!.]*; do
-            if [ -e "$file" ]; then
-              mv "$file" ../
-            fi
-          done
-          # Move all regular files and directories
-          for file in *; do
-            mv "$file" ../
-          done
-          cd ..
-          rm -rf tmp
-          composer install
-        fi
-
+      - curl -sS https://get.symfony.com/cli/installer | bash
+      - mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
   pgadmin:
     type: compose
     app_mount: false

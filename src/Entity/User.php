@@ -30,14 +30,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
-
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
     private Collection $projects;
-
-    #[ORM\Column]
-    private int $backedCount = 0;
 
     #[ORM\Column]
     private array $roles = [];
@@ -45,17 +39,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255, unique: true)]
-    private ?string $username = null;
-
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
-
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $verificationToken = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $verificationTokenExpiresAt = null;
 
     #[Vich\UploadableField(mapping: 'user_avatars', fileNameProperty: 'avatar')]
     private ?File $avatarFile = null;
@@ -101,6 +86,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 32, unique: true)]
     private ?string $referralCode = null;
 
+    #[ORM\Column(length: 20)]
+    private string $registrationPaymentStatus = 'pending';
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $waitingSince = null;
+
+    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'user')]
+    private Collection $flowerCycleCompletions;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isKycVerified = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $kycVerifiedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kycProvider = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kycReferenceId = null;
+
+    #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
+    private Collection $memberships;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -109,6 +118,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
+        $this->flowerCycleCompletions = new ArrayCollection();
+        $this->memberships = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -142,17 +153,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    public function setImage(?string $image): self
-    {
-        $this->image = $image;
-        return $this;
-    }
-
     public function addProject(Project $project): self
     {
         if (!$this->projects->contains($project)) {
@@ -178,17 +178,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getProjects(): Collection
     {
         return $this->projects;
-    }
-
-    public function getBackedCount(): int
-    {
-        return $this->backedCount;
-    }
-
-    public function setBackedCount(int $backedCount): self
-    {
-        $this->backedCount = $backedCount;
-        return $this;
     }
 
     public function getUserIdentifier(): string
@@ -225,17 +214,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // If you store any temporary, sensitive data on the user, clear it here
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-        return $this;
-    }
-
     public function isVerified(): bool
     {
         return $this->isVerified;
@@ -244,28 +222,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
-        return $this;
-    }
-
-    public function getVerificationToken(): ?string
-    {
-        return $this->verificationToken;
-    }
-
-    public function setVerificationToken(?string $verificationToken): self
-    {
-        $this->verificationToken = $verificationToken;
-        return $this;
-    }
-
-    public function getVerificationTokenExpiresAt(): ?\DateTimeInterface
-    {
-        return $this->verificationTokenExpiresAt;
-    }
-
-    public function setVerificationTokenExpiresAt(?\DateTimeInterface $verificationTokenExpiresAt): self
-    {
-        $this->verificationTokenExpiresAt = $verificationTokenExpiresAt;
         return $this;
     }
 
@@ -393,5 +349,102 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->referralCode = $referralCode;
         return $this;
+    }
+
+    public function getRegistrationPaymentStatus(): string
+    {
+        return $this->registrationPaymentStatus;
+    }
+
+    public function setRegistrationPaymentStatus(string $status): self
+    {
+        if (!in_array($status, ['pending', 'completed', 'failed'])) {
+            throw new \InvalidArgumentException('Invalid registration payment status');
+        }
+        $this->registrationPaymentStatus = $status;
+        return $this;
+    }
+
+    public function getWaitingSince(): ?\DateTimeInterface
+    {
+        return $this->waitingSince;
+    }
+
+    public function setWaitingSince(?\DateTimeInterface $waitingSince): self
+    {
+        $this->waitingSince = $waitingSince;
+        return $this;
+    }
+
+    public function getFlowerCycleCompletions(): Collection
+    {
+        return $this->flowerCycleCompletions;
+    }
+
+    public function getFlowerCompletionCount(Flower $flower): int
+    {
+        $completion = $this->flowerCycleCompletions
+            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
+            ->first();
+        
+        return $completion ? $completion->getCompletionCount() : 0;
+    }
+
+    public function hasReachedFlowerLimit(Flower $flower): bool
+    {
+        return $this->getFlowerCompletionCount($flower) >= 10;
+    }
+
+    public function isKycVerified(): bool
+    {
+        return $this->isKycVerified;
+    }
+
+    public function setIsKycVerified(bool $isKycVerified): self
+    {
+        $this->isKycVerified = $isKycVerified;
+        if ($isKycVerified) {
+            $this->kycVerifiedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getKycVerifiedAt(): ?\DateTimeInterface
+    {
+        return $this->kycVerifiedAt;
+    }
+
+    public function getKycProvider(): ?string
+    {
+        return $this->kycProvider;
+    }
+
+    public function setKycProvider(?string $provider): self
+    {
+        $this->kycProvider = $provider;
+        return $this;
+    }
+
+    public function getKycReferenceId(): ?string
+    {
+        return $this->kycReferenceId;
+    }
+
+    public function setKycReferenceId(?string $referenceId): self
+    {
+        $this->kycReferenceId = $referenceId;
+        return $this;
+    }
+
+    public function getMemberships(): Collection
+    {
+        return $this->memberships;
+    }
+
+    public function getCurrentMembership(): ?Membership
+    {
+        return $this->memberships
+            ->filter(fn(Membership $membership) => $membership->isActive())
+            ->first() ?: null;
     }
 }

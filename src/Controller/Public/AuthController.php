@@ -81,7 +81,6 @@ class AuthController extends AbstractController
 
             $user = new User();
             $user->setEmail($dto->email);
-            $user->setUsername($dto->username);
             $user->setFirstName($dto->firstName);
             $user->setLastName($dto->lastName);
             $user->setProjectDescription($dto->projectDescription);

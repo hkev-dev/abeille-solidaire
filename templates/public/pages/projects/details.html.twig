@@ -75,22 +75,24 @@
 	</section>
 
 	{# Similar Projects Section #}
-    {% if similarProjects is not empty %}
-        <section class="similar-project">
-            <div class="container">
-                <div class="section-title text-center">
-                    <span class="section-title__tagline">Businesses You Can Back</span>
-                    <h2 class="section-title__title">Checkout Our Similar <br> Projects</h2>
-                </div>
-                <div class="row">
-                    {% for similarProject in similarProjects %}
-                        <div class="col-xl-4 col-lg-4 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
-                            {% include 'public/components/project-card.html.twig' with { project: similarProject } %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    {% endif %}
+	{% if similarProjects is not empty %}
+		<section class="similar-project">
+			<div class="container">
+				<div class="section-title text-center">
+					<span class="section-title__tagline">Businesses You Can Back</span>
+					<h2 class="section-title__title">Checkout Our Similar
+						<br>
+						Projects</h2>
+				</div>
+				<div class="row justify-content-center">
+					{% for similarProject in similarProjects %}
+						<div class="col-xl-4 col-lg-4 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
+							{% include 'public/components/project-card.html.twig' with { project: similarProject } %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+	{% endif %}
 
 {% endblock %}

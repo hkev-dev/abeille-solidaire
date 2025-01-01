@@ -14,10 +14,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class ProjectController extends AbstractController
 {
     public function __construct(
-        private readonly ProjectRepository  $projectRepository,
+        private readonly ProjectRepository $projectRepository,
         private readonly PaginatorInterface $paginator
-    )
-    {
+    ) {
     }
 
     #[Route('/', name: 'index')]

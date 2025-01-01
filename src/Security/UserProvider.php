@@ -25,7 +25,6 @@ readonly class UserProvider implements UserProviderInterface, PasswordUpgraderIn
             ->select('u')
             ->from(User::class, 'u')
             ->where('u.email = :identifier')
-            ->orWhere('u.username = :identifier')
             ->setParameter('identifier', $identifier)
             ->getQuery()
             ->getOneOrNullResult();

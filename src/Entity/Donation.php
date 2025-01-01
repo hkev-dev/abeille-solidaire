@@ -15,6 +15,12 @@ class Donation
     public const TYPE_DIRECT = 'direct';
     public const TYPE_SOLIDARITY = 'solidarity';
     public const TYPE_REFERRAL_PLACEMENT = 'referral_placement';
+    public const TYPE_REGISTRATION = 'registration';
+    public const TYPE_SUPPLEMENTARY = 'supplementary';
+
+    public const SOLIDARITY_STATUS_PENDING = 'pending';
+    public const SOLIDARITY_STATUS_DISTRIBUTED = 'distributed';
+    public const SOLIDARITY_STATUS_NOT_APPLICABLE = 'not_applicable';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,7 +55,10 @@ class Donation
     private ?string $stripePaymentIntentId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cryptoTransactionId = null;
+    private ?string $coinbaseChargeId = null;
+
+    #[ORM\Column(length: 20)]
+    private string $solidarityDistributionStatus = self::SOLIDARITY_STATUS_NOT_APPLICABLE;
 
     public function getId(): ?int
     {
@@ -144,14 +153,32 @@ class Donation
         return $this;
     }
 
-    public function getCryptoTransactionId(): ?string
+    public function getCoinbaseChargeId(): ?string
     {
-        return $this->cryptoTransactionId;
+        return $this->coinbaseChargeId;
     }
 
-    public function setCryptoTransactionId(?string $cryptoTransactionId): self
+    public function setCoinbaseChargeId(?string $coinbaseChargeId): self
     {
-        $this->cryptoTransactionId = $cryptoTransactionId;
+        $this->coinbaseChargeId = $coinbaseChargeId;
+        return $this;
+    }
+
+    public function getSolidarityDistributionStatus(): string
+    {
+        return $this->solidarityDistributionStatus;
+    }
+
+    public function setSolidarityDistributionStatus(string $status): self
+    {
+        if (!in_array($status, [
+            self::SOLIDARITY_STATUS_PENDING,
+            self::SOLIDARITY_STATUS_DISTRIBUTED,
+            self::SOLIDARITY_STATUS_NOT_APPLICABLE
+        ])) {
+            throw new \InvalidArgumentException('Invalid solidarity distribution status');
+        }
+        $this->solidarityDistributionStatus = $status;
         return $this;
     }
 }

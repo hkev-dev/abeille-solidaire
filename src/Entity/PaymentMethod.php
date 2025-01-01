@@ -15,6 +15,11 @@ class PaymentMethod
     public const TYPE_CARD = 'card';
     public const TYPE_CRYPTO = 'crypto';
 
+    public const VALID_METHOD_TYPES = [
+        self::TYPE_CARD,
+        self::TYPE_CRYPTO,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -31,7 +36,13 @@ class PaymentMethod
     private ?string $stripeCustomerId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cryptoAddress = null;
+    private ?string $coinbaseAccountId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coinbaseCommerceMetadata = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $preferredCryptoCurrency = null;
 
     #[ORM\Column]
     private bool $isDefault = false;
@@ -65,6 +76,12 @@ class PaymentMethod
 
     public function setMethodType(string $methodType): self
     {
+        if (!in_array($methodType, self::VALID_METHOD_TYPES)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid payment method type. Must be one of: %s',
+                implode(', ', self::VALID_METHOD_TYPES)
+            ));
+        }
         $this->methodType = $methodType;
         return $this;
     }
@@ -80,14 +97,36 @@ class PaymentMethod
         return $this;
     }
 
-    public function getCryptoAddress(): ?string
+    public function getCoinbaseAccountId(): ?string
     {
-        return $this->cryptoAddress;
+        return $this->coinbaseAccountId;
     }
 
-    public function setCryptoAddress(?string $cryptoAddress): self
+    public function setCoinbaseAccountId(?string $coinbaseAccountId): self
     {
-        $this->cryptoAddress = $cryptoAddress;
+        $this->coinbaseAccountId = $coinbaseAccountId;
+        return $this;
+    }
+
+    public function getCoinbaseCommerceMetadata(): ?string
+    {
+        return $this->coinbaseCommerceMetadata;
+    }
+
+    public function setCoinbaseCommerceMetadata(?string $metadata): self
+    {
+        $this->coinbaseCommerceMetadata = $metadata;
+        return $this;
+    }
+
+    public function getPreferredCryptoCurrency(): ?string
+    {
+        return $this->preferredCryptoCurrency;
+    }
+
+    public function setPreferredCryptoCurrency(?string $currency): self
+    {
+        $this->preferredCryptoCurrency = $currency;
         return $this;
     }
 

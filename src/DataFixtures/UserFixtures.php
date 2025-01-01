@@ -15,7 +15,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     private const array STATIC_USERS = [
         [
             'email' => 'john.doe@example.com',
-            'username' => 'john_doe',
             'firstName' => 'John',
             'lastName' => 'Doe',
             'password' => 'password123',
@@ -24,7 +23,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ],
         [
             'email' => 'jane.smith@example.com',
-            'username' => 'jane_smith',
             'firstName' => 'Jane',
             'lastName' => 'Smith',
             'password' => 'password123',
@@ -33,7 +31,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ],
         [
             'email' => 'alice.wonder@example.com',
-            'username' => 'alice_wonder',
             'firstName' => 'Alice',
             'lastName' => 'Wonder',
             'password' => 'password123',
@@ -42,7 +39,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ],
         [
             'email' => 'bob.builder@example.com',
-            'username' => 'bob_builder',
             'firstName' => 'Bob',
             'lastName' => 'Builder',
             'password' => 'password123',
@@ -51,7 +47,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ],
         [
             'email' => 'admin@example.com',
-            'username' => 'admin',
             'firstName' => 'Admin',
             'lastName' => 'User',
             'password' => 'admin123',
@@ -64,7 +59,8 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher
-    ) {}
+    ) {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -79,11 +75,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         for ($i = 1; $i <= 20; $i++) {
             $firstName = $faker->firstName();
             $lastName = $faker->lastName();
-            $username = strtolower($firstName . '.' . $lastName);
 
             $userData = [
                 'email' => $faker->email(),
-                'username' => str_replace('.', '_', $username),
                 'firstName' => $firstName,
                 'lastName' => $lastName,
                 'password' => 'password123',
@@ -101,7 +95,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     {
         $user = new User();
         $user->setEmail($userData['email'])
-            ->setUsername($userData['username'])
             ->setFirstName($userData['firstName'])
             ->setLastName($userData['lastName'])
             ->setName($userData['firstName'] . ' ' . $userData['lastName']) // Set the name field
@@ -110,7 +103,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setWalletBalance(0.0)
             ->setCurrentFlower($this->getReference('flower_1', Flower::class))
             ->setProjectDescription($userData['projectDescription'])
-            ->setReferralCode($this->generateReferralCode());
+            ->setReferralCode($this->generateReferralCode())
+            ->setRegistrationPaymentStatus('completed') // Set as completed for fixtures
+            ->setWaitingSince(null); // No waiting time for fixtures
 
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -128,7 +123,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $manager->persist($user);
-        $this->addReference('user_' . $userData['username'], $user);
+        
+        // Create a username from firstName and lastName for reference
+        $username = strtolower(str_replace(' ', '_', 
+            $userData['firstName'] . '_' . $userData['lastName']
+        ));
+        $this->addReference('user_' . $username, $user);
+        
+        // Also store by email for backward compatibility
+        $this->addReference('user_by_email_' . $userData['email'], $user);
     }
 
     private function generateReferralCode(): string
