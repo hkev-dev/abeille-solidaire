@@ -55,7 +55,31 @@ class Donation
     private ?string $stripePaymentIntentId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinbaseChargeId = null;
+    private ?string $coinpaymentsTransactionId = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $cryptoCurrency = null;
+
+    #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
+    private ?float $cryptoAmount = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 6, nullable: true)]
+    private ?float $exchangeRate = null;
+
+    #[ORM\Column(type: 'smallint', nullable: true)]
+    private ?int $confirmationsNeeded = null;
+
+    #[ORM\Column(type: 'smallint', nullable: true)]
+    private ?int $confirmationsReceived = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $statusUrl = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $destinationAddress = null;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $cryptoStatus = null;
 
     #[ORM\Column(length: 20)]
     private string $solidarityDistributionStatus = self::SOLIDARITY_STATUS_NOT_APPLICABLE;
@@ -153,14 +177,102 @@ class Donation
         return $this;
     }
 
-    public function getCoinbaseChargeId(): ?string
+    public function getCoinpaymentsTransactionId(): ?string
     {
-        return $this->coinbaseChargeId;
+        return $this->coinpaymentsTransactionId;
     }
 
-    public function setCoinbaseChargeId(?string $coinbaseChargeId): self
+    public function setCoinpaymentsTransactionId(?string $txnId): self
     {
-        $this->coinbaseChargeId = $coinbaseChargeId;
+        $this->coinpaymentsTransactionId = $txnId;
+        return $this;
+    }
+
+    public function getCryptoCurrency(): ?string
+    {
+        return $this->cryptoCurrency;
+    }
+
+    public function setCryptoCurrency(?string $currency): self
+    {
+        $this->cryptoCurrency = $currency;
+        return $this;
+    }
+
+    public function getCryptoAmount(): ?float
+    {
+        return $this->cryptoAmount;
+    }
+
+    public function setCryptoAmount(?float $amount): self
+    {
+        $this->cryptoAmount = $amount;
+        return $this;
+    }
+
+    public function getExchangeRate(): ?float
+    {
+        return $this->exchangeRate;
+    }
+
+    public function setExchangeRate(?float $rate): self
+    {
+        $this->exchangeRate = $rate;
+        return $this;
+    }
+
+    public function getConfirmationsNeeded(): ?int
+    {
+        return $this->confirmationsNeeded;
+    }
+
+    public function setConfirmationsNeeded(?int $confirms): self
+    {
+        $this->confirmationsNeeded = $confirms;
+        return $this;
+    }
+
+    public function getConfirmationsReceived(): ?int
+    {
+        return $this->confirmationsReceived;
+    }
+
+    public function setConfirmationsReceived(?int $confirms): self
+    {
+        $this->confirmationsReceived = $confirms;
+        return $this;
+    }
+
+    public function getStatusUrl(): ?string
+    {
+        return $this->statusUrl;
+    }
+
+    public function setStatusUrl(?string $url): self
+    {
+        $this->statusUrl = $url;
+        return $this;
+    }
+
+    public function getDestinationAddress(): ?string
+    {
+        return $this->destinationAddress;
+    }
+
+    public function setDestinationAddress(?string $address): self
+    {
+        $this->destinationAddress = $address;
+        return $this;
+    }
+
+    public function getCryptoStatus(): ?string
+    {
+        return $this->cryptoStatus;
+    }
+
+    public function setCryptoStatus(?string $status): self
+    {
+        $this->cryptoStatus = $status;
         return $this;
     }
 
@@ -171,11 +283,13 @@ class Donation
 
     public function setSolidarityDistributionStatus(string $status): self
     {
-        if (!in_array($status, [
-            self::SOLIDARITY_STATUS_PENDING,
-            self::SOLIDARITY_STATUS_DISTRIBUTED,
-            self::SOLIDARITY_STATUS_NOT_APPLICABLE
-        ])) {
+        if (
+            !in_array($status, [
+                self::SOLIDARITY_STATUS_PENDING,
+                self::SOLIDARITY_STATUS_DISTRIBUTED,
+                self::SOLIDARITY_STATUS_NOT_APPLICABLE
+            ])
+        ) {
             throw new \InvalidArgumentException('Invalid solidarity distribution status');
         }
         $this->solidarityDistributionStatus = $status;

@@ -33,7 +33,13 @@ class Membership
     private ?string $stripePaymentIntentId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinbaseChargeId = null;
+    private ?string $coinpaymentsTxnId = null;  // Replace coinbaseChargeId
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $cryptoCurrency = null;  // Add cryptocurrency used
+
+    #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
+    private ?float $cryptoAmount = null;  // Add crypto amount
 
     public function __construct()
     {
@@ -91,14 +97,36 @@ class Membership
         return $this;
     }
 
-    public function getCoinbaseChargeId(): ?string
+    public function getCoinpaymentsTxnId(): ?string
     {
-        return $this->coinbaseChargeId;
+        return $this->coinpaymentsTxnId;
     }
 
-    public function setCoinbaseChargeId(?string $id): self
+    public function setCoinpaymentsTxnId(?string $txnId): self
     {
-        $this->coinbaseChargeId = $id;
+        $this->coinpaymentsTxnId = $txnId;
+        return $this;
+    }
+
+    public function getCryptoCurrency(): ?string
+    {
+        return $this->cryptoCurrency;
+    }
+
+    public function setCryptoCurrency(?string $currency): self
+    {
+        $this->cryptoCurrency = $currency;
+        return $this;
+    }
+
+    public function getCryptoAmount(): ?float
+    {
+        return $this->cryptoAmount;
+    }
+
+    public function setCryptoAmount(?float $amount): self
+    {
+        $this->cryptoAmount = $amount;
         return $this;
     }
 }

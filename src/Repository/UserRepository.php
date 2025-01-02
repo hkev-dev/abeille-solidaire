@@ -93,4 +93,97 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    public function findExpiredWaitingRoomUsers(\DateTimeInterface $threshold): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.registrationPaymentStatus = :status')
+            ->andWhere('u.waitingSince < :threshold')
+            ->setParameter('status', 'pending')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findNextRecipientInFlower(Flower $flower): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.currentFlower = :flower')
+            ->andWhere('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->andSelect(
+                '(SELECT COUNT(d) FROM App:Donation d 
+                WHERE d.recipient = u AND d.flower = :flower) as donation_count'
+            )
+            ->having('donation_count < 4')
+            ->setParameter('flower', $flower)
+            ->setParameter('status', 'completed')
+            ->orderBy('u.waitingSince', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findUsersReadyForFlowerUpgrade(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->join('u.donationsReceived', 'd')
+            ->where('d.flower = u.currentFlower')
+            ->groupBy('u.id')
+            ->having('COUNT(d.id) >= 4')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findPotentialSolidarityRecipients(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->andWhere('u.projectDescription IS NOT NULL')
+            ->orderBy('u.walletBalance', 'ASC')
+            ->setParameter('status', 'completed')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countActiveUsers(): int
+    {
+        return $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findInactiveAccounts(\DateTimeInterface $threshold): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.registrationPaymentStatus = :status')
+            ->andWhere('u.waitingSince < :threshold')
+            ->andWhere('u.isVerified = false')
+            ->setParameter('status', 'pending')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getUsersAwaitingDonationsInFlower(Flower $flower): array
+    {
+        $qb = $this->createQueryBuilder('u');
+        
+        return $qb->select('u', 'COUNT(d.id) as donation_count')
+            ->leftJoin('u.donationsReceived', 'd', 'WITH', 'd.flower = :flower')
+            ->where('u.currentFlower = :flower')
+            ->andWhere('u.isVerified = true')
+            ->groupBy('u.id')
+            ->having('donation_count < 4')
+            ->setParameter('flower', $flower)
+            ->orderBy('u.waitingSince', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

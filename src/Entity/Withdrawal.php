@@ -53,6 +53,18 @@ class Withdrawal
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $feeAmount;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coinpaymentsWithdrawalId = null;  // Add CoinPayments withdrawal ID
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $cryptoAddress = null;  // Add crypto address for withdrawal
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $cryptoCurrency = null;  // Add cryptocurrency for withdrawal
+
+    #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
+    private ?float $cryptoAmount = null;  // Add crypto amount for withdrawal
+
     public function __construct()
     {
         $this->requestedAt = new \DateTimeImmutable();
@@ -182,5 +194,49 @@ class Withdrawal
     public function getNetAmount(): float
     {
         return $this->amount - $this->feeAmount;
+    }
+
+    public function getCoinpaymentsWithdrawalId(): ?string
+    {
+        return $this->coinpaymentsWithdrawalId;
+    }
+
+    public function setCoinpaymentsWithdrawalId(?string $id): self
+    {
+        $this->coinpaymentsWithdrawalId = $id;
+        return $this;
+    }
+
+    public function getCryptoAddress(): ?string
+    {
+        return $this->cryptoAddress;
+    }
+
+    public function setCryptoAddress(?string $address): self
+    {
+        $this->cryptoAddress = $address;
+        return $this;
+    }
+
+    public function getCryptoCurrency(): ?string
+    {
+        return $this->cryptoCurrency;
+    }
+
+    public function setCryptoCurrency(?string $currency): self
+    {
+        $this->cryptoCurrency = $currency;
+        return $this;
+    }
+
+    public function getCryptoAmount(): ?float
+    {
+        return $this->cryptoAmount;
+    }
+
+    public function setCryptoAmount(?float $amount): self
+    {
+        $this->cryptoAmount = $amount;
+        return $this;
     }
 }

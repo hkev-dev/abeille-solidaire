@@ -24,9 +24,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name = null;
-
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
@@ -127,19 +124,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
-        // If name is null, generate it from firstName and lastName
-        if ($this->name === null && ($this->firstName !== null || $this->lastName !== null)) {
-            return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
-        }
-        return $this->name;
-    }
-
-    public function setName(?string $name): self
-    {
-        $this->name = $name;
-        return $this;
+        // Always generate name from firstName and lastName
+        return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
     }
 
     public function getEmail(): ?string
@@ -216,18 +204,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isVerified(): bool
     {
-        return $this->isVerified;
+        // User is verified when registration payment is completed
+        return $this->registrationPaymentStatus === 'completed';
     }
 
     public function setIsVerified(bool $isVerified): self
     {
-        $this->isVerified = $isVerified;
+        // This method is maintained for compatibility but should not be used directly
+        // Verification status is controlled by registration payment status
         return $this;
     }
 
     public function getFullName(): string
     {
-        return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
+        return $this->getName(); // Use the getName method for consistency
     }
 
     public function getAvatarFile(): ?File

@@ -36,13 +36,10 @@ class PaymentMethod
     private ?string $stripeCustomerId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinbaseAccountId = null;
+    private ?string $coinpaymentsTag = null;  // Replace coinbase_account_id with coinpaymentsTag
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinbaseCommerceMetadata = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $preferredCryptoCurrency = null;
+    private ?string $cryptoCurrency = null;  // Add preferred cryptocurrency for CoinPayments
 
     #[ORM\Column]
     private bool $isDefault = false;
@@ -97,36 +94,25 @@ class PaymentMethod
         return $this;
     }
 
-    public function getCoinbaseAccountId(): ?string
+    public function getCoinpaymentsTag(): ?string 
     {
-        return $this->coinbaseAccountId;
+        return $this->coinpaymentsTag;
     }
 
-    public function setCoinbaseAccountId(?string $coinbaseAccountId): self
+    public function setCoinpaymentsTag(?string $tag): self
     {
-        $this->coinbaseAccountId = $coinbaseAccountId;
+        $this->coinpaymentsTag = $tag;
         return $this;
     }
 
-    public function getCoinbaseCommerceMetadata(): ?string
+    public function getCryptoCurrency(): ?string
     {
-        return $this->coinbaseCommerceMetadata;
+        return $this->cryptoCurrency;
     }
 
-    public function setCoinbaseCommerceMetadata(?string $metadata): self
+    public function setCryptoCurrency(?string $currency): self
     {
-        $this->coinbaseCommerceMetadata = $metadata;
-        return $this;
-    }
-
-    public function getPreferredCryptoCurrency(): ?string
-    {
-        return $this->preferredCryptoCurrency;
-    }
-
-    public function setPreferredCryptoCurrency(?string $currency): self
-    {
-        $this->preferredCryptoCurrency = $currency;
+        $this->cryptoCurrency = $currency;
         return $this;
     }
 

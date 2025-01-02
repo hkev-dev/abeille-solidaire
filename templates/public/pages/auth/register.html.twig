@@ -63,3 +63,36 @@
         </div>
     </section>
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[name="registration"]');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'})
+                            .then(function(token) {
+                                // Look for existing input or create new one
+                                let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');
+                                recaptchaInput.value = token;
+                                
+                                // Submit the form
+                                form.removeEventListener('submit', arguments.callee);
+                                form.submit();
+                            })
+                            .catch(function(error) {
+                                console.error('reCAPTCHA error:', error);
+                                alert('An error occurred with the security check. Please try again.');
+                            });
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

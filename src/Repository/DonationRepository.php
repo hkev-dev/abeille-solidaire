@@ -52,4 +52,23 @@ class DonationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getReferrerMatrixPositions(User $referrer, Flower $flower): array
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select('d.cyclePosition', 'IDENTITY(d.recipient) as recipient_id')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donor = :referrer')
+            ->setParameter('flower', $flower)
+            ->setParameter('referrer', $referrer);
+
+        $result = $qb->getQuery()->getResult();
+
+        $positions = [];
+        foreach ($result as $row) {
+            $positions[$row['cyclePosition']] = $row['recipient_id'];
+        }
+
+        return $positions;
+    }
 }
