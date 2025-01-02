@@ -2,6 +2,9 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         site_name: '%env(SITE_NAME)%'
+        recaptcha_site_key: '%app.recaptcha.site_key%'
+        stripe_public_key: '%stripe.public_key%'
+        stripe_client_secret: '%stripe.secret_key%'
         site_config:
             description: "Lorem quas utamur delicata qui, vix ei prima mentitum omnesque. Duo corrumpit cotidieque ne."
             contact:

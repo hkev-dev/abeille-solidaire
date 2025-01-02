@@ -4,6 +4,17 @@
 # Put parameters here that don't need to change on each machine where the landing is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.recaptcha.site_key: "%env(GOOGLE_RECAPTCHA_SITE_KEY)%"
+    app.recaptcha.secret_key: "%env(GOOGLE_RECAPTCHA_SECRET)%"
+    google_recaptcha_site_key: "%env(GOOGLE_RECAPTCHA_SITE_KEY)%"
+    stripe.secret_key: "%env(STRIPE_SECRET)%"
+    stripe.public_key: "%env(STRIPE_PUBLIC_KEY)%"
+    stripe.webhook_secret: "%env(STRIPE_WEBHOOK_SECRET)%"
+    app.domain: "%env(APP_DOMAIN)%"
+    coinpayments.merchant_id: "%env(COINPAYMENTS_MERCHANT_ID)%"
+    coinpayments.public_key: "%env(COINPAYMENTS_PUBLIC_KEY)%"
+    coinpayments.private_key: "%env(COINPAYMENTS_PRIVATE_KEY)%"
+    coinpayments.ipn_secret: "%env(COINPAYMENTS_IPN_SECRET)%"
 
 services:
     # default configuration for services in *this* file
@@ -33,3 +44,32 @@ services:
             - { name: doctrine.event_listener, event: "prePersist" }
         calls:
             - [setAnnotationReader, ["@gedmo.mapping.driver.attribute"]]
+
+    App\EventSubscriber\RegistrationSubscriber:
+        arguments:
+            $emailService: '@App\Service\EmailService'
+            $receiptService: '@App\Service\DonationReceiptService'
+            $logger: "@logger"
+        tags: ["kernel.event_subscriber"]
+
+    App\Service\EmailService:
+        arguments:
+            $mailer: "@mailer"
+            $senderEmail: "%env(MAILER_FROM_ADDRESS)%"
+            $senderName: "%env(MAILER_FROM_NAME)%"
+
+    App\Service\SecurityService:
+        arguments:
+            $registrationLimiter: "@limiter.registration_limiter"
+            $recaptchaSecretKey: "%app.recaptcha.secret_key%"
+
+    App\Service\RegistrationPaymentService:
+        arguments:
+            $params: '@parameter_bag'
+            $eventDispatcher: '@event_dispatcher'
+            $logger: '@logger'
+            $router: '@router'
+
+    App\Controller\Public\AuthController:
+        autowire: true
+        # Remove explicit logger argument since it will be autowired

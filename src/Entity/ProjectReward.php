@@ -40,6 +40,9 @@ class ProjectReward
     #[ORM\Column]
     private int $backerCount = 0;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $backerLimit = null;
+
     public function getProject(): ?Project
     {
         return $this->project;
@@ -104,5 +107,24 @@ class ProjectReward
     {
         $this->backerCount = $backerCount;
         return $this;
+    }
+
+    public function getBackerLimit(): ?int
+    {
+        return $this->backerLimit;
+    }
+
+    public function setBackerLimit(?int $backerLimit): static
+    {
+        $this->backerLimit = $backerLimit;
+        return $this;
+    }
+
+    public function hasReachedLimit(): bool
+    {
+        if ($this->backerLimit === null) {
+            return false;
+        }
+        return $this->backerCount >= $this->backerLimit;
     }
 }

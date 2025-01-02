@@ -1,7 +1,7 @@
 {# templates/pages/auth/register.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Register - Qrowd Crowdfunding Platform{% endblock %}
+{% block title %}Register - Abeilles Solidaires{% endblock %}
 
 {% block content %}
     {# Page Header #}
@@ -15,28 +15,51 @@
 
     <section class="login-register">
         <div class="container">
+            {% if app.environment == 'dev' or app.environment == 'test' %}
+                <div class="alert alert-info">
+                    <strong>Test Mode:</strong> Default referral code: <code>ROOT_USER_REF</code>
+                </div>
+            {% endif %}
             <div class="row justify-content-center">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     {% include 'public/components/flash-messages.html.twig' %}
-                    <h3 class="login-register__title">Create New Account</h3>
+                    <h3 class="login-register__title text-center mb-4">Join Abeilles Solidaires</h3>
                     {{ form_start(form, {'attr': {'class': 'login-register__form'}}) }}
-                        {{ form_row(form.username) }}
-                        {{ form_row(form.email) }}
-                        {{ form_row(form.password) }}
-                        {{ form_row(form.confirmPassword) }}
-                        
-                        <div class="login-register__checkbox">
-                            {{ form_widget(form.agreeTerms, {'id': 'login-register__policy'}) }}
-                            <label for="login-register__policy">
-                                I accept the <a href="#"> Terms of Service </a> &nbsp;and <a href="#"> Privacy Policy </a>
-                            </label>
-                            {{ form_errors(form.agreeTerms) }}
+                        <div class="row">
+                            {# Left Column #}
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(form.firstName) }}</div>
+                                    <div class="col-md-6">{{ form_row(form.lastName) }}</div>
+                                </div>
+                                {{ form_row(form.email) }}
+                                {{ form_row(form.password) }}
+                                {{ form_row(form.confirmPassword) }}
+                            </div>
+                            
+                            {# Right Column #}
+                            <div class="col-md-6">
+                                {{ form_row(form.referralCode) }}
+                                {{ form_row(form.projectDescription) }}
+                            </div>
                         </div>
-                        
-                        <div class="login-register__info">
-                            <button type="submit" class="thm-btn login-register__btn">Register</button>
-                            <div class="login-register__text">
-                                <a href="{{ path('app.login') }}">Already have an account? Login</a>
+
+                        {# Footer Elements - Full Width #}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="login-register__checkbox mb-3">
+                                    {{ form_widget(form.agreeTerms) }}
+                                    <label for="registration_agreeTerms">
+                                        I accept the <a href="#">Terms of Service</a> &nbsp; and 
+                                        <a href="#">Privacy Policy</a>
+                                    </label>
+                                    {{ form_errors(form.agreeTerms) }}
+                                </div>
+                                
+                                <button type="submit" class="thm-btn login-register__btn w-100">Register</button>
+                                <div class="login-register__text text-center mt-3">
+                                    <a href="{{ path('app.login') }}">Already have an account? Login</a>
+                                </div>
                             </div>
                         </div>
                     {{ form_end(form) }}
@@ -44,4 +67,45 @@
             </div>
         </div>
     </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add default referral code in dev/test environment if no referral code is present
+            {% if app.environment in ['dev', 'test'] %}
+                const referralInput = document.querySelector('input[name="registration[referralCode]"]');
+                if (referralInput && !referralInput.value && !new URLSearchParams(window.location.search).get('ref')) {
+                    referralInput.value = 'ROOT_USER_REF';
+                }
+            {% endif %}
+            
+            const form = document.querySelector('form[name="registration"]');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'})
+                            .then(function(token) {
+                                // Look for existing input or create new one
+                                let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');
+                                recaptchaInput.value = token;
+                                
+                                // Submit the form
+                                form.removeEventListener('submit', arguments.callee);
+                                form.submit();
+                            })
+                            .catch(function(error) {
+                                console.error('reCAPTCHA error:', error);
+                                alert('An error occurred with the security check. Please try again.');
+                            });
+                    });
+                });
+            }
+        });
+    </script>
 {% endblock %}

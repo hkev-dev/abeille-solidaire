@@ -2,79 +2,101 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Flower;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class UserFixtures extends Fixture
+class UserFixtures extends Fixture implements DependentFixtureInterface
 {
+    private const ROOT_USER = [
+        'email' => 'root@example.com',
+        'firstName' => 'Root',
+        'lastName' => 'User',
+        'password' => 'rootpass123',
+        'roles' => ['ROLE_ADMIN', 'ROLE_USER'],
+        'projectDescription' => 'Root user for system administration and testing.',
+        'isRoot' => true
+    ];
+
     private const array STATIC_USERS = [
         [
+            'email' => 'admin@example.com',
+            'firstName' => 'Admin',
+            'lastName' => 'User',
+            'password' => 'admin123',
+            'roles' => ['ROLE_ADMIN'],
+            'projectDescription' => 'Platform administration and support.'
+        ],
+        [
             'email' => 'john.doe@example.com',
-            'username' => 'john_doe',
-            'name' => 'John Doe',
+            'firstName' => 'John',
+            'lastName' => 'Doe',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Building a sustainable farming community in rural areas.'
         ],
         [
             'email' => 'jane.smith@example.com',
-            'username' => 'jane_smith',
-            'name' => 'Jane Smith',
+            'firstName' => 'Jane',
+            'lastName' => 'Smith',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Creating an educational program for underprivileged children.'
         ],
         [
             'email' => 'alice.wonder@example.com',
-            'username' => 'alice_wonder',
-            'name' => 'Alice Wonder',
+            'firstName' => 'Alice',
+            'lastName' => 'Wonder',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Developing a renewable energy initiative for local communities.'
         ],
         [
             'email' => 'bob.builder@example.com',
-            'username' => 'bob_builder',
-            'name' => 'Bob Builder',
+            'firstName' => 'Bob',
+            'lastName' => 'Builder',
             'password' => 'password123',
-            'roles' => ['ROLE_USER']
-        ],
-        [
-            'email' => 'admin@example.com',
-            'username' => 'admin',
-            'name' => 'Admin User',
-            'password' => 'admin123',
-            'roles' => ['ROLE_ADMIN']
+            'roles' => ['ROLE_USER'],
+            'projectDescription' => 'Building affordable housing for low-income families.'
         ]
     ];
 
+    private ?User $rootUser = null;
+    private ?User $firstUser = null;
+
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher
-    )
-    {
+    ) {
     }
 
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
 
-        // Load static users first
+        // Create root user first
+        $this->rootUser = $this->createUser($manager, self::ROOT_USER, 'ROOT_USER_REF');
+        
+        // Load remaining static users
         foreach (self::STATIC_USERS as $userData) {
             $this->createUser($manager, $userData);
         }
 
-        // Generate 20 random users
+        // Generate 20 random users with root user as referrer
         for ($i = 1; $i <= 20; $i++) {
             $firstName = $faker->firstName();
             $lastName = $faker->lastName();
-            $username = strtolower($firstName . '.' . $lastName);
 
             $userData = [
                 'email' => $faker->email(),
-                'username' => str_replace('.', '_', $username),
-                'name' => $firstName . ' ' . $lastName,
+                'firstName' => $firstName,
+                'lastName' => $lastName,
                 'password' => 'password123',
-                'roles' => ['ROLE_USER']
+                'roles' => ['ROLE_USER'],
+                'projectDescription' => $faker->paragraphs(2, true)
             ];
 
             $this->createUser($manager, $userData);
@@ -83,14 +105,26 @@ class UserFixtures extends Fixture
         $manager->flush();
     }
 
-    private function createUser(ObjectManager $manager, array $userData): void
+    private function createUser(ObjectManager $manager, array $userData, ?string $forcedReferralCode = null): User
     {
         $user = new User();
         $user->setEmail($userData['email'])
-            ->setUsername($userData['username'])
-            ->setName($userData['name'])
+            ->setFirstName($userData['firstName'])
+            ->setLastName($userData['lastName'])
             ->setRoles($userData['roles'])
-            ->setIsVerified(true);
+            ->setIsVerified(true)
+            ->setWalletBalance(0.0)
+            ->setCurrentFlower($this->getReference('flower_1', Flower::class))
+            ->setProjectDescription($userData['projectDescription'])
+            ->setRegistrationPaymentStatus('completed')
+            ->setWaitingSince(null);
+
+        // Set referral code
+        if ($forcedReferralCode) {
+            $user->setReferralCode($forcedReferralCode);
+        } else {
+            $user->setReferralCode($this->generateReferralCode());
+        }
 
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -98,7 +132,30 @@ class UserFixtures extends Fixture
         );
         $user->setPassword($hashedPassword);
 
+        // Set referrer for non-root users
+        if (!isset($userData['isRoot']) && $this->rootUser !== null) {
+            $user->setReferrer($this->rootUser);
+        }
+
         $manager->persist($user);
-        $this->addReference('user_' . $userData['username'], $user);
+
+        // Store references
+        $username = strtolower(str_replace(' ', '_', $userData['firstName'] . '_' . $userData['lastName']));
+        $this->addReference('user_' . $username, $user);
+        $this->addReference('user_by_email_' . $userData['email'], $user);
+
+        return $user;
+    }
+
+    private function generateReferralCode(): string
+    {
+        return bin2hex(random_bytes(16)); // Generates a 32-character hex string
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            FlowerFixtures::class,
+        ];
     }
 }

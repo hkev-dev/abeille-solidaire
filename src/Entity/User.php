@@ -22,26 +22,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null {
-        get {
-            return $this->id;
-        }
-    }
-
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
-
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
     private Collection $projects;
-
-    #[ORM\Column]
-    private int $backedCount = 0;
 
     #[ORM\Column]
     private array $roles = [];
@@ -49,17 +36,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255, unique: true)]
-    private ?string $username = null;
-
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
-
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $verificationToken = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $verificationTokenExpiresAt = null;
 
     #[Vich\UploadableField(mapping: 'user_avatars', fileNameProperty: 'avatar')]
     private ?File $avatarFile = null;
@@ -70,21 +48,86 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
     private Collection $backedProjects;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $walletBalance = 0.0;
+
+    #[ORM\ManyToOne(targetEntity: Flower::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Flower $currentFlower = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'referrals')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?self $referrer = null;
+
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'referrer')]
+    private Collection $referrals;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $projectDescription = null;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
+    private Collection $donationsMade;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'recipient')]
+    private Collection $donationsReceived;
+
+    #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
+    private Collection $withdrawals;
+
+    #[ORM\Column(length: 255)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lastName = null;
+
+    #[ORM\Column(length: 32, unique: true)]
+    private ?string $referralCode = null;
+
+    #[ORM\Column(length: 20)]
+    private string $registrationPaymentStatus = 'pending';
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $waitingSince = null;
+
+    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'user')]
+    private Collection $flowerCycleCompletions;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isKycVerified = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $kycVerifiedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kycProvider = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kycReferenceId = null;
+
+    #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
+    private Collection $memberships;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
         $this->backedProjects = new ArrayCollection();
+        $this->referrals = new ArrayCollection();
+        $this->donationsMade = new ArrayCollection();
+        $this->donationsReceived = new ArrayCollection();
+        $this->withdrawals = new ArrayCollection();
+        $this->flowerCycleCompletions = new ArrayCollection();
+        $this->memberships = new ArrayCollection();
     }
 
-    public function getName(): ?string
+    public function getId(): ?int
     {
-        return $this->name;
+        return $this->id;
     }
 
-    public function setName(string $name): self
+    public function getName(): string
     {
-        $this->name = $name;
-        return $this;
+        // Always generate name from firstName and lastName
+        return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
     }
 
     public function getEmail(): ?string
@@ -95,17 +138,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-        return $this;
-    }
-
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    public function setImage(?string $image): self
-    {
-        $this->image = $image;
         return $this;
     }
 
@@ -134,17 +166,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getProjects(): Collection
     {
         return $this->projects;
-    }
-
-    public function getBackedCount(): int
-    {
-        return $this->backedCount;
-    }
-
-    public function setBackedCount(int $backedCount): self
-    {
-        $this->backedCount = $backedCount;
-        return $this;
     }
 
     public function getUserIdentifier(): string
@@ -181,53 +202,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // If you store any temporary, sensitive data on the user, clear it here
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-        return $this;
-    }
-
     public function isVerified(): bool
     {
-        return $this->isVerified;
+        // User is verified when registration payment is completed
+        return $this->registrationPaymentStatus === 'completed';
     }
 
     public function setIsVerified(bool $isVerified): self
     {
-        $this->isVerified = $isVerified;
-        return $this;
-    }
-
-    public function getVerificationToken(): ?string
-    {
-        return $this->verificationToken;
-    }
-
-    public function setVerificationToken(?string $verificationToken): self
-    {
-        $this->verificationToken = $verificationToken;
-        return $this;
-    }
-
-    public function getVerificationTokenExpiresAt(): ?\DateTimeInterface
-    {
-        return $this->verificationTokenExpiresAt;
-    }
-
-    public function setVerificationTokenExpiresAt(?\DateTimeInterface $verificationTokenExpiresAt): self
-    {
-        $this->verificationTokenExpiresAt = $verificationTokenExpiresAt;
+        // This method is maintained for compatibility but should not be used directly
+        // Verification status is controlled by registration payment status
         return $this;
     }
 
     public function getFullName(): string
     {
-        return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
+        return $this->getName(); // Use the getName method for consistency
     }
 
     public function getAvatarFile(): ?File
@@ -252,5 +242,199 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->avatar = $avatar;
         return $this;
+    }
+
+    public function getWalletBalance(): float
+    {
+        return $this->walletBalance;
+    }
+
+    public function setWalletBalance(float $walletBalance): self
+    {
+        $this->walletBalance = $walletBalance;
+        return $this;
+    }
+
+    public function getCurrentFlower(): ?Flower
+    {
+        return $this->currentFlower;
+    }
+
+    public function setCurrentFlower(?Flower $flower): self
+    {
+        $this->currentFlower = $flower;
+        return $this;
+    }
+
+    public function getReferrer(): ?self
+    {
+        return $this->referrer;
+    }
+
+    public function setReferrer(?self $referrer): self
+    {
+        $this->referrer = $referrer;
+        return $this;
+    }
+
+    public function getReferrals(): Collection
+    {
+        return $this->referrals;
+    }
+
+    public function getProjectDescription(): ?string
+    {
+        return $this->projectDescription;
+    }
+
+    public function setProjectDescription(?string $projectDescription): self
+    {
+        $this->projectDescription = $projectDescription;
+        return $this;
+    }
+
+    public function getDonationsMade(): Collection
+    {
+        return $this->donationsMade;
+    }
+
+    public function getDonationsReceived(): Collection
+    {
+        return $this->donationsReceived;
+    }
+
+    public function getWithdrawals(): Collection
+    {
+        return $this->withdrawals;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): self
+    {
+        $this->lastName = $lastName;
+        return $this;
+    }
+
+    public function getReferralCode(): ?string
+    {
+        return $this->referralCode;
+    }
+
+    public function setReferralCode(string $referralCode): self
+    {
+        $this->referralCode = $referralCode;
+        return $this;
+    }
+
+    public function getRegistrationPaymentStatus(): string
+    {
+        return $this->registrationPaymentStatus;
+    }
+
+    public function setRegistrationPaymentStatus(string $status): self
+    {
+        if (!in_array($status, ['pending', 'completed', 'failed'])) {
+            throw new \InvalidArgumentException('Invalid registration payment status');
+        }
+        $this->registrationPaymentStatus = $status;
+        return $this;
+    }
+
+    public function getWaitingSince(): ?\DateTimeInterface
+    {
+        return $this->waitingSince;
+    }
+
+    public function setWaitingSince(?\DateTimeInterface $waitingSince): self
+    {
+        $this->waitingSince = $waitingSince;
+        return $this;
+    }
+
+    public function getFlowerCycleCompletions(): Collection
+    {
+        return $this->flowerCycleCompletions;
+    }
+
+    public function getFlowerCompletionCount(Flower $flower): int
+    {
+        $completion = $this->flowerCycleCompletions
+            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
+            ->first();
+        
+        return $completion ? $completion->getCompletionCount() : 0;
+    }
+
+    public function hasReachedFlowerLimit(Flower $flower): bool
+    {
+        return $this->getFlowerCompletionCount($flower) >= 10;
+    }
+
+    public function isKycVerified(): bool
+    {
+        return $this->isKycVerified;
+    }
+
+    public function setIsKycVerified(bool $isKycVerified): self
+    {
+        $this->isKycVerified = $isKycVerified;
+        if ($isKycVerified) {
+            $this->kycVerifiedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getKycVerifiedAt(): ?\DateTimeInterface
+    {
+        return $this->kycVerifiedAt;
+    }
+
+    public function getKycProvider(): ?string
+    {
+        return $this->kycProvider;
+    }
+
+    public function setKycProvider(?string $provider): self
+    {
+        $this->kycProvider = $provider;
+        return $this;
+    }
+
+    public function getKycReferenceId(): ?string
+    {
+        return $this->kycReferenceId;
+    }
+
+    public function setKycReferenceId(?string $referenceId): self
+    {
+        $this->kycReferenceId = $referenceId;
+        return $this;
+    }
+
+    public function getMemberships(): Collection
+    {
+        return $this->memberships;
+    }
+
+    public function getCurrentMembership(): ?Membership
+    {
+        return $this->memberships
+            ->filter(fn(Membership $membership) => $membership->isActive())
+            ->first() ?: null;
     }
 }

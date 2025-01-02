@@ -11,22 +11,24 @@ use Faker\Factory;
 
 class ProjectRewardFixtures extends Fixture implements DependentFixtureInterface
 {
+    private array $creators = ['john_doe', 'jane_smith', 'alice_wonder', 'bob_builder'];
+
     private array $rewardTiers = [
         'early_bird' => [
-            'title_format' => 'Early Bird Special - %s',
-            'description_format' => 'Be among the first to get %s at %d%% off retail price. Limited to first %d backers.',
-            'discount' => [20, 30, 40],
-            'limit' => [50, 100, 200]
+            'title_format' => 'Early Bird Support - %s',
+            'description_format' => 'Be among the first supporters. Get exclusive updates and recognition on our project page. Limited to first %d backers.',
+            'multiplier' => 0.25, // 25% of flower amount
+            'limit' => [10, 20, 30]
         ],
         'standard' => [
-            'title_format' => 'Standard Package - %s',
-            'description_format' => 'Get %s at regular crowdfunding price.',
-            'discount' => [10, 15, 20]
+            'title_format' => 'Regular Support - %s',
+            'description_format' => 'Support our project and get regular updates on our progress.',
+            'multiplier' => 0.5 // 50% of flower amount
         ],
-        'deluxe' => [
-            'title_format' => 'Deluxe Package - %s',
-            'description_format' => '%s + Premium Accessories + Extended Warranty',
-            'discount' => [0, 5, 10]
+        'premium' => [
+            'title_format' => 'Premium Support - %s',
+            'description_format' => 'Premium supporter status with exclusive benefits and priority updates.',
+            'multiplier' => 1.0 // 100% of flower amount
         ]
     ];
 
@@ -34,39 +36,31 @@ class ProjectRewardFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create();
 
-        // For each project (0-19 as per ProjectFixtures)
-        for ($i = 0; $i < 20; $i++) {
-            $project = $this->getReference('project_' . $i, Project::class);
-            $basePrice = $faker->numberBetween(50, 500);
+        foreach ($this->creators as $username) {
+            try {
+                $project = $this->getReference('project_' . $username, Project::class);
+                $flowerAmount = $project->getCreator()->getCurrentFlower()->getDonationAmount();
 
-            foreach ($this->rewardTiers as $tier => $format) {
-                $reward = new ProjectReward();
-                $discount = $faker->randomElement($format['discount']);
-                $limit = $format['limit'] ?? null ? $faker->randomElement($format['limit']) : null;
+                foreach ($this->rewardTiers as $tier => $format) {
+                    $reward = new ProjectReward();
+                    $limit = isset($format['limit']) ? $faker->randomElement($format['limit']) : null;
 
-                $title = sprintf($format['title_format'], $project->getTitle());
-                $description = sprintf(
-                    $format['description_format'],
-                    $project->getTitle(),
-                    $discount,
-                    $limit ?? 0
-                );
+                    $reward->setProject($project)
+                        ->setTitle(sprintf($format['title_format'], $project->getTitle()))
+                        ->setDescription(sprintf(
+                            $format['description_format'],
+                            $limit ?? 0
+                        ))
+                        ->setAmount($flowerAmount * $format['multiplier'])
+                        ->setEstimatedDelivery($faker->dateTimeBetween('+1 month', '+3 months'))
+                        ->setBackerLimit($limit)
+                        ->setBackerCount(0);
 
-                // Calculate price based on tier and discount
-                $price = $basePrice;
-                if ($tier === 'deluxe') {
-                    $price *= 2; // Deluxe is twice the base price
+                    $manager->persist($reward);
                 }
-                $price = $price * (100 - $discount) / 100;
-
-                $reward->setProject($project)
-                    ->setTitle($title)
-                    ->setDescription($description)
-                    ->setAmount($price)
-                    ->setEstimatedDelivery($faker->dateTimeBetween('+3 months', '+1 year'))
-                    ->setBackerCount($faker->numberBetween(0, $limit ?? 100));
-
-                $manager->persist($reward);
+            } catch (\Exception $e) {
+                // Log or handle the case where project reference is not found
+                continue;
             }
         }
 

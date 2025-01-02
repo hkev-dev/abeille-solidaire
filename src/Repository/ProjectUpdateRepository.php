@@ -18,5 +18,4 @@ class ProjectUpdateRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ProjectUpdate::class);
     }
-
 }

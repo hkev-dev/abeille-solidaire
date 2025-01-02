@@ -1,0 +1,78 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Payment Processing - Abeilles Solidaires
+{% endblock %}
+
+{% block content %}
+	{% include 'public/components/page-header.html.twig' with {
+        title: 'Payment Processing',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Register', path: 'app.register'},
+            {label: 'Processing', path: null}
+        ]
+    } %}
+
+	<section class="login-register">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-lg-8 text-center">
+					{% include 'public/components/flash-messages.html.twig' %}
+
+					<div class="waiting-room mb-5">
+						{% if payment_method == 'stripe' %}
+							<img src="{{ asset('images/payment/stripe.svg') }}" alt="Processing" class="mb-4" height="120">
+						{% else %}
+							<img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
+						{% endif %}
+						<h3 class="login-register__title">Processing Your Payment</h3>
+
+						{% if payment_method == 'stripe' %}
+							<p>Your card payment is being processed. This page will automatically update when complete.</p>
+						{% else %}
+							<p>Waiting for cryptocurrency transaction confirmation. This may take a few minutes.</p>
+						{% endif %}
+
+						<div class="progress mt-4 mb-4">
+							<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+						</div>
+
+						<p class="text-muted">
+							You will receive an email confirmation once your payment is confirmed.<br>
+							Please do not close this window.
+						</p>
+					</div>
+
+					<div class="mt-4">
+						<a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
+							Need Help?
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script type="text/javascript">
+		// Poll for payment status every 5 seconds
+const checkPaymentStatus = async () => {
+try {
+const response = await fetch('{{ path("app.check_payment_status", {id: user.id}) }}');
+const data = await response.json();
+
+if (data.status === 'completed' && data.redirect) {
+window.location.href = data.redirect;
+} else if (data.status === 'failed') {
+window.location.href = '{{ path("app.registration.payment", {id: user.id}) }}';
+}
+} catch (error) {
+console.error('Error checking payment status:', error);
+}
+};
+
+setInterval(checkPaymentStatus, 5000);
+	</script>
+{% endblock %}
