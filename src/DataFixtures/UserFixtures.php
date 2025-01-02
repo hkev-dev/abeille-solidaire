@@ -12,7 +12,25 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture implements DependentFixtureInterface
 {
+    private const ROOT_USER = [
+        'email' => 'root@example.com',
+        'firstName' => 'Root',
+        'lastName' => 'User',
+        'password' => 'rootpass123',
+        'roles' => ['ROLE_ADMIN', 'ROLE_USER'],
+        'projectDescription' => 'Root user for system administration and testing.',
+        'isRoot' => true
+    ];
+
     private const array STATIC_USERS = [
+        [
+            'email' => 'admin@example.com',
+            'firstName' => 'Admin',
+            'lastName' => 'User',
+            'password' => 'admin123',
+            'roles' => ['ROLE_ADMIN'],
+            'projectDescription' => 'Platform administration and support.'
+        ],
         [
             'email' => 'john.doe@example.com',
             'firstName' => 'John',
@@ -44,17 +62,10 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             'password' => 'password123',
             'roles' => ['ROLE_USER'],
             'projectDescription' => 'Building affordable housing for low-income families.'
-        ],
-        [
-            'email' => 'admin@example.com',
-            'firstName' => 'Admin',
-            'lastName' => 'User',
-            'password' => 'admin123',
-            'roles' => ['ROLE_ADMIN'],
-            'projectDescription' => 'Platform administration and support.'
         ]
     ];
 
+    private ?User $rootUser = null;
     private ?User $firstUser = null;
 
     public function __construct(
@@ -66,12 +77,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create();
 
-        // Load static users first
+        // Create root user first
+        $this->rootUser = $this->createUser($manager, self::ROOT_USER, 'ROOT_USER_REF');
+        
+        // Load remaining static users
         foreach (self::STATIC_USERS as $userData) {
             $this->createUser($manager, $userData);
         }
 
-        // Generate 20 random users
+        // Generate 20 random users with root user as referrer
         for ($i = 1; $i <= 20; $i++) {
             $firstName = $faker->firstName();
             $lastName = $faker->lastName();
@@ -91,21 +105,26 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
-    private function createUser(ObjectManager $manager, array $userData): void
+    private function createUser(ObjectManager $manager, array $userData, ?string $forcedReferralCode = null): User
     {
         $user = new User();
         $user->setEmail($userData['email'])
             ->setFirstName($userData['firstName'])
             ->setLastName($userData['lastName'])
-            ->setName($userData['firstName'] . ' ' . $userData['lastName']) // Set the name field
             ->setRoles($userData['roles'])
             ->setIsVerified(true)
             ->setWalletBalance(0.0)
             ->setCurrentFlower($this->getReference('flower_1', Flower::class))
             ->setProjectDescription($userData['projectDescription'])
-            ->setReferralCode($this->generateReferralCode())
-            ->setRegistrationPaymentStatus('completed') // Set as completed for fixtures
-            ->setWaitingSince(null); // No waiting time for fixtures
+            ->setRegistrationPaymentStatus('completed')
+            ->setWaitingSince(null);
+
+        // Set referral code
+        if ($forcedReferralCode) {
+            $user->setReferralCode($forcedReferralCode);
+        } else {
+            $user->setReferralCode($this->generateReferralCode());
+        }
 
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -113,25 +132,19 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         );
         $user->setPassword($hashedPassword);
 
-        // Store first user for referral
-        if ($this->firstUser === null && !in_array('ROLE_ADMIN', $userData['roles'])) {
-            $this->firstUser = $user;
-        }
-        // Set referrer for non-admin users after first user
-        elseif (!in_array('ROLE_ADMIN', $userData['roles']) && $this->firstUser !== null) {
-            $user->setReferrer($this->firstUser);
+        // Set referrer for non-root users
+        if (!isset($userData['isRoot']) && $this->rootUser !== null) {
+            $user->setReferrer($this->rootUser);
         }
 
         $manager->persist($user);
-        
-        // Create a username from firstName and lastName for reference
-        $username = strtolower(str_replace(' ', '_', 
-            $userData['firstName'] . '_' . $userData['lastName']
-        ));
+
+        // Store references
+        $username = strtolower(str_replace(' ', '_', $userData['firstName'] . '_' . $userData['lastName']));
         $this->addReference('user_' . $username, $user);
-        
-        // Also store by email for backward compatibility
         $this->addReference('user_by_email_' . $userData['email'], $user);
+
+        return $user;
     }
 
     private function generateReferralCode(): string

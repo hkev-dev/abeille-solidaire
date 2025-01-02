@@ -9,6 +9,7 @@ parameters:
     google_recaptcha_site_key: "%env(GOOGLE_RECAPTCHA_SITE_KEY)%"
     stripe.secret_key: "%env(STRIPE_SECRET)%"
     stripe.public_key: "%env(STRIPE_PUBLIC_KEY)%"
+    stripe.webhook_secret: "%env(STRIPE_WEBHOOK_SECRET)%"
     app.domain: "%env(APP_DOMAIN)%"
     coinpayments.merchant_id: "%env(COINPAYMENTS_MERCHANT_ID)%"
     coinpayments.public_key: "%env(COINPAYMENTS_PUBLIC_KEY)%"

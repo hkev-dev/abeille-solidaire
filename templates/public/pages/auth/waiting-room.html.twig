@@ -20,7 +20,11 @@
 					{% include 'public/components/flash-messages.html.twig' %}
 
 					<div class="waiting-room mb-5">
-						<img src="{{ asset('build/images/processing.svg') }}" alt="Processing" class="mb-4" height="120">
+						{% if payment_method == 'stripe' %}
+							<img src="{{ asset('images/payment/stripe.svg') }}" alt="Processing" class="mb-4" height="120">
+						{% else %}
+							<img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
+						{% endif %}
 						<h3 class="login-register__title">Processing Your Payment</h3>
 
 						{% if payment_method == 'stripe' %}
@@ -40,7 +44,7 @@
 					</div>
 
 					<div class="mt-4">
-						<a href="{{ path('app.contact') }}" class="thm-btn thm-btn--outline">
+						<a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
 							Need Help?
 						</a>
 					</div>
@@ -52,15 +56,15 @@
 
 {% block javascripts %}
 	{{ parent() }}
-	<script>
+	<script type="text/javascript">
 		// Poll for payment status every 5 seconds
 const checkPaymentStatus = async () => {
 try {
 const response = await fetch('{{ path("app.check_payment_status", {id: user.id}) }}');
 const data = await response.json();
 
-if (data.status === 'completed') {
-window.location.href = '{{ path("app.registration_complete") }}';
+if (data.status === 'completed' && data.redirect) {
+window.location.href = data.redirect;
 } else if (data.status === 'failed') {
 window.location.href = '{{ path("app.registration.payment", {id: user.id}) }}';
 }

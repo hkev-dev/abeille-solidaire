@@ -69,8 +69,15 @@ class AuthController extends AbstractController
 
         $dto = new RegistrationDTO();
 
+        // Handle referral code
         if ($request->query->has('ref')) {
             $dto->referralCode = $request->query->get('ref');
+        } elseif (in_array($this->getParameter('kernel.environment'), ['dev', 'test'])) {
+            // In test/dev environment, use default referral code if none provided
+            $rootUser = $this->userRepository->findOneBy(['email' => 'root@example.com']);
+            if ($rootUser) {
+                $dto->referralCode = 'ROOT_USER_REF';
+            }
         }
 
         $form = $this->createForm(RegistrationType::class, $dto);
@@ -121,6 +128,8 @@ class AuthController extends AbstractController
             if ($data['payment_method'] === 'stripe') {
                 try {
                     $stripeData = $this->registrationPaymentService->createStripePaymentIntent($user);
+                    // Store payment method in session
+                    $request->getSession()->set('payment_method', 'stripe');
                     return $this->json([
                         'clientSecret' => $stripeData['clientSecret']
                     ]);
@@ -161,29 +170,19 @@ class AuthController extends AbstractController
         try {
             $transaction = $this->registrationPaymentService->createCoinPaymentsTransaction($user);
 
-            $this->logger->info('CoinPayments transaction created', [
-                'user_id' => $user->getId(),
-                'txn_id' => $transaction['txn_id']
+            // Store payment method in session before redirect
+            $request->getSession()->set('payment_method', 'crypto');
+            $request->getSession()->set('txn_id', $transaction['txn_id']);
+
+            return $this->redirectToRoute('app.waiting_room', [
+                'id' => $user->getId()
             ]);
 
-            if ($request->isXmlHttpRequest()) {
-                return $this->json([
-                    'txn_id' => $transaction['txn_id'],
-                    'checkout_url' => $transaction['checkout_url'],
-                    'status_url' => $transaction['status_url']
-                ]);
-            }
-
-            return $this->redirect($transaction['checkout_url']);
         } catch (\Exception $e) {
             $this->logger->error('CoinPayments transaction creation failed', [
                 'user_id' => $user->getId(),
                 'error' => $e->getMessage()
             ]);
-
-            if ($request->isXmlHttpRequest()) {
-                return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-            }
 
             $this->addFlash('error', 'Failed to initialize cryptocurrency payment. Please try again.');
             return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
@@ -191,7 +190,7 @@ class AuthController extends AbstractController
     }
 
     #[Route('/register/waiting-room/{id}', name: 'app.waiting_room')]
-    public function waitingRoom(User $user): Response
+    public function waitingRoom(User $user, Request $request): Response
     {
         if ($user->getRegistrationPaymentStatus() === 'completed') {
             return $this->redirectToRoute('app.login');
@@ -201,17 +200,31 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
         }
 
+        // Get payment method from session
+        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
+
         return $this->render('public/pages/auth/waiting-room.html.twig', [
             'user' => $user,
-            'payment_url' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()])
+            'payment_method' => $paymentMethod,
+            'payment_url' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
+            'txn_id' => $request->getSession()->get('txn_id') // For crypto payments
         ]);
     }
 
     #[Route('/register/check-payment-status/{id}', name: 'app.check_payment_status')]
     public function checkPaymentStatus(User $user): Response
     {
+        $status = $user->getRegistrationPaymentStatus();
+        
+        if ($status === 'completed') {
+            return $this->json([
+                'status' => 'completed',
+                'redirect' => $this->generateUrl('landing.home')
+            ]);
+        }
+
         return $this->json([
-            'status' => $user->getRegistrationPaymentStatus()
+            'status' => $status
         ]);
     }
 

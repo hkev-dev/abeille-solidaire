@@ -287,24 +287,18 @@ export class PaymentStatusPoller {
             });
             const data = await response.json();
 
-            switch (data.status) {
-                case 'completed':
-                    this.stopPolling();
-                    sessionStorage.removeItem('cp_txn_id');
-                    window.location.href = this.config.successUrl;
-                    break;
-                    
-                case 'failed':
-                    this.stopPolling();
-                    sessionStorage.removeItem('cp_txn_id');
-                    window.location.href = this.config.failureUrl;
-                    break;
-                    
-                case 'expired':
-                    this.stopPolling();
-                    sessionStorage.removeItem('cp_txn_id');
-                    this.handleExpired();
-                    break;
+            if (data.status === 'completed' && data.redirect) {
+                this.stopPolling();
+                sessionStorage.removeItem('cp_txn_id');
+                window.location.href = data.redirect;
+            } else if (data.status === 'failed') {
+                this.stopPolling();
+                sessionStorage.removeItem('cp_txn_id');
+                window.location.href = this.config.failureUrl;
+            } else if (data.status === 'expired') {
+                this.stopPolling();
+                sessionStorage.removeItem('cp_txn_id');
+                this.handleExpired();
             }
 
             this.retryCount++;
