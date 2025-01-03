@@ -124,18 +124,52 @@
 						</form>
 
 						{# Crypto Payment Form - Updated for CoinPayments #}
-						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" class="mt-4 text-center" style="display: none;">
+						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" class="mt-4" style="display: none;">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
-							<div class="mb-3">
-								<p class="text-muted">You will be redirected to CoinPayments to complete your cryptocurrency payment securely</p>
-								<small class="d-block mt-2">
-									<i class="fas fa-info-circle me-1"></i>
-									Supported cryptocurrencies include Bitcoin, Ethereum, Litecoin, USDT, and many more
-								</small>
+							
+							<div class="mb-4">
+								<label for="crypto-currency-select" class="form-label">Select Cryptocurrency</label>
+								<select id="crypto-currency-select" name="currency" class="form-select" required>
+									<option value="">Loading available cryptocurrencies...</option>
+								</select>
+								<div class="currency-details mt-2" style="display: none;">
+									<div class="alert alert-info">
+										<div class="row">
+											<div class="col">
+												<small>
+													<strong>Exchange Rate:</strong> <span class="rate-display">-</span><br>
+													<strong>Network Fee:</strong> <span class="fee-display">-</span><br>
+													<strong>Confirmations Required:</strong> <span class="confirms-display">-</span>
+												</small>
+											</div>
+											<div class="col-auto">
+												<div class="estimated-total text-end">
+													<small class="d-block text-muted">Estimated Total:</small>
+													<strong class="total-display">-</strong>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-							<button type="submit" class="thm-btn login-register__btn">
+						
+							<div class="mb-3">
+								<p class="text-muted">
+									<i class="fas fa-info-circle me-2"></i>
+									You will be redirected to complete your payment securely via CoinPayments
+								</p>
+								{% if app.environment == 'dev' or app.environment == 'test' %}
+									<div class="alert alert-warning">
+										<small>
+											<strong>Testing:</strong> Use LTCT (Litecoin Testnet) for testing. No real funds will be used.
+										</small>
+									</div>
+								{% endif %}
+							</div>
+						
+							<button type="submit" class="thm-btn login-register__btn w-100" disabled>
 								<i class="fab fa-bitcoin me-2"></i>
-								Pay 25€ with Cryptocurrency
+								Continue with Cryptocurrency Payment
 							</button>
 						</form>
 					</div>
@@ -160,10 +194,12 @@
 
 const processor = new PaymentProcessor({
 stripePublicKey: '{{ stripe_public_key }}',
+environment: '{{ app.environment }}',
 amount: 25,
 userEmail: '{{ user.email }}',
 returnUrl: '{{ path("app.waiting_room", {id: user.id}) }}',
 createIntentUrl: '{{ path("app.registration.payment", {id: user.id}) }}',
+currenciesUrl: '{{ path("app.registration.crypto.currencies", {id: user.id}) }}',
 csrf: {
 stripeToken: '{{ csrf_token('stripe_payment') }}',
 cryptoToken: '{{ csrf_token('crypto_payment') }}'
@@ -172,5 +208,4 @@ cryptoToken: '{{ csrf_token('crypto_payment') }}'
 
 processor.initialize();
 	</script>
-
 {% endblock %}

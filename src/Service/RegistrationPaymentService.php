@@ -2,16 +2,14 @@
 
 namespace App\Service;
 
-use App\Event\UserRegistrationEvent;
 use Stripe\Stripe;
 use App\Entity\User;
+use CoinpaymentsAPI;
 use Stripe\PaymentIntent;
 use Psr\Log\LoggerInterface;
-use Sigismund\CoinPayments\Credentials;
+use App\Event\UserRegistrationEvent;
 use Stripe\Exception\ApiErrorException;
 use Doctrine\ORM\EntityManagerInterface;
-use Sigismund\CoinPayments\CoinPayments;
-use Sigismund\CoinPayments\IpnValidation;
 use App\Event\RegistrationPaymentCompletedEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -20,8 +18,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class RegistrationPaymentService
 {
     private const REGISTRATION_FEE = 25.00;
-    private CoinPayments $coinPayments;
-    private Credentials $credentials;
+    private CoinpaymentsAPI $coinPayments;
 
     public function __construct(
         private readonly ParameterBagInterface $params,
@@ -30,24 +27,15 @@ class RegistrationPaymentService
         private readonly UrlGeneratorInterface $router,
         private readonly EntityManagerInterface $entityManager,
         private readonly DonationService $donationService,
-        private readonly MembershipService $membershipService  // Add this
+        private readonly MembershipService $membershipService
     ) {
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
 
-        // Initialize CoinPayments credentials
-        $this->credentials = new Credentials(
-            $this->params->get('coinpayments.merchant_id'),
-            $this->params->get('coinpayments.public_key'),
+        // Initialize CoinPayments API
+        $this->coinPayments = new CoinpaymentsAPI(
             $this->params->get('coinpayments.private_key'),
-            $this->params->get('coinpayments.ipn_secret')
-        );
-
-        // Initialize CoinPayments client
-        $this->coinPayments = new CoinPayments(
-            $this->credentials->getMerchantID(),
-            $this->credentials->getPublicKey(),
-            $this->credentials->getPrivateKey(),
-            $this->credentials->getIpnSecret()
+            $this->params->get('coinpayments.public_key'),
+            'json'  // Response format
         );
     }
 
@@ -76,77 +64,49 @@ class RegistrationPaymentService
         }
     }
 
-    public function createCoinPaymentsTransaction(User $user): array
+    public function createCoinPaymentsTransaction(User $user, string $currency = 'BTC'): array
     {
         try {
-            $ipnUrl = $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL);
-
-            // Debug log the request parameters
-            $this->logger->debug('Creating CoinPayments transaction', [
-                'amount' => self::REGISTRATION_FEE,
-                'currency1' => 'EUR',
-                'currency2' => 'BTC',
-                'buyer_email' => $user->getEmail(),
-                'ipn_url' => $ipnUrl,
-                'user_id' => $user->getId()
-            ]);
-
-            $transaction = $this->coinPayments->createTransaction(
-                self::REGISTRATION_FEE,
-                'EUR',
-                'BTC',
-                [
-
-                    'buyer_email' => $user->getEmail(),
-                    'item_name' => 'Registration Fee',
-                    'item_number' => $user->getId(),
-                    'ipn_url' => $ipnUrl,
-                    'ipn_mode' => 'hmac', // Explicitly set HMAC mode
-                    'format' => 'json',   // Explicitly request JSON response
-                ]
+            // Create the transaction with full details
+            $result = $this->coinPayments->CreateComplexTransaction(
+                amount: self::REGISTRATION_FEE,
+                currency1: 'EUR',
+                currency2: $currency,
+                buyer_email: $user->getEmail(),
+                address: "",
+                buyer_name: $user->getFirstname() . ' ' . $user->getLastname(),
+                item_name: 'Registration Fee',
+                item_number: "{$user->getId()}",
+                invoice: 'REG-' . $user->getId(),
+                custom: 'type=registration',
+                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
-            // Debug log the raw response
-            $this->logger->debug('CoinPayments raw response', [
-                'response' => $transaction->getRawResponse(),
-                'user_id' => $user->getId()
-            ]);
-
-            if (!$transaction->isSuccessful()) {
-                $this->logger->error('CoinPayments transaction failed', [
-                    'error' => $transaction->getError(),
-                    'error_code' => $transaction->getErrorCode(),
-                    'user_id' => $user->getId(),
-                    'raw_response' => $transaction->getRawResponse()
-                ]);
-                throw new \RuntimeException('CoinPayments transaction creation failed: ' . $transaction->getError());
+            if ($result['error'] !== 'ok') {
+                throw new \RuntimeException($result['error']);
             }
 
-            $result = [
-                'txn_id' => $transaction->getId(),
-                'status_url' => $transaction->getStatusUrl(),
-                'checkout_url' => $transaction->getCheckoutUrl(),
-                'amount' => $transaction->getAmount(),
-                'address' => $transaction->getAddress(),
-                'confirms_needed' => $transaction->getConfirmsNeeded(),
-                'timeout' => $transaction->getTimeout(),
+            // Store additional transaction details
+            $transaction = $result['result'];
+
+            return [
+                'txn_id' => $transaction['txn_id'],
+                'status_url' => $transaction['status_url'],
+                'checkout_url' => $transaction['checkout_url'],
+                'amount' => $transaction['amount'],
+                'address' => $transaction['address'],
+                'confirms_needed' => $transaction['confirms_needed'],
+                'timeout' => $transaction['timeout'],
+                'qrcode_url' => $transaction['qrcode_url'],
                 'currency1' => 'EUR',
-                'currency2' => 'BTC',
+                'currency2' => $currency,
+                'status' => $transaction['status'] ?? 0
             ];
 
-            // Log successful transaction details
-            $this->logger->info('CoinPayments transaction created successfully', [
-                'txn_id' => $result['txn_id'],
-                'user_id' => $user->getId(),
-                'amount' => $result['amount']
-            ]);
-
-            return $result;
         } catch (\Exception $e) {
             $this->logger->error('CoinPayments transaction creation failed', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->getId(),
-                'trace' => $e->getTraceAsString()
+                'user_id' => $user->getId()
             ]);
             throw $e;
         }
@@ -154,21 +114,23 @@ class RegistrationPaymentService
 
     public function verifyCoinPaymentsIpn(array $ipnData, string $hmac): bool
     {
-        try {
-            $validator = new IpnValidation(
-                $ipnData,
-                ['HTTP_HMAC' => $hmac],
-                $this->credentials
-            );
-
-            return $validator->validate();
-        } catch (\Exception $e) {
-            $this->logger->error('CoinPayments IPN validation failed', [
-                'error' => $e->getMessage(),
-                'ipn_data' => $ipnData
-            ]);
+        if (!isset($ipnData['ipn_mode']) || $ipnData['ipn_mode'] !== 'hmac') {
             return false;
         }
+
+        $merchantId = $this->params->get('coinpayments.merchant_id');
+        $ipnSecret = $this->params->get('coinpayments.ipn_secret');
+
+        // Check the merchant ID matches
+        if ($ipnData['merchant'] !== $merchantId) {
+            return false;
+        }
+
+        // Calculate HMAC
+        $rawPostData = file_get_contents('php://input');
+        $calculatedHmac = hash_hmac('sha512', $rawPostData, $ipnSecret);
+
+        return hash_equals($calculatedHmac, $hmac);
     }
 
     public function handlePaymentSuccess(User $user, string $paymentMethod, string $transactionId = null): void
@@ -249,14 +211,22 @@ class RegistrationPaymentService
     private function getCoinPaymentsTransactionDetails(string $txnId): ?array
     {
         try {
-            $transaction = $this->coinPayments->getTransactionInfo($txnId);
+            $result = $this->coinPayments->GetTxInfo(['txid' => $txnId]);
+
+            if ($result['error'] !== 'ok') {
+                throw new \Exception($result['error']);
+            }
+
+            $transaction = $result['result'];
 
             return [
-                'crypto_amount' => $transaction->getAmount(),
-                'crypto_currency' => $transaction->getCurrency2(),
-                'exchange_rate' => $transaction->getExchangeRate(),
-                'confirms_needed' => $transaction->getConfirmsNeeded(),
-                'status_url' => $transaction->getStatusUrl()
+                'crypto_amount' => $transaction['amount'],
+                'crypto_currency' => $transaction['coin'],
+                'exchange_rate' => $transaction['rate'],
+                'confirms_needed' => $transaction['confirms_needed'],
+                'status' => $transaction['status'],
+                'status_text' => $transaction['status_text'],
+                'payment_address' => $transaction['payment_address']
             ];
         } catch (\Exception $e) {
             $this->logger->error('Failed to fetch CoinPayments transaction details', [
@@ -264,6 +234,81 @@ class RegistrationPaymentService
                 'error' => $e->getMessage()
             ]);
             return null;
+        }
+    }
+
+    public function getAcceptedCryptoCurrencies(): array
+    {
+        try {
+            $result = $this->coinPayments->GetRates();
+
+            if ($result['error'] !== 'ok') {
+                throw new \Exception($result['error'] ?? 'Failed to fetch rates');
+            }
+
+            $accepted = [];
+            foreach ($result['result'] as $coin => $data) {
+                // Check if currency data is valid and has the required fields
+                if (!is_array($data))
+                    continue;
+
+                // The 'accepted' key might not exist in newer API versions
+                // Consider all listed currencies as accepted unless explicitly marked as not accepted
+                $isAccepted = $data['accepted'] ?? true;
+
+                if ($isAccepted) {
+                    $accepted[$coin] = [
+                        'name' => $data['name'] ?? $coin,
+                        'rate_btc' => $data['rate_btc'] ?? '0',
+                        'tx_fee' => $data['tx_fee'] ?? '0',
+                        'confirms_needed' => $data['confirms'] ?? 3,
+                        'is_fiat' => $data['is_fiat'] ?? 0,
+                        'status' => $data['status'] ?? 'online'
+                    ];
+                }
+            }
+
+            // Always include LTCT for testing environments
+            if (
+                ($this->params->get('kernel.environment') === 'dev' ||
+                    $this->params->get('kernel.environment') === 'test')
+            ) {
+                $accepted['LTCT'] = [
+                    'name' => 'Litecoin Testnet',
+                    'rate_btc' => '0.00000000',
+                    'tx_fee' => '0.00000000',
+                    'confirms_needed' => 3,
+                    'is_fiat' => 0,
+                    'status' => 'online'
+                ];
+            }
+
+            // Log the available currencies for debugging
+            $this->logger->debug('Available cryptocurrencies', [
+                'currencies' => array_keys($accepted)
+            ]);
+
+            return $accepted;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to fetch accepted cryptocurrencies', [
+                'error' => $e->getMessage()
+            ]);
+
+            // In development/test, return LTCT as fallback
+            if ($this->params->get('kernel.environment') !== 'prod') {
+                return [
+                    'LTCT' => [
+                        'name' => 'Litecoin Testnet',
+                        'rate_btc' => '0.00000000',
+                        'tx_fee' => '0.00000000',
+                        'confirms_needed' => 3,
+                        'is_fiat' => 0,
+                        'status' => 'online'
+                    ]
+                ];
+            }
+
+            return [];
         }
     }
 }

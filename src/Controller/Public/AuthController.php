@@ -17,6 +17,7 @@ use App\Service\RegistrationPaymentService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\SecurityService;  // Updated import
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -176,18 +177,15 @@ class AuthController extends AbstractController
             $request->getSession()->set('payment_method', 'crypto');
             $request->getSession()->set('txn_id', $transaction['txn_id']);
 
-            return $this->redirectToRoute('app.waiting_room', [
-                'id' => $user->getId()
-            ]);
-
+            return $this->json($transaction);
         } catch (\Exception $e) {
             $this->logger->error('CoinPayments transaction creation failed', [
                 'user_id' => $user->getId(),
                 'error' => $e->getMessage()
             ]);
 
-            $this->addFlash('error', 'Failed to initialize cryptocurrency payment. Please try again.');
-            return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
+
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -258,41 +256,75 @@ class AuthController extends AbstractController
             $ipnData = $request->request->all();
             $hmac = $request->headers->get('HMAC');
 
-            // Verify IPN signature
             if (!$this->registrationPaymentService->verifyCoinPaymentsIpn($ipnData, $hmac)) {
                 throw new \Exception('Invalid IPN signature');
             }
 
-            // Handle different transaction statuses
-            // 100 = complete, 2 = pending, -1 = cancelled/timed out
-            if (isset($ipnData['ipn_type']) && $ipnData['ipn_type'] === 'api') {
-                switch ((int) $ipnData['status']) {
-                    case 100: // Payment completed
-                        if ($ipnData['merchant'] === $this->getParameter('coinpayments.merchant_id')) {
-                            $this->registrationPaymentService->handlePaymentSuccess(
-                                $this->userRepository->find($ipnData['item_number']),
-                                'coinpayments'
-                            );
-                        }
-                        break;
+            $this->logger->info('CoinPayments IPN received', [
+                'ipn_type' => $ipnData['ipn_type'] ?? 'unknown',
+                'status' => $ipnData['status'] ?? 'unknown'
+            ]);
 
-                    case -1: // Payment cancelled/timeout
-                        $user = $this->userRepository->find($ipnData['item_number']);
-                        if ($user) {
-                            $user->setRegistrationPaymentStatus('failed');
-                            $this->userRepository->save($user, true);
-                        }
-                        break;
+            if (isset($ipnData['ipn_type']) && $ipnData['ipn_type'] === 'api') {
+                $user = $this->userRepository->find($ipnData['item_number']);
+
+                if (!$user) {
+                    throw new \Exception('User not found');
                 }
+
+                match ((int) $ipnData['status']) {
+                    100 => $this->registrationPaymentService->handlePaymentSuccess(
+                        user: $user,
+                        paymentMethod: 'coinpayments',
+                        transactionId: $ipnData['txn_id']
+                    ),
+                    -1 => $this->registrationPaymentService->handlePaymentFailure(
+                        user: $user,
+                        paymentMethod: 'coinpayments',
+                        errorMessage: $ipnData['status_text'] ?? 'Payment cancelled or timed out'
+                    ),
+                    default => null
+                };
             }
 
-            return new Response('IPN handled', Response::HTTP_OK);
+            return new Response('IPN Processed', Response::HTTP_OK);
+
         } catch (\Exception $e) {
             $this->logger->error('CoinPayments IPN error', [
                 'error' => $e->getMessage(),
-                'ipn_data' => $request->request->all()
+                'trace' => $e->getTraceAsString(),
+                'ipn_data' => $ipnData ?? []
             ]);
-            return new Response('IPN error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+
+            return new Response('IPN Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/registration/crypto/currencies', name: 'app.registration.crypto.currencies', methods: ['GET'])]
+    public function getCryptoCurrencies(): JsonResponse
+    {
+        try {
+            $currencies = $this->registrationPaymentService->getAcceptedCryptoCurrencies();
+            
+            // For testing environments, ensure LTCT is available
+            if (empty($currencies) && 
+                ($this->getParameter('kernel.environment') === 'dev' || 
+                 $this->getParameter('kernel.environment') === 'test')) {
+                $currencies['LTCT'] = [
+                    'name' => 'Litecoin Testnet',
+                    'rate_btc' => '0.00000000',
+                    'tx_fee' => '0.00000000',
+                    'confirms_needed' => 3,
+                    'is_fiat' => 0
+                ];
+            }
+            
+            return $this->json(['currencies' => $currencies]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Failed to load cryptocurrencies. Please try again later.',
+                'debug' => $this->getParameter('kernel.debug') ? $e->getMessage() : null
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 }

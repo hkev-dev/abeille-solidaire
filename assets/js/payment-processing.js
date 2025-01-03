@@ -13,6 +13,8 @@ export class PaymentProcessor {
         this.setupStripeElement();
         this.setupPaymentMethodSelection();
         this.setupFormSubmission();
+        // Add this line to load cryptocurrencies on initialization
+        this.loadCryptoCurrencies();
     }
 
     setupStripeElement() {
@@ -41,6 +43,7 @@ export class PaymentProcessor {
         const paymentOptions = document.querySelectorAll('.payment-option');
         const stripeForm = document.getElementById('stripe-payment-form');
         const cryptoForm = document.getElementById('crypto-payment');
+        const currencySelect = document.getElementById('crypto-currency-select');
         const submitButtons = document.querySelectorAll('button[type="submit"]');
 
         paymentOptions.forEach(option => {
@@ -55,6 +58,11 @@ export class PaymentProcessor {
                 stripeForm.style.display = method === 'stripe' ? 'block' : 'none';
                 cryptoForm.style.display = method === 'crypto' ? 'block' : 'none';
 
+                // Load currencies if crypto is selected
+                if (method === 'crypto' && currencySelect) {
+                    this.loadCryptoCurrencies();
+                }
+
                 // Enable/disable submit buttons based on selection
                 submitButtons.forEach(btn => {
                     btn.disabled = false;
@@ -62,8 +70,18 @@ export class PaymentProcessor {
             });
         });
 
-        // Setup crypto form submission
-        cryptoForm.addEventListener('submit', this.handleCryptoSubmit.bind(this));
+        // Setup crypto form submission with proper validation
+        if (cryptoForm) {
+            cryptoForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const currency = currencySelect ? currencySelect.value : null;
+                if (!currency) {
+                    this.handleCryptoError(new Error('Please select a cryptocurrency'));
+                    return;
+                }
+                this.handleCryptoSubmit(event);
+            });
+        }
     }
 
     setupFormSubmission() {
@@ -150,6 +168,14 @@ export class PaymentProcessor {
         
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
+        const currencySelect = document.getElementById('crypto-currency-select');
+        
+        if (!currencySelect || !currencySelect.value) {
+            this.handleCryptoError(new Error('Please select a cryptocurrency'));
+            return;
+        }
+
+        const selectedCurrency = currencySelect.value;
         const originalText = submitButton.innerHTML;
 
         try {
@@ -159,33 +185,161 @@ export class PaymentProcessor {
                 Initializing Payment...
             `;
 
+            const formData = new FormData();
+            formData.append('currency', selectedCurrency);
+            formData.append('_csrf_token', this.config.csrf.cryptoToken);
+
             const response = await fetch(form.action, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': this.config.csrf.cryptoToken
-                }
+                body: formData
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
+            if (!response.ok || data.error) {
                 throw new Error(data.error || 'Failed to initialize cryptocurrency payment');
             }
 
-            // Store transaction ID in session storage for status checking
-            if (data.txn_id) {
-                sessionStorage.setItem('cp_txn_id', data.txn_id);
-            }
+            // Store transaction details in session storage
+            sessionStorage.setItem('cp_txn_id', data.txn_id);
+            sessionStorage.setItem('cp_status_url', data.status_url);
 
-            // Redirect to CoinPayments checkout
-            window.location.href = data.checkout_url;
+            // Show QR code and payment details modal
+            this.showCryptoPaymentModal(data);
+
+            // Start polling for payment status
+            this.startPaymentStatusPolling(data.txn_id);
 
         } catch (error) {
             this.handleCryptoError(error);
+        } finally {
             submitButton.disabled = false;
             submitButton.innerHTML = originalText;
         }
+    }
+
+    showCryptoPaymentModal(paymentData) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'cryptoPaymentModal';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Complete Cryptocurrency Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="qr-code mb-3">
+                            <img src="${paymentData.qrcode_url}" 
+                                 alt="Payment QR Code">
+                        </div>
+                        <div class="payment-details">
+                            <div class="alert alert-warning mb-3">
+                                <strong>Important:</strong> Send exactly the specified amount to ensure proper processing
+                            </div>
+                            <p class="mb-2">Amount to send: <strong>${paymentData.amount} ${paymentData.currency2}</strong></p>
+                            <p class="mb-2">To address:<br><code class="select-all">${paymentData.address}</code></p>
+                            <button class="btn btn-sm btn-secondary mb-3" onclick="navigator.clipboard.writeText('${paymentData.address}')">
+                                Copy Address
+                            </button>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Payment will be confirmed after ${paymentData.confirms_needed} network confirmations<br>
+                                    Transaction will expire in ${Math.floor(paymentData.timeout / 60)} minutes
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="${paymentData.status_url}" target="_blank" class="btn btn-info">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Check Payment Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+
+        // Start status polling
+        this.startPaymentStatusPolling(paymentData.txn_id);
+    }
+
+    async loadCryptoCurrencies() {
+        try {
+            const response = await fetch(`${this.config.currenciesUrl}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            
+            if (!data.currencies) {
+                throw new Error('No currencies available');
+            }
+
+            const selectElement = document.getElementById('crypto-currency-select');
+            if (!selectElement) return;
+
+            // Sort currencies by name
+            const sortedCurrencies = Object.entries(data.currencies)
+                .sort(([,a], [,b]) => a.name.localeCompare(b.name));
+
+            selectElement.innerHTML = '<option value="">Select a cryptocurrency...</option>';
+
+            sortedCurrencies.forEach(([code, details]) => {
+                // Skip if it's a fiat currency or not accepted
+                if (details.is_fiat === 1) return;
+                
+                const option = document.createElement('option');
+                option.value = code;
+                option.dataset.rate = details.rate_btc;
+                option.dataset.fee = details.tx_fee;
+                option.dataset.confirms = details.confirms_needed;
+                option.textContent = `${details.name} (${code}) - Fee: ${details.tx_fee} ${code}`;
+                selectElement.appendChild(option);
+            });
+
+            // Enable form and add change handler
+            const form = document.getElementById('crypto-payment');
+            form.querySelector('button[type="submit"]').disabled = false;
+            
+            selectElement.addEventListener('change', this.handleCurrencySelection.bind(this));
+
+        } catch (error) {
+            console.error('Failed to load cryptocurrencies:', error);
+            this.handleCryptoError(error);
+        }
+    }
+
+    handleCurrencySelection(event) {
+        const selected = event.target.options[event.target.selectedIndex];
+        const detailsContainer = document.querySelector('.currency-details');
+        
+        if (!selected.value) {
+            detailsContainer.style.display = 'none';
+            return;
+        }
+
+        // Update details display
+        detailsContainer.style.display = 'block';
+        detailsContainer.querySelector('.rate-display').textContent = 
+            `1 ${selected.value} = ${selected.dataset.rate} BTC`;
+        detailsContainer.querySelector('.fee-display').textContent = 
+            `${selected.dataset.fee} ${selected.value}`;
+        detailsContainer.querySelector('.confirms-display').textContent = 
+            `${selected.dataset.confirms} blocks`;
+
+        // Calculate estimated total including network fee
+        const amountInBTC = this.config.amount * parseFloat(selected.dataset.rate);
+        const totalWithFee = amountInBTC + parseFloat(selected.dataset.fee);
+        detailsContainer.querySelector('.total-display').textContent = 
+            `${totalWithFee.toFixed(8)} ${selected.value}`;
     }
 
     handleCryptoError(error) {
