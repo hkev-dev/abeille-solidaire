@@ -66,26 +66,21 @@ RUN set -eux; \
 	xdebug \
 	;
 
+# Copy configuration files
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
-# prevent the reinstallation of vendors at every changes in the source code
-COPY --link composer.* symfony.* ./
-RUN set -eux; \
-	composer install --prefer-dist --no-progress --no-interaction --no-scripts
+# Copy composer files and install dependencies
+COPY composer.* symfony.* ./
+RUN composer install --prefer-dist --no-progress --no-interaction
 
-# copy sources
-COPY --link . ./
+# Copy application files
+COPY . .
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
 	chmod -R 777 var/cache var/log; \
-	composer dump-autoload; \
-	composer dump-env dev; \
-	APP_ENV=dev APP_DEBUG=1 php bin/console cache:clear --no-warmup; \
-	APP_ENV=dev APP_DEBUG=1 php bin/console cache:warmup; \
-	composer run-script post-install-cmd; \
-	chmod +x bin/console; sync;
+	chmod +x bin/console
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 

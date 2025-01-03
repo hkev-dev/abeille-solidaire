@@ -4,8 +4,6 @@ services:
     build:
       context: .
       target: frankenphp_dev
-    volumes:
-      - ./:/app
     environment:
       APP_ENV: dev
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
