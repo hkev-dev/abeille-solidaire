@@ -15,6 +15,10 @@ WORKDIR /app
 
 VOLUME /app/var/
 
+# Copy composer files first
+COPY --link composer.* symfony.* ./
+COPY --link . .
+
 # persistent / runtime deps
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -65,9 +69,6 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Copy the current directory to the /app directory inside the container
-COPY . /app
-
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
@@ -80,19 +81,13 @@ ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Copy the current directory to the /app directory inside the container
-COPY . /app
-
 COPY --link frankenphp/conf.d/20-app.prod.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
-# prevent the reinstallation of vendors at every changes in the source code
-COPY --link composer.* symfony.* ./
 RUN set -eux; \
 	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
-# copy sources
-COPY --link symfony-docker ./
+# No need to copy sources again as they're already in base image
 RUN rm -Rf frankenphp/
 
 RUN set -eux; \
