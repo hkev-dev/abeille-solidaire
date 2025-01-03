@@ -67,6 +67,7 @@ RUN set -eux; \
 
 # Copy all source files first
 COPY --link . .
+COPY --link composer.* symfony.* ./
 
 # Install dependencies without scripts
 RUN set -eux; \

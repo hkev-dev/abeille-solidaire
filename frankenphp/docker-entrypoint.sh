@@ -2,10 +2,14 @@
 set -e
 
 if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
-    # Install dependencies if vendor directory is empty
-    if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
-        echo "Installing dependencies..."
-        composer install --prefer-dist --no-progress --no-interaction
+    # Check if composer.json exists before attempting install
+    if [ -f "composer.json" ]; then
+        if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
+            echo "Installing dependencies..."
+            composer install --prefer-dist --no-progress --no-interaction
+        fi
+    else
+        echo "No composer.json found. Skipping dependency installation."
     fi
 
 	if grep -q ^DATABASE_URL= .env; then

@@ -5,10 +5,12 @@ services:
       context: .
       target: frankenphp_dev
     volumes:
-      - ./vendor:/app/vendor:cached
-      - ./:/app:cached
       - caddy_data:/data
       - caddy_config:/config
+      - ./:/app:cached
+      - ./vendor:/app/vendor:delegated
+      # Exclude vendor from source mount to preserve container's vendor
+      - /app/vendor
     environment:
       # See https://xdebug.org/docs/all_settings#mode
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
