@@ -17,16 +17,19 @@ class MatrixPlacementService
     public function findNextAvailablePosition(Flower $flower): ?User
     {
         // Get all positions in the current flower's matrix
-        $positions = $this->donationRepository->getFlowerMatrix($flower);
+        $positions = $this->donationRepository->findByFlowerMatrix($flower);
+        
+        // Convert result to position map
+        $positionMap = [];
+        foreach ($positions as $position) {
+            $positionMap[$position['cyclePosition']] = $position['recipient_id'];
+        }
         
         // Matrix is 4x4, so maximum 16 positions
-        for ($row = 0; $row < 4; $row++) {
-            for ($col = 0; $col < 4; $col++) {
-                $position = $row * 4 + $col;
-                if (!isset($positions[$position])) {
-                    // Found an empty position, find the user who should receive the donation
-                    return $this->getUserForPosition($flower, $row, $col);
-                }
+        for ($position = 1; $position <= 16; $position++) {
+            if (!isset($positionMap[$position])) {
+                // Found an empty position, find the user who should receive the donation
+                return $this->findUserForPosition($flower);
             }
         }
 
@@ -35,10 +38,10 @@ class MatrixPlacementService
 
     public function findNextPositionInReferrerMatrix(User $referrer, Flower $flower): ?int
     {
-        $positions = $this->donationRepository->getReferrerMatrixPositions($referrer, $flower);
+        $positions = $this->donationRepository->findByReferrerMatrix($referrer, $flower);
         
-        // Matrix is 4x4, so maximum 16 positions
-        for ($position = 0; $position < 16; $position++) {
+        // Find first available position from 1 to 16
+        for ($position = 1; $position <= 16; $position++) {
             if (!isset($positions[$position])) {
                 return $position;
             }
@@ -47,19 +50,26 @@ class MatrixPlacementService
         return null;
     }
 
-    private function getUserForPosition(Flower $flower, int $row, int $col): ?User
+    private function findUserForPosition(Flower $flower): ?User
     {
-        // Get users in the current flower who haven't received maximum donations
-        $query = $this->entityManager->createQuery(
-            'SELECT u FROM App\Entity\User u
-            WHERE u.currentFlower = :flower
-            AND (
-                SELECT COUNT(d) FROM App\Entity\Donation d
-                WHERE d.recipient = u AND d.flower = :flower
-            ) < 4
-            ORDER BY u.waitingSince ASC'
-        )->setParameter('flower', $flower);
-
-        return $query->setMaxResults(1)->getOneOrNullResult();
+        $qb = $this->entityManager->createQueryBuilder();
+        return $qb->select('u')
+            ->from(User::class, 'u')
+            ->where('u.currentFlower = :flower')
+            ->andWhere(
+                $qb->expr()->lt(
+                    '(SELECT COUNT(d) FROM App\Entity\Donation d 
+                      WHERE d.recipient = u 
+                      AND d.flower = :flower 
+                      AND d.donationType IN (:types))',
+                    4
+                )
+            )
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration'])
+            ->orderBy('u.waitingSince', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

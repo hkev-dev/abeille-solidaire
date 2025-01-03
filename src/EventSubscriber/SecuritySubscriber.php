@@ -17,7 +17,6 @@ class SecuritySubscriber implements EventSubscriberInterface
 {
     private const EXCLUDED_ROUTES = [
         'app.register',
-        'app.webhook.stripe',
         'app.webhook.coinbase',
         '_wdt', // Web Debug Toolbar
         '_profiler'

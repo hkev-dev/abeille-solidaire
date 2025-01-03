@@ -1,0 +1,23 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <h2 style="color: #dc3545;">Payment Failed</h2>
+    
+    <p>Dear {{ user.firstName }},</p>
+    
+    <div class="info-box" style="border-left: 4px solid #dc3545;">
+        <h3>Payment Error Details</h3>
+        <p>{{ errorMessage ?? 'Your registration payment could not be processed.' }}</p>
+    </div>
+
+    <p>Don't worry! You can try the payment again by clicking the button below:</p>
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ absolute_url(retryUrl) }}" class="button" style="background: #28a745;">Try Payment Again</a>
+    </p>
+
+    <div class="info-box">
+        <h4>Need Help?</h4>
+        <p>If you continue to experience issues, please contact our support team at support@abeillesolidaires.club</p>
+    </div>
+{% endblock %}

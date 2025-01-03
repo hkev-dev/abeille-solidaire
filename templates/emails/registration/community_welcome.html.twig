@@ -1,0 +1,38 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <h2>Welcome to Our Community! 🌸</h2>
+    
+    <p>Dear {{ user.firstName }},</p>
+    
+    <p>Welcome to Abeilles Solidaires! We're excited to have you join our community of mutual support and growth.</p>
+
+    <div class="info-box">
+        <h3>Your Journey Begins</h3>
+        <ul>
+            <li>You're now part of the Violette flower (€25)</li>
+            <li>You'll receive notifications as other members support your position</li>
+            <li>Share your project to inspire others</li>
+        </ul>
+    </div>
+
+    <h3>Getting Started:</h3>
+    <div style="margin: 20px 0;">
+        <p><a href="{{ absolute_url(dashboardUrl) }}" class="button">Access Your Dashboard</a></p>
+        <p><a href="{{ absolute_url(guideUrl) }}" class="button" style="background: #6c757d;">Read Community Guide</a></p>
+    </div>
+
+    <div class="info-box" style="background: #e9ecef;">
+        <h4>Quick Tips:</h4>
+        <ul>
+            <li>Complete your profile</li>
+            <li>Share your project vision</li>
+            <li>Connect with other members</li>
+            <li>Follow community guidelines</li>
+        </ul>
+    </div>
+
+    <p style="margin-top: 20px;">
+        <strong>Questions?</strong> Our support team is here to help at support@abeillesolidaires.club
+    </p>
+{% endblock %}

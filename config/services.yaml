@@ -69,6 +69,8 @@ services:
             $eventDispatcher: '@event_dispatcher'
             $logger: '@logger'
             $router: '@router'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $donationService: '@App\Service\DonationService'
 
     App\Controller\Public\AuthController:
         autowire: true

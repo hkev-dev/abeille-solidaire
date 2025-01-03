@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use App\Event\UserRegistrationEvent;
 use Stripe\Stripe;
 use App\Entity\User;
 use Stripe\PaymentIntent;
 use Psr\Log\LoggerInterface;
 use Sigismund\CoinPayments\Credentials;
 use Stripe\Exception\ApiErrorException;
+use Doctrine\ORM\EntityManagerInterface;
 use Sigismund\CoinPayments\CoinPayments;
 use Sigismund\CoinPayments\IpnValidation;
 use App\Event\RegistrationPaymentCompletedEvent;
@@ -25,7 +27,9 @@ class RegistrationPaymentService
         private readonly ParameterBagInterface $params,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
-        private readonly UrlGeneratorInterface $router
+        private readonly UrlGeneratorInterface $router,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly DonationService $donationService
     ) {
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
 
@@ -166,11 +170,94 @@ class RegistrationPaymentService
         }
     }
 
-    public function handlePaymentSuccess(User $user, string $paymentMethod): void
+    public function handlePaymentSuccess(User $user, string $paymentMethod, string $transactionId = null): void
     {
-        $user->setRegistrationPaymentStatus('completed');
-        $user->setWaitingSince(null);
-        $event = new RegistrationPaymentCompletedEvent($user, $paymentMethod);
-        $this->eventDispatcher->dispatch($event);
+        try {
+            // Update user status
+            $user->setRegistrationPaymentStatus('completed');
+            $user->setWaitingSince(null);
+            $user->setIsVerified(true);
+
+            $this->entityManager->flush();
+
+            // Create initial donation record
+            if ($transactionId) {
+                $cryptoDetails = null;
+                if ($paymentMethod === 'coinpayments') {
+                    // Fetch transaction details from CoinPayments if needed
+                    $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
+                }
+
+                $donation = $this->donationService->createRegistrationDonation(
+                    $user,
+                    $paymentMethod,
+                    $transactionId,
+                    $cryptoDetails
+                );
+
+                // Dispatch event
+                $event = new UserRegistrationEvent($user, $donation, $paymentMethod);
+                $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_COMPLETED);
+            }
+
+            $this->logger->info('Registration payment completed successfully', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'transaction_id' => $transactionId
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to process successful payment', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'transaction_id' => $transactionId,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function handlePaymentFailure(User $user, string $paymentMethod, string $errorMessage = null): void
+    {
+        try {
+            $user->setRegistrationPaymentStatus('failed');
+            $this->entityManager->flush();
+
+            $event = new UserRegistrationEvent($user, errorMessage: $errorMessage);
+            $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_FAILED);
+
+            $this->logger->warning('Registration payment failed', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'error' => $errorMessage
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to process payment failure', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    private function getCoinPaymentsTransactionDetails(string $txnId): ?array
+    {
+        try {
+            $transaction = $this->coinPayments->getTransactionInfo($txnId);
+
+            return [
+                'crypto_amount' => $transaction->getAmount(),
+                'crypto_currency' => $transaction->getCurrency2(),
+                'exchange_rate' => $transaction->getExchangeRate(),
+                'confirms_needed' => $transaction->getConfirmsNeeded(),
+                'status_url' => $transaction->getStatusUrl()
+            ];
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to fetch CoinPayments transaction details', [
+                'txn_id' => $txnId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 }

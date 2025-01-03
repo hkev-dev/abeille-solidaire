@@ -60,7 +60,43 @@ class DonationRepository extends ServiceEntityRepository
             ->where('d.flower = :flower')
             ->andWhere('d.donor = :referrer')
             ->setParameter('flower', $flower)
-            ->setParameter('referrer', $referrer);
+            ->setParameter('referrer', $referrer)
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('types', ['direct', 'registration', 'referral_placement']);
+
+        $result = $qb->getQuery()->getResult();
+
+        $positions = [];
+        foreach ($result as $row) {
+            $positions[$row['cyclePosition']] = $row['recipient_id'];
+        }
+
+        return $positions;
+    }
+
+    public function findByFlowerMatrix(Flower $flower): array
+    {
+        return $this->createQueryBuilder('d')
+            ->select('d.cyclePosition', 'IDENTITY(d.recipient) as recipient_id')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration'])
+            ->orderBy('d.cyclePosition', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByReferrerMatrix(User $referrer, Flower $flower): array
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select('d.cyclePosition', 'IDENTITY(d.recipient) as recipient_id')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donor = :referrer')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('referrer', $referrer)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement']);
 
         $result = $qb->getQuery()->getResult();
 

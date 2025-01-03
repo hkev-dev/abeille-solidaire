@@ -18,7 +18,8 @@ class EmailService
         private readonly string $senderName,
         private readonly LoggerInterface $logger,
         private readonly UrlGeneratorInterface $router
-    ) {}
+    ) {
+    }
 
     public function sendWelcomeEmail(User $user): void
     {
@@ -29,8 +30,9 @@ class EmailService
             ->htmlTemplate('emails/registration/welcome.html.twig')
             ->context([
                 'user' => $user,
-                'paymentUrl' => $this->router->generate('app.registration.payment', 
-                    ['id' => $user->getId()], 
+                'paymentUrl' => $this->router->generate(
+                    'app.registration.payment',
+                    ['id' => $user->getId()],
                     UrlGeneratorInterface::ABSOLUTE_URL
                 )
             ]);
@@ -61,7 +63,7 @@ class EmailService
         $this->mailer->send($email);
     }
 
-    public function sendDonationReceipt(User $user, Receipt $receipt): void
+    public function sendDonationReceipt(User $user, array $receipt): void
     {
         $email = (new TemplatedEmail())
             ->from(new Address($this->senderEmail, $this->senderName))
@@ -72,15 +74,6 @@ class EmailService
                 'user' => $user,
                 'receipt' => $receipt
             ]);
-
-        // Attach PDF receipt if available
-        if ($receipt->getPdfPath()) {
-            $email->attachFromPath(
-                $receipt->getPdfPath(),
-                'donation-receipt.pdf',
-                'application/pdf'
-            );
-        }
 
         $this->mailer->send($email);
     }

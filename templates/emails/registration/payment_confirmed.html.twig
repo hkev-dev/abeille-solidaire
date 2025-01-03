@@ -1,0 +1,36 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+	<h2>Payment Confirmed! 🎉</h2>
+
+	<p>Dear
+		{{ user.firstName }},</p>
+
+	<div class="info-box">
+		<h3>Registration Payment Details</h3>
+		<ul>
+			<li>Amount: €25</li>
+			<li>Payment Method:
+				{{ paymentMethod|title }}</li>
+			<li>Date:
+				{{ "now"|date("d/m/Y H:i") }}</li>
+		</ul>
+	</div>
+
+	<p>Your registration payment has been successfully processed. Your account is now fully activated!</p>
+
+	<h3>Next Steps:</h3>
+	<ol>
+		<li>Complete your profile</li>
+		<li>Add your project description</li>
+		<li>Begin your journey in the Violette flower</li>
+	</ol>
+
+	<p style="text-align: center; margin: 30px 0;">
+		<a href="{{ absolute_url(path('app.login')) }}" class="button">Login to Your Account</a>
+	</p>
+
+	<p>
+		<small>Please keep this email as your payment confirmation.</small>
+	</p>
+{% endblock %}

@@ -43,9 +43,6 @@ class UserRegistrationService
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        // Send welcome email with payment instructions
-        $this->emailService->sendWelcomeEmail($user);
-
         // Dispatch registration event
         $event = new UserRegistrationEvent($user);
         $this->eventDispatcher->dispatch($event, UserRegistrationEvent::NAME);

@@ -4,21 +4,23 @@ namespace App\Controller\Public;
 
 use App\Entity\User;
 use App\DTO\RegistrationDTO;
+use Psr\Log\LoggerInterface;
 use App\Form\RegistrationType;
 use App\Service\ReferralService;
-use App\Service\SecurityService;  // Updated import
 use App\Form\PaymentSelectionType;
 use App\Repository\UserRepository;
+use App\Exception\WebhookException;
+use App\Service\StripeWebhookService;
 use App\Service\UserRegistrationService;
-use App\Service\RegistrationPaymentService;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\RegistrationPaymentService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\SecurityService;  // Updated import
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
-use Psr\Log\LoggerInterface;
 
 class AuthController extends AbstractController
 {
@@ -215,7 +217,7 @@ class AuthController extends AbstractController
     public function checkPaymentStatus(User $user): Response
     {
         $status = $user->getRegistrationPaymentStatus();
-        
+
         if ($status === 'completed') {
             return $this->json([
                 'status' => 'completed',
@@ -246,35 +248,6 @@ class AuthController extends AbstractController
                 'provided_token' => $token
             ]);
             throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
-    }
-
-    #[Route('/webhook/stripe', name: 'app.webhook.stripe', methods: ['POST'])]
-    public function stripeWebhook(Request $request): Response
-    {
-        $payload = json_decode($request->getContent(), true);
-        $sigHeader = $request->headers->get('Stripe-Signature');
-
-        try {
-            $event = \Stripe\Webhook::constructEvent(
-                $request->getContent(),
-                $sigHeader,
-                $this->getParameter('stripe.webhook_secret')
-            );
-
-            if ($event->type === 'payment_intent.succeeded') {
-                $paymentIntent = $event->data->object;
-                if ($paymentIntent->metadata->payment_type === 'registration') {
-                    $this->registrationPaymentService->handlePaymentSuccess(
-                        $this->userRepository->find($paymentIntent->metadata->user_id),
-                        'stripe'
-                    );
-                }
-            }
-
-            return new Response('Webhook handled', Response::HTTP_OK);
-        } catch (\Exception $e) {
-            return new Response('Webhook error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 

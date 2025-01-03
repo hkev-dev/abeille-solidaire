@@ -1,0 +1,45 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <h2>Donation Receipt</h2>
+    
+    <div class="info-box" style="background: #fff; border: 2px solid #dee2e6;">
+        <div style="text-align: right;">
+            <strong>Receipt #:</strong> {{ receipt.receipt_number }}<br>
+            <strong>Date:</strong> {{ receipt.donation_date|date("d/m/Y H:i") }}
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #eee;">
+
+        <div style="margin-bottom: 20px;">
+            <h3 style="margin-bottom: 10px;">Donation Details</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td><strong>Donor:</strong></td>
+                    <td>{{ receipt.donor }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Recipient:</strong></td>
+                    <td>{{ receipt.recipient }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Amount:</strong></td>
+                    <td>€{{ receipt.amount|number_format(2, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Type:</strong></td>
+                    <td>{{ receipt.donation_type|title }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Flower:</strong></td>
+                    <td>{{ receipt.flower_name }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="font-size: 12px; color: #666; margin-top: 20px; text-align: center;">
+            <p>This is an official receipt from Abeilles Solidaires.</p>
+            <p>Please keep this for your records.</p>
+        </div>
+    </div>
+{% endblock %}
