@@ -4,6 +4,8 @@
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
 	}
+
+	order php_server before file_server
 }
 
 {$CADDY_EXTRA_CONFIG}
