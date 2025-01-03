@@ -13,11 +13,17 @@ FROM frankenphp_upstream AS frankenphp_base
 
 WORKDIR /app
 
-VOLUME /app/var/
+# First, copy only files needed for composer install
+COPY --link composer.json composer.lock* symfony.lock ./
+COPY --link frankenphp frankenphp/
 
-# Copy composer files first
-COPY --link composer.* symfony.* ./
+# Install dependencies early to leverage Docker cache
+RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
+
+# Now copy the rest of the application
 COPY --link . .
+
+VOLUME /app/var/
 
 # persistent / runtime deps
 # hadolint ignore=DL3008

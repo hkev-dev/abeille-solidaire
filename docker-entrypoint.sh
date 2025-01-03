@@ -2,14 +2,17 @@
 set -e
 
 if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
-	if [ ! -f composer.json ]; then
-		echo "No composer.json found. Please ensure your project files are properly mounted."
-		exit 1
-	fi
+    # Verify composer.json exists
+    if [ ! -f composer.json ]; then
+        echo "Error: composer.json not found. Please check your volume mounts."
+        exit 1
+    fi
 
-	if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
-		composer install --prefer-dist --no-progress --no-interaction
-	fi
+    # Install dependencies if vendor directory is empty
+    if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
+        echo "Installing dependencies..."
+        composer install --prefer-dist --no-progress --no-interaction
+    fi
 
 	if grep -q ^DATABASE_URL= .env; then
 		echo "Waiting for database to be ready..."
