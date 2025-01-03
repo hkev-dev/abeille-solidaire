@@ -57,6 +57,7 @@ CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 FROM frankenphp_base AS frankenphp_dev
 
 ENV APP_ENV=dev XDEBUG_MODE=off
+ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
@@ -65,24 +66,26 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Copy composer files first (like in prod)
-COPY --link composer.* symfony.* ./
-
-# Install dependencies first
-RUN set -eux; \
-    composer install --prefer-dist --no-progress --no-interaction --no-scripts
-
-# Then copy the rest of the source code
-COPY --link . ./
-
-# Finally run the post-install commands
-RUN set -eux; \
-    mkdir -p var/cache var/log; \
-    chmod +x bin/console; \
-    composer run-script post-install-cmd
-
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
+
+# prevent the reinstallation of vendors at every changes in the source code
+COPY --link composer.* symfony.* ./
+RUN set -eux; \
+	composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+# copy sources
+COPY --link . ./
+
+RUN set -eux; \
+	mkdir -p var/cache var/log; \
+	chmod -R 777 var/cache var/log; \
+	composer dump-autoload; \
+	composer dump-env dev; \
+	APP_ENV=dev APP_DEBUG=1 php bin/console cache:clear --no-warmup; \
+	APP_ENV=dev APP_DEBUG=1 php bin/console cache:warmup; \
+	composer run-script post-install-cmd; \
+	chmod +x bin/console; sync;
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
