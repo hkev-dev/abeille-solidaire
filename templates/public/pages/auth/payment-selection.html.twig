@@ -44,6 +44,17 @@
 
 	<section class="login-register">
 		<div class="container">
+            {% if app.environment == 'dev' or app.environment == 'test' %}
+                <div class="alert alert-info">
+                    <strong>Test Mode Payment Information:</strong><br>
+                    <ul class="mb-0">
+                        <li>Test card number: <code>4242 4242 4242 4242</code></li>
+                        <li>Card expiry: Any future date (e.g., <code>12/25</code>)</li>
+                        <li>CVC: Any 3 digits (e.g., <code>123</code>)</li>
+						<li>Postal code: Any 5 digits (e.g., <code>12345</code>)</li>
+                    </ul>
+                </div>
+            {% endif %}
 			<div class="row justify-content-center">
 				<div class="col-lg-8">
 					{% include 'public/components/flash-messages.html.twig' %}
