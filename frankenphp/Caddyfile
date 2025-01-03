@@ -8,61 +8,53 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-{$SERVER_NAME:localhost} {
-	log {
-		{$CADDY_SERVER_LOG_OPTIONS}
-	}
+{
+    order php_server before file_server
+}
 
-	# Force HTTPS
-	tls {
-		protocols tls1.2 tls1.3
-		alpn h2 h3
-	}
+# HTTP site
+http://{$SERVER_NAME:localhost} {
+    redir https://{host}{uri} permanent
+}
 
-	root /app/public
-	encode zstd br gzip
+# HTTPS site
+https://{$SERVER_NAME:localhost} {
+    log {
+        {$CADDY_SERVER_LOG_OPTIONS}
+    }
 
-	vulcain
+    tls {
+        protocols tls1.2 tls1.3
+    }
 
-	# Security headers
-	header {
-		# Enable HSTS
-		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-		# Prevent clickjacking
-		X-Frame-Options "SAMEORIGIN"
-		# Prevent XSS attacks
-		X-XSS-Protection "1; mode=block"
-		# Prevent MIME-sniffing
-		X-Content-Type-Options "nosniff"
-		# Content Security Policy
-		Content-Security-Policy "upgrade-insecure-requests"
-		# Referrer Policy
-		Referrer-Policy "strict-origin-when-cross-origin"
-		# Permissions Policy
-		Permissions-Policy "browsing-topics=()"
-	}
+    root * /app/public
+    encode zstd br gzip
 
-	# Handle uploads directory
-	handle /uploads/* {
-		root * /app/public
-		file_server
-	}
+    php_server
 
-	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # Prevent XSS attacks
+        X-XSS-Protection "1; mode=block"
+        # Prevent MIME-sniffing
+        X-Content-Type-Options "nosniff"
+        # Content Security Policy
+        Content-Security-Policy "upgrade-insecure-requests"
+        # Referrer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Permissions Policy
+        Permissions-Policy "browsing-topics=()"
+    }
 
-	@phpRoute {
-		not file {path}
-	}
-	rewrite @phpRoute index.php
+    # Handle uploads directory
+    handle /uploads/* {
+        root * /app/public
+        file_server
+    }
 
-	@frontController path index.php
-	php @frontController
-
-	file_server
-
-	# Redirect HTTP to HTTPS
-	@http {
-		protocol http
-	}
-	redir @http https://{host}{uri} permanent
+    file_server
 }
