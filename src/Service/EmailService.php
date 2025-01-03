@@ -3,11 +3,11 @@
 namespace App\Service;
 
 use App\Entity\User;
-use App\Entity\Receipt;
+use App\Entity\Membership;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class EmailService
@@ -108,5 +108,44 @@ class EmailService
             ]);
 
         $this->mailer->send($email);
+    }
+
+    public function sendMembershipConfirmation(User $user, Membership $membership): void
+    {
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->senderEmail, $this->senderName))
+            ->to($user->getEmail())
+            ->subject('Your Annual Membership Confirmation - Abeilles Solidaires')
+            ->htmlTemplate('emails/membership/confirmation.html.twig')
+            ->context([
+                'user' => $user,
+                'membership' => $membership,
+                'startDate' => $membership->getStartDate()->format('d/m/Y'),
+                'endDate' => $membership->getEndDate()->format('d/m/Y'),
+                'amount' => Membership::ANNUAL_FEE,
+                'paymentMethod' => $membership->getStripePaymentIntentId() ? 'card' : 'cryptocurrency',
+                'cryptoDetails' => $membership->getCryptoAmount() ? [
+                    'amount' => $membership->getCryptoAmount(),
+                    'currency' => $membership->getCryptoCurrency()
+                ] : null,
+                'dashboardUrl' => '#'
+            ]);
+
+        try {
+            $this->mailer->send($email);
+
+            $this->logger->info('Membership confirmation email sent', [
+                'user_id' => $user->getId(),
+                'membership_id' => $membership->getId(),
+                'email' => $user->getEmail()
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to send membership confirmation email', [
+                'user_id' => $user->getId(),
+                'membership_id' => $membership->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 }

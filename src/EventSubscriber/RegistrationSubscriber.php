@@ -51,6 +51,7 @@ class RegistrationSubscriber implements EventSubscriberInterface
         $user = $event->getUser();
         $donation = $event->getRegistrationDonation();
         $paymentMethod = $event->getPaymentMethod();
+        $membership = $event->getMembership();
 
         try {
             // Send payment confirmation email
@@ -62,12 +63,18 @@ class RegistrationSubscriber implements EventSubscriberInterface
                 $this->emailService->sendDonationReceipt($user, $receipt);
             }
 
+            // Send membership confirmation
+            if ($membership) {
+                $this->emailService->sendMembershipConfirmation($user, $membership);
+            }
+
             // Send welcome to community email
             $this->emailService->sendCommunityWelcome($user);
 
             $this->logger->info('Registration completion emails sent', [
                 'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod
+                'payment_method' => $paymentMethod,
+                'membership_id' => $membership ? $membership->getId() : null
             ]);
         } catch (TransportExceptionInterface $e) {
             $this->logger->error('Failed to send registration completion emails', [

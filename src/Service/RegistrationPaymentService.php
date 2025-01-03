@@ -29,7 +29,8 @@ class RegistrationPaymentService
         private readonly LoggerInterface $logger,
         private readonly UrlGeneratorInterface $router,
         private readonly EntityManagerInterface $entityManager,
-        private readonly DonationService $donationService
+        private readonly DonationService $donationService,
+        private readonly MembershipService $membershipService  // Add this
     ) {
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
 
@@ -180,25 +181,30 @@ class RegistrationPaymentService
 
             $this->entityManager->flush();
 
-            // Create initial donation record
-            if ($transactionId) {
-                $cryptoDetails = null;
-                if ($paymentMethod === 'coinpayments') {
-                    // Fetch transaction details from CoinPayments if needed
-                    $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
-                }
-
-                $donation = $this->donationService->createRegistrationDonation(
-                    $user,
-                    $paymentMethod,
-                    $transactionId,
-                    $cryptoDetails
-                );
-
-                // Dispatch event
-                $event = new UserRegistrationEvent($user, $donation, $paymentMethod);
-                $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_COMPLETED);
+            $cryptoDetails = null;
+            if ($paymentMethod === 'coinpayments' && $transactionId) {
+                $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
             }
+
+            // Create initial donation record
+            $donation = $this->donationService->createRegistrationDonation(
+                $user,
+                $paymentMethod,
+                $transactionId,
+                $cryptoDetails
+            );
+
+            // Create initial membership
+            $membership = $this->membershipService->createInitialMembership(
+                $user,
+                $paymentMethod,
+                $transactionId,
+                $cryptoDetails
+            );
+
+            // Dispatch event with membership information
+            $event = new UserRegistrationEvent($user, $donation, $paymentMethod, $membership);
+            $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_COMPLETED);
 
             $this->logger->info('Registration payment completed successfully', [
                 'user_id' => $user->getId(),

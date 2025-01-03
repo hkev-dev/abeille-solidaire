@@ -4,6 +4,7 @@ namespace App\Event;
 
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Entity\Membership;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class UserRegistrationEvent extends Event
@@ -16,6 +17,7 @@ class UserRegistrationEvent extends Event
         private readonly User $user,
         private readonly ?Donation $registrationDonation = null,
         private readonly ?string $paymentMethod = null,
+        private readonly ?Membership $membership = null,
         private readonly ?string $errorMessage = null
     ) {}
 
@@ -37,5 +39,10 @@ class UserRegistrationEvent extends Event
     public function getErrorMessage(): ?string
     {
         return $this->errorMessage;
+    }
+
+    public function getMembership(): ?Membership
+    {
+        return $this->membership;
     }
 }

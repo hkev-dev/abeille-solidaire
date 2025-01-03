@@ -1,0 +1,39 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <h1>Annual Membership Confirmation</h1>
+    
+    <p>Dear {{ user.firstName }},</p>
+    
+    <p>Thank you for joining Abeilles Solidaires! Your annual membership has been successfully activated.</p>
+    
+    <div class="membership-details">
+        <h2>Membership Details</h2>
+        <ul>
+            <li>Start Date: {{ startDate }}</li>
+            <li>End Date: {{ endDate }}</li>
+            <li>Amount: €{{ amount }}</li>
+            {% if paymentMethod == 'cryptocurrency' and cryptoDetails %}
+                <li>Paid with: {{ cryptoDetails.amount }} {{ cryptoDetails.currency }}</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <p>Your membership gives you full access to our platform and allows you to:</p>
+    <ul>
+        <li>Participate in donation flowers</li>
+        <li>Create and manage projects</li>
+        <li>Make withdrawals from your wallet</li>
+        <li>Access exclusive community features</li>
+    </ul>
+
+    <p>You can view your membership details and manage your account at any time by visiting your dashboard:</p>
+    
+    <div class="button-container">
+        <a href="{{ dashboardUrl }}" class="button">Access Dashboard</a>
+    </div>
+
+    <p>Remember to renew your membership before {{ endDate }} to maintain uninterrupted access to our platform.</p>
+
+    <p>If you have any questions about your membership, please don't hesitate to contact our support team.</p>
+{% endblock %}
