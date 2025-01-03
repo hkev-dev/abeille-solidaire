@@ -6,10 +6,9 @@ services:
       target: frankenphp_dev
     volumes:
       - ./:/app
-      - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      # If you develop on Mac or Windows you can remove the vendor/ directory
-      #  from the bind-mount for better performance by enabling the next line:
+      - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frankenphp/worker.Caddyfile:/etc/caddy/worker.Caddyfile:ro
       - /app/vendor
     environment:
       APP_ENV: dev

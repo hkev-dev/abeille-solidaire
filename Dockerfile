@@ -65,9 +65,8 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Copy configuration files instead of mounting them
+# Remove the COPY commands for development environment
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
-COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
