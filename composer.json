@@ -23,7 +23,6 @@
         "sigismund/coinpayments": "^1.0",
         "stof/doctrine-extensions-bundle": "^1.12",
         "stripe/stripe-php": "^16.4",
-        "symfony/apache-pack": "^1.0",
         "symfony/asset": "7.2.*",
         "symfony/asset-mapper": "7.2.*",
         "symfony/console": "7.2.*",
