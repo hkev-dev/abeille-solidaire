@@ -13,11 +13,11 @@
 		{$CADDY_SERVER_LOG_OPTIONS}
 	}
 
-	# Force HTTPS and enable HTTP/3
+	# Force HTTPS
 	tls {
 		protocols tls1.2 tls1.3
+		alpn h2 h3
 	}
-	protocols h1 h2 h3
 
 	root /app/public
 	encode zstd br gzip
