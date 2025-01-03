@@ -65,18 +65,10 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Create directories and ensure proper permissions
-RUN mkdir -p /etc/caddy \
-	&& mkdir -p /usr/local/etc/php/app.conf.d \
-	&& touch /etc/caddy/Caddyfile \
-	&& chmod 644 /etc/caddy/Caddyfile
-
 # Copy the current directory to the /app directory inside the container
 COPY . /app
 
-# Copy configuration files
-COPY frankenphp/Caddyfile /etc/caddy/Caddyfile
-COPY frankenphp/conf.d/20-app.dev.ini /usr/local/etc/php/app.conf.d/20-app.dev.ini
+COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
