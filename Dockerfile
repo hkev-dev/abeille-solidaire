@@ -65,16 +65,21 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Copy all source files first
-COPY --link . .
+# Copy composer files first (like in prod)
 COPY --link composer.* symfony.* ./
 
-# Install dependencies without scripts
+# Install dependencies first
 RUN set -eux; \
-	composer install --prefer-dist --no-progress --no-interaction; \
-	mkdir -p var/cache var/log; \
-	chmod +x bin/console; \
-	composer run-script post-install-cmd
+    composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+# Then copy the rest of the source code
+COPY --link . ./
+
+# Finally run the post-install commands
+RUN set -eux; \
+    mkdir -p var/cache var/log; \
+    chmod +x bin/console; \
+    composer run-script post-install-cmd
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
