@@ -5,14 +5,8 @@ services:
       target: frankenphp_dev
     volumes:
       - ./:/app
-      - type: bind
-        source: ${PWD}/frankenphp/Caddyfile
-        target: /etc/caddy/Caddyfile
-        read_only: true
-      - type: bind
-        source: ${PWD}/frankenphp/conf.d/20-app.dev.ini
-        target: /usr/local/etc/php/app.conf.d/20-app.dev.ini
-        read_only: true
+      - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
       - /app/vendor
     environment:
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"

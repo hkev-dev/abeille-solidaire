@@ -65,9 +65,11 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Create necessary directories
+# Create directories and ensure proper permissions
 RUN mkdir -p /etc/caddy \
-	&& mkdir -p /usr/local/etc/php/app.conf.d
+	&& mkdir -p /usr/local/etc/php/app.conf.d \
+	&& touch /etc/caddy/Caddyfile \
+	&& chmod 644 /etc/caddy/Caddyfile
 
 # Copy the current directory to the /app directory inside the container
 COPY . /app
