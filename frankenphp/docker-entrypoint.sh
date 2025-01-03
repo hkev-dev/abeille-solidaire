@@ -2,12 +2,6 @@
 set -e
 
 if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
-    # Verify composer.json exists
-    if [ ! -f composer.json ]; then
-        echo "Error: composer.json not found. Please check your volume mounts."
-        exit 1
-    fi
-
     # Install dependencies if vendor directory is empty
     if [ -z "$(ls -A 'vendor/' 2>/dev/null)" ]; then
         echo "Installing dependencies..."

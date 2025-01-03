@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+#syntax=docker/dockerfile:1
 
 # Versions
 FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
@@ -12,16 +12,6 @@ FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
 FROM frankenphp_upstream AS frankenphp_base
 
 WORKDIR /app
-
-# First, copy only files needed for composer install
-COPY --link composer.json composer.lock* symfony.lock ./
-COPY --link frankenphp frankenphp/
-
-# Install dependencies early to leverage Docker cache
-RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
-
-# Now copy the rest of the application
-COPY --link . .
 
 VOLUME /app/var/
 
@@ -49,13 +39,10 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 
 ###> recipes ###
-###> doctrine/doctrine-bundle ###
-RUN install-php-extensions pdo_pgsql
-###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
 COPY --link frankenphp/conf.d/10-app.ini $PHP_INI_DIR/app.conf.d/
-COPY --link --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 ENTRYPOINT ["docker-entrypoint"]
@@ -90,11 +77,13 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY --link frankenphp/conf.d/20-app.prod.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
+# prevent the reinstallation of vendors at every changes in the source code
+COPY --link composer.* symfony.* ./
 RUN set -eux; \
 	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
-# No need to copy sources again as they're already in base image
-RUN rm -Rf frankenphp/
+# copy sources
+COPY --link . ./
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
