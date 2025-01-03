@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1
+#syntax=docker/dockerfile:1.4
 
 # Versions
 FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
@@ -65,7 +65,9 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Remove the COPY commands for development environment
+# Copy the current directory to the /app directory inside the container
+COPY . /app
+
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
@@ -78,6 +80,9 @@ ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
+# Copy the current directory to the /app directory inside the container
+COPY . /app
+
 COPY --link frankenphp/conf.d/20-app.prod.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
@@ -87,7 +92,7 @@ RUN set -eux; \
 	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
 # copy sources
-COPY --link . ./
+COPY --link symfony-docker ./
 RUN rm -Rf frankenphp/
 
 RUN set -eux; \
