@@ -2,6 +2,6 @@ framework:
     rate_limiter:
         limiters:
             registration_limiter:
-                policy: 'sliding_window'
-                limit: 5  # Already set to 5 attempts
-                interval: '1 hour'
+                policy: "sliding_window"
+                limit: 10
+                interval: "1 hour"

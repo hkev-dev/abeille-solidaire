@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 
 class SecurityService
 {
-    private const MAX_ATTEMPTS = 5;
+    private const MAX_ATTEMPTS = 10;
     private const RATE_LIMIT_INTERVAL = '1 hour';
 
     public function __construct(
