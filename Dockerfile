@@ -66,6 +66,10 @@ RUN set -eux; \
 	;
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
+COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
+
+# copy sources
+COPY --link . ./
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
