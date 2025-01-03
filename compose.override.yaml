@@ -6,8 +6,14 @@ services:
       target: frankenphp_dev
     volumes:
       - ./:/app
-      # - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
-      # - ./frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
+      - type: bind
+        source: ./frankenphp/Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+      - type: bind
+        source: ./frankenphp/conf.d/20-app.dev.ini
+        target: /usr/local/etc/php/app.conf.d/20-app.dev.ini
+        read_only: true
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       - /app/vendor
