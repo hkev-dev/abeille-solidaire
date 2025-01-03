@@ -7,8 +7,14 @@ services:
     volumes:
       - ./:/app
       - ./frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
-      - ./frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./frankenphp/worker.Caddyfile:/etc/caddy/worker.Caddyfile:ro
+      - type: bind
+        source: ./frankenphp/Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+      - type: bind
+        source: ./frankenphp/worker.Caddyfile
+        target: /etc/caddy/worker.Caddyfile
+        read_only: true
       - /app/vendor
     environment:
       APP_ENV: dev
