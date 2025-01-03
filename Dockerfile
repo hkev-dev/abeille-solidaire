@@ -70,17 +70,15 @@ RUN set -eux; \
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
-# Copy composer files and install dependencies
-COPY composer.* symfony.* ./
-RUN composer install --prefer-dist --no-progress --no-interaction
-
-# Copy application files
+# First copy all source files
 COPY . .
 
+# Then install dependencies without scripts
 RUN set -eux; \
+	composer install --prefer-dist --no-progress --no-interaction --no-scripts; \
 	mkdir -p var/cache var/log; \
-	chmod -R 777 var/cache var/log; \
-	chmod +x bin/console
+	chmod +x bin/console; \
+	composer run-script post-install-cmd
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 

@@ -4,6 +4,10 @@ services:
     build:
       context: .
       target: frankenphp_dev
+    volumes:
+      - ./:/app:delegated
+      - ./var:/app/var:delegated
+      - ./vendor:/app/vendor:delegated
     environment:
       APP_ENV: dev
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
