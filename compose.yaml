@@ -11,7 +11,9 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - uploads_data:/var/www/public/uploads
 
 volumes:
   caddy_data:
   caddy_config:
+  uploads_data:
