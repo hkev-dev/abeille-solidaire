@@ -13,17 +13,11 @@
 		{$CADDY_SERVER_LOG_OPTIONS}
 	}
 
-	# Force HTTPS
+	# Force HTTPS and enable HTTP/3
 	tls {
 		protocols tls1.2 tls1.3
 	}
-
-	# Enable HTTP/3
-	servers {
-		protocol {
-			experimental_http3
-		}
-	}
+	protocols h1 h2 h3
 
 	root /app/public
 	encode zstd br gzip
@@ -49,11 +43,8 @@
 	}
 
 	# Handle uploads directory
-	@uploads {
-		path /uploads/*
-	}
-	handle @uploads {
-		root * /app/public/uploads
+	handle /uploads/* {
+		root * /app/public
 		file_server
 	}
 
