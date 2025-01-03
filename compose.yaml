@@ -14,7 +14,6 @@ services:
       COINPAYMENTS_PRIVATE_KEY: ${COINPAYMENTS_PRIVATE_KEY:-}
       COINPAYMENTS_IPN_SECRET: ${COINPAYMENTS_IPN_SECRET:-}
     volumes:
-      - .:/app # Add this line to mount your project files
       - caddy_data:/data
       - caddy_config:/config
 
