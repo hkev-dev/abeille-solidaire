@@ -8,53 +8,28 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-{
-    order php_server before file_server
-}
+{$SERVER_NAME:localhost} {
+	log {
+		{$CADDY_SERVER_LOG_OPTIONS}
+	}
 
-# HTTP site
-http://{$SERVER_NAME:localhost} {
-    redir https://{host}{uri} permanent
-}
+	root /app/public
+	encode zstd br gzip
 
-# HTTPS site
-https://{$SERVER_NAME:localhost} {
-    log {
-        {$CADDY_SERVER_LOG_OPTIONS}
-    }
+	vulcain
 
-    tls {
-        protocols tls1.2 tls1.3
-    }
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
-    root * /app/public
-    encode zstd br gzip
+	# Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
+	header ?Permissions-Policy "browsing-topics=()"
 
-    php_server
+	@phpRoute {
+		not file {path}
+	}
+	rewrite @phpRoute index.php
 
-    # Security headers
-    header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        # Prevent clickjacking
-        X-Frame-Options "SAMEORIGIN"
-        # Prevent XSS attacks
-        X-XSS-Protection "1; mode=block"
-        # Prevent MIME-sniffing
-        X-Content-Type-Options "nosniff"
-        # Content Security Policy
-        Content-Security-Policy "upgrade-insecure-requests"
-        # Referrer Policy
-        Referrer-Policy "strict-origin-when-cross-origin"
-        # Permissions Policy
-        Permissions-Policy "browsing-topics=()"
-    }
+	@frontController path index.php
+	php @frontController
 
-    # Handle uploads directory
-    handle /uploads/* {
-        root * /app/public
-        file_server
-    }
-
-    file_server
+	file_server
 }
