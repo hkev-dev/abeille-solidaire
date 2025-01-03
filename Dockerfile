@@ -65,10 +65,12 @@ RUN set -eux; \
 	xdebug \
 	;
 
-# Add these lines to copy composer files first
+# Copy composer files first and install dependencies
 COPY --link composer.* symfony.* ./
+RUN set -eux; \
+    composer install --prefer-dist --no-progress --no-interaction
 
-# copy sources
+# Then copy the rest of the source code
 COPY --link . ./
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/

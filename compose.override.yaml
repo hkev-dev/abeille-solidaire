@@ -5,10 +5,10 @@ services:
       context: .
       target: frankenphp_dev
     volumes:
-      - ./:/app
-      # If you develop on Mac or Windows you can remove the vendor/ directory
-      #  from the bind-mount for better performance by enabling the next line:
-      #- /app/vendor
+      - ./vendor:/app/vendor:cached
+      - ./:/app:cached
+      - caddy_data:/data
+      - caddy_config:/config
     environment:
       # See https://xdebug.org/docs/all_settings#mode
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
