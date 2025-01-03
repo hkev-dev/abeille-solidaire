@@ -1,18 +1,17 @@
 framework:
     cache:
-        # Unique name of your landing: used to compute stable namespaces for cache keys.
-        #prefix_seed: your_vendor_name/app_name
+        # Unique name of your app: used to compute stable namespaces for cache keys
+        prefix_seed: abeilles_solidaires
 
-        # System settings
+        # System cache
         system: cache.adapter.system
+        
         # Default cache pool
         app: cache.adapter.filesystem
-        # Landing page cache pool
-        landing:
-            adapter: cache.adapter.filesystem
-            default_lifetime: 3600
-        # Other pools if needed
+        
+        # Configure cache pools
         pools:
             cache.landing:
                 adapter: cache.adapter.filesystem
                 tags: true
+                default_lifetime: 3600
