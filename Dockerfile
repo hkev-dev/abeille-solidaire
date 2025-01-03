@@ -87,7 +87,10 @@ COPY --link . ./
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
+	chmod -R 777 var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
+	APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup; \
+	APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup; \
 	composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;
