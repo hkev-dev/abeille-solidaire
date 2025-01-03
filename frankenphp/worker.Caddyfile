@@ -1,4 +1,10 @@
 worker {
-	file ./public/index.php
-	env APP_RUNTIME Runtime\FrankenPhpSymfony\Runtime
+    file /app/public/index.php
+    env APP_RUNTIME Runtime\FrankenPhpSymfony\Runtime
+
+    # Configure worker pool
+    pool web {
+        num_workers 3
+        max_requests 500
+    }
 }

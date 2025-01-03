@@ -1,35 +1,26 @@
 {
-	{$CADDY_GLOBAL_OPTIONS}
-
-	frankenphp {
-		{$FRANKENPHP_CONFIG}
-	}
+    auto_https off
+    admin 0.0.0.0:2019
 }
 
-{$CADDY_EXTRA_CONFIG}
+:80 {
+    root * /app/public
+    php_server
+    encode gzip
+    file_server
 
-{$SERVER_NAME:localhost} {
-	log {
-		{$CADDY_SERVER_LOG_OPTIONS}
-	}
+    log {
+        format console
+        level DEBUG
+    }
 
-	root /app/public
-	encode zstd br gzip
-
-	vulcain
-
-	{$CADDY_SERVER_EXTRA_DIRECTIVES}
-
-	# Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
-	header ?Permissions-Policy "browsing-topics=()"
-
-	@phpRoute {
-		not file {path}
-	}
-	rewrite @phpRoute index.php
-
-	@frontController path index.php
-	php @frontController
-
-	file_server
+    # Handle PHP files through FrankenPHP
+    @phpFiles {
+        path *.php
+    }
+    reverse_proxy @phpFiles unix//var/run/php-fpm.sock {
+        transport fastcgi {
+            split .php
+        }
+    }
 }
