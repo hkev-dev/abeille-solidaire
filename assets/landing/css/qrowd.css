@@ -9623,6 +9623,8 @@ ul {
 
 .contact-form__input-box input[type="text"],
 .contact-form__input-box input[type="password"],
+.contact-form__input-box input[type="tel"],
+.contact-form__input-box select,
 .contact-form__input-box input[type="email"] {
   height: 60px;
   width: 100%;

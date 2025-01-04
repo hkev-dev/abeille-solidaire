@@ -15,7 +15,7 @@ class RegistrationDTO
     public ?string $lastName = null;
 
     #[Assert\NotBlank]
-    #[Assert\Email(message:'Please enter a valid email address', mode: Assert\Email::VALIDATION_MODE_HTML5)]
+    #[Assert\Email(message: 'Please enter a valid email address', mode: Assert\Email::VALIDATION_MODE_HTML5)]
     public ?string $email = null;
 
     #[Assert\NotBlank]
@@ -44,4 +44,32 @@ class RegistrationDTO
 
     #[Assert\NotBlank(message: 'Please complete the reCAPTCHA verification')]
     public ?string $recaptcha = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 50)]
+    #[Assert\Regex(pattern: '/^[a-zA-Z0-9_-]+$/', message: 'Username can only contain letters, numbers, underscores and dashes')]
+    public ?string $username = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2)]
+    public ?string $country = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^\+?[1-9]\d{1,14}$/', message: 'Please enter a valid phone number')]
+    public ?string $phone = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Choice(callback: 'getValidAccountTypes')]
+    public string $accountType = 'PRIVATE';
+
+    #[Assert\Length(max: 255)]
+    public ?string $organizationName = null;
+
+    #[Assert\Length(max: 50)]
+    public ?string $organizationNumber = null;
+
+    public static function getValidAccountTypes(): array
+    {
+        return ['PRIVATE', 'ENTERPRISE', 'ASSOCIATION'];
+    }
 }

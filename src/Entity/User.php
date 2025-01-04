@@ -107,6 +107,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
     private Collection $memberships;
 
+    public const ACCOUNT_TYPE_PRIVATE = 'PRIVATE';
+    public const ACCOUNT_TYPE_ENTERPRISE = 'ENTERPRISE';
+    public const ACCOUNT_TYPE_ASSOCIATION = 'ASSOCIATION';
+
+    public const ACCOUNT_TYPES = [
+        self::ACCOUNT_TYPE_PRIVATE,
+        self::ACCOUNT_TYPE_ENTERPRISE,
+        self::ACCOUNT_TYPE_ASSOCIATION,
+    ];
+
+    #[ORM\Column(length: 50, unique: true)]
+    private ?string $username = null;
+
+    #[ORM\Column(length: 20)]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 2)]
+    private ?string $country = null;
+
+    #[ORM\Column(length: 20)]
+    private string $accountType = self::ACCOUNT_TYPE_PRIVATE;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $organizationName = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $organizationNumber = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -376,7 +404,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $completion = $this->flowerCycleCompletions
             ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
             ->first();
-        
+
         return $completion ? $completion->getCompletionCount() : 0;
     }
 
@@ -436,5 +464,74 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->memberships
             ->filter(fn(Membership $membership) => $membership->isActive())
             ->first() ?: null;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): self
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(string $phone): self
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(string $country): self
+    {
+        $this->country = $country;
+        return $this;
+    }
+
+    public function getAccountType(): string
+    {
+        return $this->accountType;
+    }
+
+    public function setAccountType(string $accountType): self
+    {
+        if (!in_array($accountType, self::ACCOUNT_TYPES)) {
+            throw new \InvalidArgumentException('Invalid account type');
+        }
+        $this->accountType = $accountType;
+        return $this;
+    }
+
+    public function getOrganizationName(): ?string
+    {
+        return $this->organizationName;
+    }
+
+    public function setOrganizationName(?string $organizationName): self
+    {
+        $this->organizationName = $organizationName;
+        return $this;
+    }
+
+    public function getOrganizationNumber(): ?string
+    {
+        return $this->organizationNumber;
+    }
+
+    public function setOrganizationNumber(?string $organizationNumber): self
+    {
+        $this->organizationNumber = $organizationNumber;
+        return $this;
     }
 }

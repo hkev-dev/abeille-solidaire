@@ -17,7 +17,8 @@ class UserRegistrationService
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly ReferralService $referralService,
         private readonly EmailService $emailService
-    ) {}
+    ) {
+    }
 
     public function registerUser(RegistrationDTO $dto, ?User $referrer = null): User
     {
@@ -29,8 +30,14 @@ class UserRegistrationService
             ->setRegistrationPaymentStatus('pending')
             ->setWaitingSince(new \DateTime())
             ->setReferrer($referrer)
-            ->setRoles(['ROLE_USER']);
-        // Note: Remove setIsVerified as it's controlled by payment status
+            ->setRoles(['ROLE_USER'])
+            ->setUsername($dto->username)
+            ->setAccountType($dto->accountType)
+            ->setCountry($dto->country)
+            ->setPhone($dto->phone)
+            ->setOrganizationName($dto->organizationName)
+            ->setOrganizationNumber($dto->organizationNumber)
+        ;
 
         // Hash password
         $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->password);

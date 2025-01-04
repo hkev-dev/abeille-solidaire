@@ -11,6 +11,9 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CountryType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -27,6 +30,26 @@ class RegistrationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('accountType', ChoiceType::class, [
+                'choices' => [
+                    'Private Individual' => 'PRIVATE',
+                    'Enterprise/Company' => 'ENTERPRISE',
+                    'Non-Profit Association' => 'ASSOCIATION'
+                ],
+                'label' => 'Account Type',
+                'label_attr' => ['class' => 'form-label mb-3'],
+                'expanded' => true,
+                'multiple' => false,
+                'choice_attr' => function($choice, $key, $value) {
+                    return ['class' => 'form-check-input'];
+                },
+                'row_attr' => ['class' => 'account-type-selector mb-4']
+            ])
+            ->add('username', TextType::class, [
+                'attr' => ['placeholder' => 'Username*'],
+                'label' => false,
+                'row_attr' => ['class' => 'contact-form__input-box']
+            ])
             ->add('firstName', TextType::class, [
                 'attr' => [
                     'placeholder' => 'First Name*'
@@ -38,6 +61,28 @@ class RegistrationType extends AbstractType
                 'attr' => [
                     'placeholder' => 'Last Name*'
                 ],
+                'label' => false,
+                'row_attr' => ['class' => 'contact-form__input-box']
+            ])
+            ->add('organizationName', TextType::class, [
+                'attr' => ['placeholder' => 'Organization Name*'],
+                'label' => false,
+                'row_attr' => ['class' => 'contact-form__input-box organization-field'],
+                'required' => false
+            ])
+            ->add('organizationNumber', TextType::class, [
+                'attr' => ['placeholder' => 'Organization Number*'],
+                'label' => false,
+                'row_attr' => ['class' => 'contact-form__input-box organization-field'],
+                'required' => false
+            ])
+            ->add('country', CountryType::class, [
+                'placeholder' => 'Select your country*',
+                'label' => false,
+                'row_attr' => ['class' => 'contact-form__input-box']
+            ])
+            ->add('phone', TelType::class, [
+                'attr' => ['placeholder' => 'Phone Number*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
@@ -82,7 +127,7 @@ class RegistrationType extends AbstractType
             ->add('projectDescription', TextareaType::class, [
                 'attr' => [
                     'placeholder' => 'Describe your project or initiative (minimum 100 characters)*',
-                    'rows' => 6,
+                    'rows' => 13,
                     'class' => 'h-auto'
                 ],
                 'label' => false,
