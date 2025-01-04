@@ -78,13 +78,16 @@
 						</div>
 					</div>
 
-					<h4 class="mb-3">Organization Details</h4>
-					<div class="row">
-						<div class="col-md-6">
-							{{ form_row(form.organizationName) }}
-						</div>
-						<div class="col-md-6">
-							{{ form_row(form.organizationNumber) }}
+					{# Organization section with initial hidden state #}
+					<div class="organization-details" style="display: none;">
+						<h4 class="mb-3">Organization Details</h4>
+						<div class="row">
+							<div class="col-md-6">
+								{{ form_row(form.organizationName) }}
+							</div>
+							<div class="col-md-6">
+								{{ form_row(form.organizationNumber) }}
+							</div>
 						</div>
 					</div>
 
@@ -150,35 +153,69 @@
 	{{ parent() }}
 	<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 	<script>
-		document.addEventListener('DOMContentLoaded', function () { // Add default referral code in dev/test environment if no referral code is present
-{% if app.environment in ['dev', 'test'] %}
-const referralInput = document.querySelector('input[name="registration[referralCode]"]');
-if (referralInput && ! referralInput.value && !new URLSearchParams(window.location.search).get('ref')) {
-referralInput.value = 'ROOT_USER_REF';
-}
-{% endif %}
+		document.addEventListener('DOMContentLoaded', function() {
+			// Add default referral code in dev/test environment if no referral code is present
+			{% if app.environment in ['dev', 'test'] %}
+				const referralInput = document.querySelector('input[name="registration[referralCode]"]');
+				if (referralInput && !referralInput.value && !new URLSearchParams(window.location.search).get('ref')) {
+					referralInput.value = 'ROOT_USER_REF';
+				}
+			{% endif %}
 
-const form = document.querySelector('form[name="registration"]');
+			const form = document.querySelector('form[name="registration"]');
 
-if (form) {
-form.addEventListener('submit', function (e) {
-e.preventDefault();
+			if (form) {
+				form.addEventListener('submit', function(e) {
+					e.preventDefault();
 
-grecaptcha.ready(function () {
-grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'}).then(function (token) { // Look for existing input or create new one
-let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');
-recaptchaInput.value = token;
+					grecaptcha.ready(function() {
+						grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'})
+							.then(function(token) {
+								// Look for existing input or create new one
+								let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');
+								recaptchaInput.value = token;
 
-// Submit the form
-form.removeEventListener('submit', arguments.callee);
-form.submit();
-}).catch(function (error) {
-console.error('reCAPTCHA error:', error);
-alert('An error occurred with the security check. Please try again.');
-});
-});
-});
-}
-});
+								// Submit the form
+								form.removeEventListener('submit', arguments.callee);
+								form.submit();
+							})
+							.catch(function(error) {
+								console.error('reCAPTCHA error:', error);
+								alert('An error occurred with the security check. Please try again.');
+							});
+					});
+				});
+			}
+
+			// Organization fields visibility control
+			const accountTypeInputs = document.querySelectorAll('input[name="registration[accountType]"]');
+			const organizationSection = document.querySelector('.organization-details');
+
+			// Initial check for pre-selected value
+			const checkOrganizationVisibility = () => {
+				const selectedType = document.querySelector('input[name="registration[accountType]"]:checked')?.value;
+				organizationSection.style.display = (selectedType === 'ENTERPRISE' || selectedType === 'ASSOCIATION') ? 'block' : 'none';
+			};
+
+			// Add change event listeners to radio buttons
+			accountTypeInputs.forEach(input => {
+				input.addEventListener('change', checkOrganizationVisibility);
+
+				// Add visual feedback for selected account type
+				input.addEventListener('change', function() {
+					// Remove active class from all form-check divs
+					document.querySelectorAll('.account-type-selector .form-check')
+						.forEach(el => el.classList.remove('active'));
+
+					// Add active class to selected form-check div
+					if (this.checked) {
+						this.closest('.form-check').classList.add('active');
+					}
+				});
+			});
+
+			// Check initial state
+			checkOrganizationVisibility();
+		});
 	</script>
 {% endblock %}

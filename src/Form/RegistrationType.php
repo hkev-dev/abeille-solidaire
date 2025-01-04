@@ -40,7 +40,7 @@ class RegistrationType extends AbstractType
                 'label_attr' => ['class' => 'form-label mb-3'],
                 'expanded' => true,
                 'multiple' => false,
-                'choice_attr' => function($choice, $key, $value) {
+                'choice_attr' => function ($choice, $key, $value) {
                     return ['class' => 'form-check-input'];
                 },
                 'row_attr' => ['class' => 'account-type-selector mb-4']
