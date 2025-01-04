@@ -1,18 +1,15 @@
 {# templates/pages/projects/details.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}
-	{{ project.title }}
-	- Qrowd Crowdfunding Platform
-{% endblock %}
+{% block title %}{{ project.title }} - Abeilles Solidaires{% endblock %}
 
 {% block content %}
 	{# Page Header #}
 	{% include 'public/components/page-header.html.twig' with {
         title: project.title,
         breadcrumbs: [
-            {label: 'Home', path: 'landing.home'},
-            {label: 'Projects', path: 'landing.projects.index'},
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Projets', path: 'landing.projects.index'},
             {label: project.title, path: null}
         ]
     } %}
@@ -79,10 +76,10 @@
 		<section class="similar-project">
 			<div class="container">
 				<div class="section-title text-center">
-					<span class="section-title__tagline">Businesses You Can Back</span>
-					<h2 class="section-title__title">Checkout Our Similar
+					<span class="section-title__tagline">Projets Similaires</span>
+					<h2 class="section-title__title">Découvrez des Projets
 						<br>
-						Projects</h2>
+						Similaires</h2>
 				</div>
 				<div class="row justify-content-center">
 					{% for similarProject in similarProjects %}

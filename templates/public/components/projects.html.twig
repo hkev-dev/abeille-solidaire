@@ -3,8 +3,8 @@
         {# Section Header #}
         <div class="project-one__top">
             <div class="section-title text-center">
-                <span class="section-title__tagline">Businesses You Can Back</span>
-                <h2 class="section-title__title">Explore the Best Featured <br> Projects now</h2>
+                <span class="section-title__tagline">Projets à Soutenir</span>
+                <h2 class="section-title__title">Découvrez les Meilleurs <br> Projets du Moment</h2>
             </div>
         </div>
 
@@ -64,7 +64,7 @@
                                         <i class="fa fa-clock"></i>
                                     </div>
                                     <div class="text">
-                                        <p>{{ project.daysLeft }} Days Remaining</p>
+                                        <p>{{ project.daysLeft }} Jours Restants</p>
                                     </div>
                                 </div>
 
@@ -72,7 +72,7 @@
                                 <div class="progress-levels">
                                     <div class="progress-box">
                                         <div class="inner count-box">
-                                            <div class="text">Raised</div>
+                                            <div class="text">Collecté</div>
                                             <div class="bar">
                                                 <div class="bar-innner">
                                                     <div class="skill-percent">
@@ -90,10 +90,10 @@
                                 {# Project Goals #}
                                 <div class="project-one__goals">
                                     <p class="project-one__goals-one">
-                                        Achieved:<span>{{ project.pledged|number_format(0, '.', ',') }} €</span>
+                                        Atteint :<span>{{ project.pledged|number_format(0, '.', ' ') }} €</span>
                                     </p>
                                     <p class="project-one__goals-one">
-                                        Goal:<span>{{ project.goal|number_format(0, '.', ',') }} €</span>
+                                        Objectif :<span>{{ project.goal|number_format(0, '.', ' ') }} €</span>
                                     </p>
                                 </div>
                             </div>

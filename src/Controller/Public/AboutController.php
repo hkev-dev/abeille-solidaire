@@ -14,16 +14,16 @@ class AboutController extends AbstractController
         $testimonials = [
             [
                 'name' => 'Sarah Albert',
-                'position' => 'CO Founder',
+                'position' => 'Co-Fondatrice',
                 'image' => 'testimonial-two-client-img-1.jpg',
-                'text' => 'Exercitation ullamco laboris nisi ut aliquip ex ea ex commodo consequat duis aute aboris nisi ut aliquip irure reprehederit in voluptate velit esse.',
+                'text' => 'Grâce à Abeilles Solidaires, notre communauté grandit chaque jour. Le système de dons cycliques permet à chacun de réaliser ses projets dans un esprit de solidarité.',
                 'rating' => 5
             ],
             [
                 'name' => 'Kevin Martin',
-                'position' => 'CO Founder',
+                'position' => 'Membre Actif',
                 'image' => 'testimonial-two-client-img-2.jpg',
-                'text' => 'Exercitation ullamco laboris nisi ut aliquip ex ea ex commodo consequat duis aute aboris nisi ut aliquip irure reprehederit in voluptate velit esse.',
+                'text' => 'Une plateforme innovante qui m\'a permis de concrétiser mon projet. La communauté est bienveillante et le support technique est toujours présent.',
                 'rating' => 5
             ],
             [
@@ -44,7 +44,7 @@ class AboutController extends AbstractController
 
         $teamMembers = [
             [
-                'name' => 'Mike Hardson',
+                'name' => 'Michel Dubois',
                 'position' => 'Consultant',
                 'image' => 'team-1-1.jpg',
                 'social' => [

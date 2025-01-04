@@ -5,33 +5,32 @@ namespace App\Controller\Public;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Twig\Environment;
 
 class ContactController extends AbstractController
 {
+    public function __construct(
+        private readonly Environment $twig
+    ) {
+    }
+
     #[Route('/contact', name: 'landing.contact')]
     public function index(): Response
     {
+        $config = $this->twig->getGlobals()['site_config'];
+        
         $addresses = [
             [
-                'title' => 'About',
-                'icon' => 'icon-entrepreneur-1',
-                'content' => 'Morbi ut tellus ac leo mol <br> stie luctus nec vehicula sed <br>
-                                justo
-                                onecpat ras lorem.'
-            ],
-            [
-                'title' => 'Address',
+                'title' => 'Adresse',
                 'icon' => 'icon-location',
-                'content' => '68 Road Broklyn Street. <br> New York. United States of <br>
-                                America'
+                'content' => $config['contact']['address']
             ],
             [
                 'title' => 'Contact',
                 'icon' => 'icon-contact',
                 'content' => [
-                    'phone' => '+92 ( 8800 ) - 6780',
-                    'email1' => 'needhelp@qrowd.com',
-                    'email2' => 'info@qrowd.com'
+                    'phone' => $config['contact']['phone'],
+                    'email1' => $config['contact']['email']
                 ]
             ]
         ];

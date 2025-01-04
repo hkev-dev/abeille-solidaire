@@ -2,7 +2,7 @@
 <div class="progress-levels">
     <div class="progress-box">
         <div class="inner count-box">
-            <div class="text">Raised</div>
+            <div class="text">Collecté</div>
             <div class="bar">
                 <div class="bar-innner">
                     <div class="skill-percent">
@@ -16,5 +16,5 @@
         </div>
     </div>
 </div>
-<p class="project-details-top__goal"><span>Goal:</span> {{ project.goal|number_format }}.00 USD</p>
+<p class="project-details-top__goal"><span>Objectif :</span> {{ project.goal|number_format(2, ',', ' ') }} €</p>
 <p class="project-details-top__text">{{ project.description }}</p>

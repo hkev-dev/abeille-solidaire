@@ -1,35 +1,29 @@
 twig:
-    file_name_pattern: '*.twig'
+    file_name_pattern: "*.twig"
     globals:
-        site_name: '%env(SITE_NAME)%'
-        recaptcha_site_key: '%app.recaptcha.site_key%'
-        stripe_public_key: '%stripe.public_key%'
-        stripe_client_secret: '%stripe.secret_key%'
+        site_name: "%env(SITE_NAME)%"
+        recaptcha_site_key: "%app.recaptcha.site_key%"
+        stripe_public_key: "%stripe.public_key%"
+        stripe_client_secret: "%stripe.secret_key%"
         site_config:
-            description: "Lorem quas utamur delicata qui, vix ei prima mentitum omnesque. Duo corrumpit cotidieque ne."
+            description: "Notre vision est de créer un modèle d'entreprise radicalement différent, axé sur l'économie solidaire. Nous croyons en un modèle où la réussite de l'entreprise est mesurée non seulement par ses profits, mais aussi par son impact positif sur la société. Nous invitons ceux qui partagent notre vision à se joindre à nous dans cette aventure."
             contact:
-                address: "30 Commercial road fratton, Australia"
-                email: "needhelp@company.com"
-                phone: "+92 (8800) - 6780"
-                secondary_address: "30 broklyn golden street line. New York"
+                address: "71-75 SHELTON STREET COVENT GARDEN LONDON ROYAUME-UNI WC2H 9JQ"
+                email: "support@abeillesolidaire.club"
+                phone: "757840955"
+                secondary_address: "71-75 SHELTON STREET COVENT GARDEN LONDON ROYAUME-UNI WC2H 9JQ"
             social:
                 twitter: "#"
                 facebook: "#"
                 pinterest: "#"
                 instagram: "#"
             footer_sections:
-                explore:
-                    - { title: "About", url: "#" }
-                    - { title: "How it Works", url: "#" }
-                    - { title: "Knowledge Hub", url: "#" }
-                    - { title: "Success Stories", url: "#" }
-                    - { title: "Contact", url: "#" }
-                fundraising:
-                    - { title: "Design", url: "#" }
-                    - { title: "Education", url: "#" }
-                    - { title: "Technology", url: "#" }
-                    - { title: "Games", url: "#" }
-                    - { title: "Film & Video", url: "#" }
+                about:
+                    - { title: "Qui sommes-nous ?", url: "/about" }
+                    - { title: "Faire un don", url: "/register" }
+                for_you:
+                    - { title: "FAQ", url: "/faq" }
+                    - { title: "Contact", url: "/contact" }
 
 when@test:
     twig:

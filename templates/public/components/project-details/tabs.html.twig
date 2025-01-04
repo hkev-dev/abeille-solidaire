@@ -1,10 +1,10 @@
 {# templates/components/project-details/tabs.html.twig #}
 <div class="project-details__tab-box tabs-box">
     <ul class="tab-buttons clearfix list-unstyled">
-        <li data-tab="#story" class="tab-btn active-btn"><span>Story</span></li>
-        <li data-tab="#faqs" class="tab-btn"><span>FAQs</span></li>
-        <li data-tab="#updates" class="tab-btn"><span>Updates</span></li>
-        <li data-tab="#reviews" class="tab-btn"><span>Reviews ({{ reviews|length }})</span></li>
+        <li data-tab="#story" class="tab-btn active-btn"><span>Histoire</span></li>
+        <li data-tab="#faqs" class="tab-btn"><span>FAQ</span></li>
+        <li data-tab="#updates" class="tab-btn"><span>Actualités</span></li>
+        <li data-tab="#reviews" class="tab-btn"><span>Avis ({{ reviews|length }})</span></li>
     </ul>
 
     <div class="tabs-content">
@@ -21,7 +21,7 @@
             <div class="project-details__faq">
                 {% if faqs is empty %}
                     <div class="project-details__faq-empty">
-                        <p>No frequently asked questions available for this project yet.</p>
+                        <p>Aucune question fréquente disponible pour ce projet.</p>
                     </div>
                 {% else %}
                     <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
@@ -47,7 +47,7 @@
             <div class="project-details__updates">
                 {% if updates is empty %}
                     <div class="project-details__updates-single">
-                        <p class="project-details__updates-text-1">No updates yet.</p>
+                        <p class="project-details__updates-text-1">Aucune actualité pour le moment.</p>
                     </div>
                 {% else %}
                     {% for update in updates %}

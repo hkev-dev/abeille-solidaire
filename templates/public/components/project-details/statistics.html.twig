@@ -2,20 +2,20 @@
 <ul class="list-unstyled project-details-top__list">
     <li>
         <div class="project-details-top__list-content">
-            <h3>${{ project.pledged|number_format }}</h3>
-            <p>Pledged</p>
+            <h3>{{ project.pledged|number_format(2, ',', ' ') }} €</h3>
+            <p>Collecté</p>
         </div>
     </li>
     <li>
         <div class="project-details-top__list-content">
             <h3>{{ project.backers }}</h3>
-            <p>Backers</p>
+            <p>Contributeurs</p>
         </div>
     </li>
     <li>
         <div class="project-details-top__list-content">
             <h3>{{ project.daysLeft }}</h3>
-            <p>Days Left</p>
+            <p>Jours Restants</p>
         </div>
     </li>
 </ul>

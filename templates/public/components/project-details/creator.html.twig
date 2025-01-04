@@ -9,12 +9,12 @@
 	</div>
 	<div class="project-details-top__person-content">
 		<h5>
-			<span>by</span>
+			<span>par</span>
 			{{ project.creator.name }}</h5>
 		<p>{{ project.creator.projects|length }}
-			Campaigns /
+			Campagnes /
 			{{ project.creator.backedProjects|default(0) }}
-			Backed</p>
+			Soutenus</p>
 	</div>
 </div>
 <ul class="list-unstyled project-details-top__money">
@@ -33,7 +33,7 @@
 		</button>
 	</div>
 	<div class="project-details-top__btn-box">
-		<a href="{{ path('landing.projects.details', {slug: project.slug}) }}" class="thm-btn project-details-top__btn">Back this Project</a>
+		<a href="{{ path('landing.projects.details', {slug: project.slug}) }}" class="thm-btn project-details-top__btn">Soutenir ce Projet</a>
 	</div>
 	<div class="project-details-top__social">
 		<a href="#">

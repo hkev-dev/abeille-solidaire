@@ -46,10 +46,10 @@
 											</li>
 										{% endif %}
 										<li style="margin-left: 0">
-											<a class="dropdown-item" href="#">My Profile</a>
+											<a class="dropdown-item" href="#">Mon Profil</a>
 										</li>
 										<li style="margin-left: 0">
-											<a class="dropdown-item" href="{{ path('app.logout') }}">Logout</a>
+											<a class="dropdown-item" href="{{ path('app.logout') }}">Déconnexion</a>
 										</li>
 									</ul>
 								</div>
@@ -58,10 +58,10 @@
 							<li>
 								<a href="{{ path('app.login') }}">
 									<i class="icon-account"></i>
-									Login</a>
+									Connexion</a>
 							</li>
 							<li>
-								<a href="{{ path('app.register') }}">Register</a>
+								<a href="{{ path('app.register') }}">S'inscrire</a>
 							</li>
 						{% endif %}
 					</ul>
@@ -83,6 +83,7 @@
 			</div>
 		</div>
 	</div>
+
 
 	{# Main Navigation #}
 	<nav class="main-menu">
@@ -110,7 +111,7 @@
 								<i class="fas fa-phone"></i>
 							</div>
 							<div class="main-menu__call-content">
-								<p class="main-menu__call-sub-title m-0">Call Anytime</p>
+								<p class="main-menu__call-sub-title m-0">Appelez-nous</p>
 								<h5 class="main-menu__call-number m-0">
 									<a href="tel:{{ site_config.contact.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">
 										{{ site_config.contact.phone }}
@@ -122,9 +123,15 @@
 							<a href="#" class="main-menu__search search-toggler icon-magnifying-glass"></a>
 						</div>
 						<div class="main-menu__btn-box">
-							<a href="#" class="thm-btn main-menu__btn">
-								<i class="icon-plus-symbol"></i>Add a Project
-							</a>
+							{% if app.user %}
+								<a href="#" class="thm-btn main-menu__btn">
+									<i class="icon-benchmark fs-4"></i>Tableau de bord
+								</a>
+							{% else %}
+								<a href="{{ path('app.register') }}" class="thm-btn main-menu__btn">
+									<i class="icon-plus-symbol"></i>Ajouter un Projet
+								</a>
+							{% endif %}
 						</div>
 					</div>
 				</div>

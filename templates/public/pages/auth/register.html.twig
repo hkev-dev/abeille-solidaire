@@ -1,8 +1,7 @@
 {# templates/pages/auth/register.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Register - Abeilles Solidaires
-{% endblock %}
+{% block title %}Inscription - Abeilles Solidaires{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -100,10 +99,10 @@
 {% block content %}
     {# Page Header #}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Register',
+        title: 'Inscription',
         breadcrumbs: [
-            {label: 'Home', path: 'landing.home'},
-            {label: 'Register', path: null}
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Inscription', path: null}
         ]
     } %}
 
@@ -113,21 +112,21 @@
                 <div class="col-lg-12">
 					{% if app.environment == 'dev' or app.environment == 'test' %}
 						<div class="alert alert-info">
-							<strong>Test Mode:</strong>
-							Default referral code:
+							<strong>Mode Test :</strong>
+							Code de parrainage par défaut :
 							<code>ROOT_USER_REF</code>
 						</div>
 					{% endif %}
 
                     {% include 'public/components/flash-messages.html.twig' %}
-                    <h3 class="login-register__title text-center mb-4">Join Abeilles Solidaires</h3>
+                    <h3 class="login-register__title text-center mb-4">Rejoindre Abeilles Solidaires</h3>
 
                     {{ form_start(form, {'attr': {'class': 'login-register__form'}}) }}
                     {# Account Type Selection #}
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="account-type-selector">
-                                <legend class="form-label">Choose Account Type</legend>
+                                <legend class="form-label">Choisir le Type de Compte</legend>
                                 {{ form_widget(form.accountType) }}
                                 {{ form_errors(form.accountType) }}
                             </div>
@@ -136,7 +135,7 @@
 
                     {# Organization section with initial hidden state #}
                     <div class="organization-details" style="display: none;">
-                        <h4 class="mb-3">Organization Details</h4>
+                        <h4 class="mb-3">Détails de l'Organisation</h4>
                         <div class="row">
                             <div class="col-md-6">
                                 {{ form_row(form.organizationName) }}
@@ -149,7 +148,7 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <h4 class="mb-3">Personal Information</h4>
+                            <h4 class="mb-3">Informations Personnelles</h4>
                             <div class="row">
                                 <div class="col-md-6">
                                     {{ form_row(form.firstName) }}
@@ -162,7 +161,7 @@
                             {{ form_row(form.phone) }}
                             {{ form_row(form.country) }}
 
-                            <h4 class="mb-3">Account Security</h4>
+                            <h4 class="mb-3">Sécurité du Compte</h4>
                             {{ form_row(form.username) }}
                             {{ form_row(form.password) }}
                             {{ form_row(form.confirmPassword) }}
@@ -170,7 +169,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <h4 class="mb-3">Project Information</h4>
+                            <h4 class="mb-3">Information du Projet</h4>
                             {{ form_row(form.referralCode) }}
                             {{ form_row(form.projectDescription) }}
                         </div>
@@ -182,19 +181,19 @@
                             <div class="login-register__checkbox mb-3">
                                 {{ form_widget(form.agreeTerms) }}
                                 <label for="registration_agreeTerms">
-                                    I accept the
-                                    <a href="#">Terms of Service</a>
-                                    &nbsp; and
-                                    <a href="#">Privacy Policy</a>
+                                    J'accepte les
+                                    <a href="#">Conditions d'Utilisation</a>
+                                    &nbsp; et la
+                                    <a href="#">Politique de Confidentialité</a>
                                 </label>
                                 {{ form_errors(form.agreeTerms) }}
                             </div>
 
                             <button type="submit" class="thm-btn login-register__btn w-100">
-                                <i class="fas fa-user-plus me-2"></i>Register
+                                <i class="fas fa-user-plus me-2"></i>S'inscrire
                             </button>
                             <div class="login-register__text text-center mt-3">
-                                <a href="{{ path('app.login') }}">Already have an account? Login</a>
+                                <a href="{{ path('app.login') }}">Déjà membre ? Connectez-vous</a>
                             </div>
                         </div>
                     </div>
@@ -238,7 +237,7 @@
                             })
                             .catch(function(error) {
                                 console.error('reCAPTCHA error:', error);
-                                alert('An error occurred with the security check. Please try again.');
+                                alert('Une erreur est survenue lors de la vérification de sécurité. Veuillez réessayer.');
                             });
                     });
                 });

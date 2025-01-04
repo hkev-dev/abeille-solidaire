@@ -1,7 +1,6 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Complete Registration - Abeilles Solidaires
-{% endblock %}
+{% block title %}Finaliser l'Inscription - Abeilles Solidaires{% endblock %}
 
 {% block stylesheets %}
 	{{ parent() }}
@@ -46,12 +45,12 @@
 		<div class="container">
             {% if app.environment == 'dev' or app.environment == 'test' %}
                 <div class="alert alert-info">
-                    <strong>Test Mode Payment Information:</strong><br>
+                    <strong>Informations de Paiement en Mode Test :</strong><br>
                     <ul class="mb-0">
-                        <li>Test card number: <code>4242 4242 4242 4242</code></li>
-                        <li>Card expiry: Any future date (e.g., <code>12/25</code>)</li>
-                        <li>CVC: Any 3 digits (e.g., <code>123</code>)</li>
-						<li>Postal code: Any 5 digits (e.g., <code>12345</code>)</li>
+                        <li>Numéro de carte test : <code>4242 4242 4242 4242</code></li>
+                        <li>Date d'expiration : Date future (ex: <code>12/25</code>)</li>
+                        <li>CVC : 3 chiffres (ex: <code>123</code>)</li>
+                        <li>Code postal : 5 chiffres (ex: <code>12345</code>)</li>
                     </ul>
                 </div>
             {% endif %}
@@ -60,8 +59,8 @@
 					{% include 'public/components/flash-messages.html.twig' %}
 
 					<div class="text-center mb-4">
-						<h3 class="login-register__title">Complete Your Registration</h3>
-						<p>Please select your preferred payment method to pay the 25€ registration fee</p>
+						<h3 class="login-register__title">Finaliser Votre Inscription</h3>
+						<p>Veuillez sélectionner votre mode de paiement pour régler les frais d'inscription de 25€</p>
 					</div>
 
 					<div class="card card-body mb-4">
@@ -74,11 +73,11 @@
 							<div class="payment-option" data-payment="stripe">
 								<div class="row align-items-center">
 									<div class="col-auto">
-										<img src="{{ asset('images/payment/stripe.svg') }}" alt="Credit Card" height="80">
+										<img src="{{ asset('images/payment/stripe.svg') }}" alt="Carte Bancaire" height="80">
 									</div>
 									<div class="col">
-										<h4 class="mb-1">Pay with Credit Card</h4>
-										<p class="mb-0 text-muted">Fast and secure payment via Stripe</p>
+										<h4 class="mb-1">Payer par Carte Bancaire</h4>
+										<p class="mb-0 text-muted">Paiement rapide et sécurisé via Stripe</p>
 									</div>
 									<div class="col-auto">
 										{{ form_widget(form.payment_method.0, {'attr': {'class': 'visually-hidden'}}) }}
@@ -94,8 +93,8 @@
 										<img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Cryptocurrency" height="80">
 									</div>
 									<div class="col">
-										<h4 class="mb-1">Pay with Cryptocurrency</h4>
-										<p class="mb-0 text-muted">Accept BTC, ETH, LTC, USDT and 175+ other cryptocurrencies via CoinPayments</p>
+										<h4 class="mb-1">Payer en Cryptomonnaie</h4>
+										<p class="mb-0 text-muted">Accepte BTC, ETH, LTC, USDT et plus de 175 autres cryptomonnaies via CoinPayments</p>
 									</div>
 									<div class="col-auto">
 										{{ form_widget(form.payment_method.1, {'attr': {'class': 'visually-hidden'}}) }}
@@ -119,7 +118,7 @@
 
 							<button type="submit" class="thm-btn login-register__btn w-100" disabled>
 								<span class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
-								Pay 25€ with Card
+								Payer 25€ par Carte
 							</button>
 						</form>
 
@@ -128,23 +127,23 @@
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
 							
 							<div class="mb-4">
-								<label for="crypto-currency-select" class="form-label">Select Cryptocurrency</label>
+								<label for="crypto-currency-select" class="form-label">Sélectionner une Cryptomonnaie</label>
 								<select id="crypto-currency-select" name="currency" class="form-select" required>
-									<option value="">Loading available cryptocurrencies...</option>
+									<option value="">Chargement des cryptomonnaies disponibles...</option>
 								</select>
 								<div class="currency-details mt-2" style="display: none;">
 									<div class="alert alert-info">
 										<div class="row">
 											<div class="col">
 												<small>
-													<strong>Exchange Rate:</strong> <span class="rate-display">-</span><br>
-													<strong>Network Fee:</strong> <span class="fee-display">-</span><br>
-													<strong>Confirmations Required:</strong> <span class="confirms-display">-</span>
+													<strong>Taux de Change :</strong> <span class="rate-display">-</span><br>
+													<strong>Frais de Réseau :</strong> <span class="fee-display">-</span><br>
+													<strong>Confirmations Requises :</strong> <span class="confirms-display">-</span>
 												</small>
 											</div>
 											<div class="col-auto">
 												<div class="estimated-total text-end">
-													<small class="d-block text-muted">Estimated Total:</small>
+													<small class="d-block text-muted">Total Estimé :</small>
 													<strong class="total-display">-</strong>
 												</div>
 											</div>
@@ -156,12 +155,12 @@
 							<div class="mb-3">
 								<p class="text-muted">
 									<i class="fas fa-info-circle me-2"></i>
-									You will be redirected to complete your payment securely via CoinPayments
+									Vous serez redirigé vers CoinPayments pour finaliser votre paiement en toute sécurité
 								</p>
 								{% if app.environment == 'dev' or app.environment == 'test' %}
 									<div class="alert alert-warning">
 										<small>
-											<strong>Testing:</strong> Use LTCT (Litecoin Testnet) for testing. No real funds will be used.
+											<strong>Test :</strong> Utilisez LTCT (Litecoin Testnet) pour les tests. Aucun fonds réel ne sera utilisé.
 										</small>
 									</div>
 								{% endif %}
@@ -169,7 +168,7 @@
 						
 							<button type="submit" class="thm-btn login-register__btn w-100" disabled>
 								<i class="fab fa-bitcoin me-2"></i>
-								Continue with Cryptocurrency Payment
+								Continuer avec le Paiement en Cryptomonnaie
 							</button>
 						</form>
 					</div>
@@ -177,7 +176,7 @@
 					<div class="text-center mt-4">
 						<p class="text-muted mb-0">
 							<i class="fas fa-lock me-2"></i>
-							Your payment is secured with end-to-end encryption
+							Votre paiement est sécurisé avec un chiffrement de bout en bout
 						</p>
 					</div>
 				</div>

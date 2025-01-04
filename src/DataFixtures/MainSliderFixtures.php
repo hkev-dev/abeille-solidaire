@@ -21,21 +21,27 @@ class MainSliderFixtures extends Fixture
         $slidesData = [
             [
                 'sourceImage' => 'main-slider-1-1.jpg',
-                'subtitle' => 'Raising Money is Easy Now!',
-                'title' => 'Ultimate Crowdfunding Platforms',
+                'subtitle' => 'Projet d\'éducation',
+                'title' => 'Assurons l\'avenir de nos enfants',
                 'position' => 1
             ],
             [
                 'sourceImage' => 'main-slider-1-2.jpg',
-                'subtitle' => 'Support Amazing Ideas!',
-                'title' => 'Innovative Projects Need Your Help',
+                'subtitle' => 'Demeure',
+                'title' => 'Construisez votre maison de retraite ici.',
                 'position' => 2
             ],
             [
                 'sourceImage' => 'main-slider-1-3.jpg',
-                'subtitle' => 'Make Dreams Come True!',
-                'title' => 'Revolutionary Crowdfunding Solutions',
+                'subtitle' => 'Car',
+                'title' => 'Votre véhicule de rêve vous attend',
                 'position' => 3
+            ],
+            [
+                'sourceImage' => 'main-slider-1-4.jpg',
+                'subtitle' => 'Santé',
+                'title' => 'Sauvons des vies avec le club Abeille Solidaire',
+                'position' => 4
             ]
         ];
 

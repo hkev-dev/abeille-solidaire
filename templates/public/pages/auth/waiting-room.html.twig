@@ -1,63 +1,62 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Payment Processing - Abeilles Solidaires
-{% endblock %}
+{% block title %}Traitement du Paiement - Abeilles Solidaires{% endblock %}
 
 {% block content %}
-	{% include 'public/components/page-header.html.twig' with {
-        title: 'Payment Processing',
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Traitement en Cours',
         breadcrumbs: [
-            {label: 'Home', path: 'landing.home'},
-            {label: 'Register', path: 'app.register'},
-            {label: 'Processing', path: null}
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Inscription', path: 'app.register'},
+            {label: 'Traitement', path: null}
         ]
     } %}
 
-	<section class="login-register">
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-lg-8 text-center">
-					{% include 'public/components/flash-messages.html.twig' %}
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    {% include 'public/components/flash-messages.html.twig' %}
 
-					<div class="waiting-room mb-5">
-						{% if payment_method == 'stripe' %}
-							<img src="{{ asset('images/payment/stripe.svg') }}" alt="Processing" class="mb-4" height="120">
-						{% else %}
-							<img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
-						{% endif %}
-						<h3 class="login-register__title">Processing Your Payment</h3>
+                    <div class="waiting-room mb-5">
+                        {% if payment_method == 'stripe' %}
+                            <img src="{{ asset('images/payment/stripe.svg') }}" alt="Processing" class="mb-4" height="120">
+                        {% else %}
+                            <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
+                        {% endif %}
+                        <h3 class="login-register__title">Traitement de Votre Paiement</h3>
 
-						{% if payment_method == 'stripe' %}
-							<p>Your card payment is being processed. This page will automatically update when complete.</p>
-						{% else %}
-							<p>Waiting for cryptocurrency transaction confirmation. This may take a few minutes.</p>
-						{% endif %}
+                        {% if payment_method == 'stripe' %}
+                            <p>Votre paiement par carte est en cours de traitement. Cette page se mettra à jour automatiquement.</p>
+                        {% else %}
+                            <p>En attente de confirmation de la transaction cryptomonnaie. Cela peut prendre quelques minutes.</p>
+                        {% endif %}
 
-						<div class="progress mt-4 mb-4">
-							<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
-						</div>
+                        <div class="progress mt-4 mb-4">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                        </div>
 
-						<p class="text-muted">
-							You will receive an email confirmation once your payment is confirmed.<br>
-							Please do not close this window.
-						</p>
-					</div>
+                        <p class="text-muted">
+                            Vous recevrez un email de confirmation dès que votre paiement sera validé.<br>
+                            Merci de ne pas fermer cette fenêtre.
+                        </p>
+                    </div>
 
-					<div class="mt-4">
-						<a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
-							Need Help?
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+                    <div class="mt-4">
+                        <a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
+                            Besoin d'Aide ?
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
 
 {% block javascripts %}
-	{{ parent() }}
-	<script type="text/javascript">
-		// Poll for payment status every 5 seconds
+    {{ parent() }}
+    <script type="text/javascript">
+        // Poll for payment status every 5 seconds
 const checkPaymentStatus = async () => {
 try {
 const response = await fetch('{{ path("app.check_payment_status", {id: user.id}) }}');
@@ -74,5 +73,5 @@ console.error('Error checking payment status:', error);
 };
 
 setInterval(checkPaymentStatus, 5000);
-	</script>
+    </script>
 {% endblock %}

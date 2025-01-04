@@ -1,15 +1,15 @@
 {# templates/pages/auth/login.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Login - Qrowd Crowdfunding Platform{% endblock %}
+{% block title %}Connexion - Abeilles Solidaires{% endblock %}
 
 {% block content %}
     {# Page Header #}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Login',
+        title: 'Connexion',
         breadcrumbs: [
-            {label: 'Home', path: 'landing.home'},
-            {label: 'Login', path: null}
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Connexion', path: null}
         ]
     } %}
 
@@ -17,7 +17,7 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-6">
-                    <h3 class="login-register__title">Login to Your Account</h3>
+                    <h3 class="login-register__title">Connexion à votre compte</h3>
                     
                     {% include 'public/components/flash-messages.html.twig' %}
                     
@@ -35,20 +35,20 @@
                             <input type="email" placeholder="Email*" name="_username" value="{{ last_username }}" required>
                         </div>
                         <div class="contact-form__input-box">
-                            <input type="password" placeholder="Password*" name="_password" required>
+                            <input type="password" placeholder="Mot de passe*" name="_password" required>
                         </div>
                         
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                         
                         <div class="login-register__checkbox">
                             <input type="checkbox" id="login-register__remember" name="_remember_me">
-                            <label for="login-register__remember">Remember Me?</label>
+                            <label for="login-register__remember">Se souvenir de moi</label>
                         </div>
                         
                         <div class="login-register__info">
-                            <button type="submit" class="thm-btn login-register__btn">Login</button>
+                            <button type="submit" class="thm-btn login-register__btn">Connexion</button>
                             <div class="login-register__text">
-                                <a href="{{ path('app.register') }}">Don't have an account? Register</a>
+                                <a href="{{ path('app.register') }}">Pas encore de compte ? Inscrivez-vous</a>
                             </div>
                         </div>
                     </form>

@@ -32,11 +32,11 @@ class RegistrationType extends AbstractType
         $builder
             ->add('accountType', ChoiceType::class, [
                 'choices' => [
-                    'Private Individual' => 'PRIVATE',
-                    'Enterprise/Company' => 'ENTERPRISE',
-                    'Non-Profit Association' => 'ASSOCIATION'
+                    'Particulier' => 'PRIVATE',
+                    'Entreprise' => 'ENTERPRISE',
+                    'Association' => 'ASSOCIATION'
                 ],
-                'label' => 'Account Type',
+                'label' => 'Type de Compte',
                 'label_attr' => ['class' => 'form-label mb-3'],
                 'expanded' => true,
                 'multiple' => false,
@@ -49,9 +49,9 @@ class RegistrationType extends AbstractType
                             'ASSOCIATION' => 'fa-users'
                         },
                         'data-description' => match($value) {
-                            'PRIVATE' => 'Perfect for individual members joining our community',
-                            'ENTERPRISE' => 'Designed for businesses and corporate entities',
-                            'ASSOCIATION' => 'Ideal for non-profit organizations and associations'
+                            'PRIVATE' => 'Parfait pour les membres individuels rejoignant notre communauté',
+                            'ENTERPRISE' => 'Conçu pour les entreprises et entités corporatives',
+                            'ASSOCIATION' => 'Idéal pour les associations et organisations à but non lucratif'
                         }
                     ];
                 },
@@ -59,49 +59,49 @@ class RegistrationType extends AbstractType
                 'label_html' => true,
             ])
             ->add('username', TextType::class, [
-                'attr' => ['placeholder' => 'Username*'],
+                'attr' => ['placeholder' => 'Nom d\'utilisateur*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('firstName', TextType::class, [
                 'attr' => [
-                    'placeholder' => 'First Name*'
+                    'placeholder' => 'Prénom*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('lastName', TextType::class, [
                 'attr' => [
-                    'placeholder' => 'Last Name*'
+                    'placeholder' => 'Nom*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('organizationName', TextType::class, [
-                'attr' => ['placeholder' => 'Organization Name*'],
+                'attr' => ['placeholder' => 'Nom de l\'Organisation*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box organization-field'],
                 'required' => false
             ])
             ->add('organizationNumber', TextType::class, [
-                'attr' => ['placeholder' => 'Organization Number*'],
+                'attr' => ['placeholder' => 'Numéro SIRET*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box organization-field'],
                 'required' => false
             ])
             ->add('country', CountryType::class, [
-                'placeholder' => 'Select your country*',
+                'placeholder' => 'Sélectionnez votre pays*',
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('phone', TelType::class, [
-                'attr' => ['placeholder' => 'Phone Number*'],
+                'attr' => ['placeholder' => 'Numéro de téléphone*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('email', EmailType::class, [
                 'attr' => [
-                    'placeholder' => 'Email Address*'
+                    'placeholder' => 'Adresse email*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box'],
@@ -109,14 +109,14 @@ class RegistrationType extends AbstractType
             ])
             ->add('password', PasswordType::class, [
                 'attr' => [
-                    'placeholder' => 'Password*'
+                    'placeholder' => 'Mot de passe*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('confirmPassword', PasswordType::class, [
                 'attr' => [
-                    'placeholder' => 'Confirm Password*'
+                    'placeholder' => 'Confirmer le mot de passe*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box']
@@ -131,7 +131,7 @@ class RegistrationType extends AbstractType
             ])
             ->add('referralCode', TextType::class, [
                 'attr' => [
-                    'placeholder' => 'Referral Code*'
+                    'placeholder' => 'Code de parrainage*'
                 ],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box'],
@@ -139,12 +139,12 @@ class RegistrationType extends AbstractType
             ])
             ->add('projectDescription', TextareaType::class, [
                 'attr' => [
-                    'placeholder' => 'Describe your project or initiative (minimum 100 characters)*',
+                    'placeholder' => 'Décrivez votre projet ou initiative (minimum 100 caractères)*',
                     'rows' => 13,
                     'class' => 'h-auto'
                 ],
                 'label' => false,
-                'help' => 'Tell us about your project, its goals, and how you plan to use the funds.',
+                'help' => 'Parlez-nous de votre projet, de ses objectifs et de la façon dont vous prévoyez d\'utiliser les fonds.',
                 'row_attr' => ['class' => 'contact-form__input-box']
             ])
             ->add('recaptcha', HiddenType::class, [

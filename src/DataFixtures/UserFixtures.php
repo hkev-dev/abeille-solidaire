@@ -14,54 +14,80 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 {
     private const ROOT_USER = [
         'email' => 'root@example.com',
+        'username' => 'root',
         'firstName' => 'Root',
         'lastName' => 'User',
         'password' => 'rootpass123',
         'roles' => ['ROLE_ADMIN', 'ROLE_USER'],
         'projectDescription' => 'Root user for system administration and testing.',
+        'phone' => '+33600000000',
+        'country' => 'FR',
+        'accountType' => 'PRIVATE',
         'isRoot' => true
     ];
 
     private const array STATIC_USERS = [
         [
             'email' => 'admin@example.com',
+            'username' => 'admin',
             'firstName' => 'Admin',
             'lastName' => 'User',
             'password' => 'admin123',
             'roles' => ['ROLE_ADMIN'],
-            'projectDescription' => 'Platform administration and support.'
+            'projectDescription' => 'Platform administration and support.',
+            'phone' => '+33600000001',
+            'country' => 'FR',
+            'accountType' => 'PRIVATE'
         ],
         [
             'email' => 'john.doe@example.com',
+            'username' => 'john_doe',
             'firstName' => 'John',
             'lastName' => 'Doe',
             'password' => 'password123',
             'roles' => ['ROLE_USER'],
-            'projectDescription' => 'Building a sustainable farming community in rural areas.'
+            'projectDescription' => 'Building a sustainable farming community in rural areas.',
+            'phone' => '+33600000002',
+            'country' => 'FR',
+            'accountType' => 'ENTERPRISE',
+            'organizationName' => 'Sustainable Farms Inc.',
+            'organizationNumber' => '12345678900001'
         ],
         [
             'email' => 'jane.smith@example.com',
+            'username' => 'jane_smith',
             'firstName' => 'Jane',
             'lastName' => 'Smith',
             'password' => 'password123',
             'roles' => ['ROLE_USER'],
-            'projectDescription' => 'Creating an educational program for underprivileged children.'
+            'projectDescription' => 'Creating an educational program for underprivileged children.',
+            'phone' => '+33600000003',
+            'country' => 'FR',
+            'accountType' => 'PRIVATE'
         ],
         [
             'email' => 'alice.wonder@example.com',
+            'username' => 'alice_wonder',
             'firstName' => 'Alice',
             'lastName' => 'Wonder',
             'password' => 'password123',
             'roles' => ['ROLE_USER'],
-            'projectDescription' => 'Developing a renewable energy initiative for local communities.'
+            'projectDescription' => 'Developing a renewable energy initiative for local communities.',
+            'phone' => '+33600000004',
+            'country' => 'FR',
+            'accountType' => 'PRIVATE'
         ],
         [
             'email' => 'bob.builder@example.com',
+            'username' => 'bob_builder',
             'firstName' => 'Bob',
             'lastName' => 'Builder',
             'password' => 'password123',
             'roles' => ['ROLE_USER'],
-            'projectDescription' => 'Building affordable housing for low-income families.'
+            'projectDescription' => 'Building affordable housing for low-income families.',
+            'phone' => '+33600000005',
+            'country' => 'FR',
+            'accountType' => 'PRIVATE'
         ]
     ];
 
@@ -79,7 +105,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
         // Create root user first
         $this->rootUser = $this->createUser($manager, self::ROOT_USER, 'ROOT_USER_REF');
-        
+
         // Load remaining static users
         foreach (self::STATIC_USERS as $userData) {
             $this->createUser($manager, $userData);
@@ -92,11 +118,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
             $userData = [
                 'email' => $faker->email(),
+                'username' => $faker->userName(),
                 'firstName' => $firstName,
                 'lastName' => $lastName,
                 'password' => 'password123',
                 'roles' => ['ROLE_USER'],
-                'projectDescription' => $faker->paragraphs(2, true)
+                'projectDescription' => $faker->paragraphs(2, true),
+                'phone' => '+33' . random_int(600000000, 799999999),
+                'country' => 'FR',
+                'accountType' => 'PRIVATE'
             ];
 
             $this->createUser($manager, $userData);
@@ -109,15 +139,25 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     {
         $user = new User();
         $user->setEmail($userData['email'])
+            ->setUsername($userData['username'])
             ->setFirstName($userData['firstName'])
             ->setLastName($userData['lastName'])
             ->setRoles($userData['roles'])
+            ->setPhone($userData['phone'] ?? '+33' . random_int(600000000, 799999999))
+            ->setCountry($userData['country'] ?? 'FR')
+            ->setAccountType($userData['accountType'] ?? User::ACCOUNT_TYPE_PRIVATE)
             ->setIsVerified(true)
             ->setWalletBalance(0.0)
             ->setCurrentFlower($this->getReference('flower_1', Flower::class))
             ->setProjectDescription($userData['projectDescription'])
             ->setRegistrationPaymentStatus('completed')
             ->setWaitingSince(null);
+
+        // Handle organization fields for ENTERPRISE and ASSOCIATION account types
+        if (in_array($user->getAccountType(), [User::ACCOUNT_TYPE_ENTERPRISE, User::ACCOUNT_TYPE_ASSOCIATION])) {
+            $user->setOrganizationName($userData['organizationName'] ?? null);
+            $user->setOrganizationNumber($userData['organizationNumber'] ?? null);
+        }
 
         // Set referral code
         if ($forcedReferralCode) {

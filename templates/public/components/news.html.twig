@@ -4,10 +4,10 @@
 		class="container">
 		{# Section Header #}
 		<div class="section-title text-center">
-			<span class="section-title__tagline">Direct from the Blog Posts</span>
-			<h2 class="section-title__title">Checkout Latest News
+			<span class="section-title__tagline">Directement du Blog</span>
+			<h2 class="section-title__title">Découvrez nos Dernières
 				<br>
-				and Articles</h2>
+				Actualités</h2>
 		</div>
 
 		{# News Grid #}
@@ -38,7 +38,7 @@
 							<ul class="news-one__meta list-unstyled">
 								<li>
 									<a href="#">
-										<i class="fas fa-user-circle"></i>by
+										<i class="fas fa-user-circle"></i>par
 										{{ article.author }}
 									</a>
 								</li>
@@ -46,7 +46,7 @@
 									<a href="#">
 										<i class="fas fa-comments"></i>
 										{{ article.commentsCount }}
-										Comments
+										Commentaires
 									</a>
 								</li>
 							</ul>
@@ -58,7 +58,7 @@
 							</h3>
 							<div class="news-one__bottom">
 								<div class="news-one__button">
-									<a href="{{ path('landing.news.details', {slug: article.slug}) }}">Read more</a>
+									<a href="{{ path('landing.news.details', {slug: article.slug}) }}">Lire la suite</a>
 								</div>
 								<div class="news-one__arrow">
 									<a href="{{ path('landing.news.details', {slug: article.slug}) }}">

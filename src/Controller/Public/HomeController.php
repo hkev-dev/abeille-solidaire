@@ -31,15 +31,15 @@ class HomeController extends AbstractController
 
         // Why Choose Content
         $whyChooseContent = [
-            'description' => 'There are certain attributes of a profession and one has to catch hold of them in order to work efficiently and grow in that business.',
+            'description' => 'Notre plateforme possède des caractéristiques uniques qui permettent à chaque membre de progresser efficacement et de développer ses projets.',
             'points' => [
                 [
-                    'title' => '100% Success Rates',
-                    'description' => 'Lorem ipsum velit anod ips aliquet enean quis.'
+                    'title' => '100% de Réussite',
+                    'description' => 'Un système de dons cycliques garantissant la réussite de chaque projet.'
                 ],
                 [
-                    'title' => 'Millions in Funding',
-                    'description' => 'Lorem ipsum velit anod ips aliquet enean quis.'
+                    'title' => 'Millions d\'Euros Collectés',
+                    'description' => 'Une communauté solidaire qui s\'entraide pour réaliser ses projets.'
                 ]
             ]
         ];
@@ -53,17 +53,17 @@ class HomeController extends AbstractController
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'name' => 'Kevin Cooper',
-                'position' => 'CO Founder',
+                'position' => 'Co-Fondateur',
                 'rating' => 5,
-                'content' => 'I tried this smart piano and learned how to play music in a day. There are many variations of passages of lorem ipsum but the majority have alteration in some form.'
+                'content' => 'Grâce à Abeilles Solidaires, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
             ],
             [
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
                 'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
                 'name' => 'Sarah Albert',
-                'position' => 'Marketing Director',
+                'position' => 'Directrice Marketing',
                 'rating' => 5,
-                'content' => 'Outstanding platform for crowdfunding. The process was smooth and the support team was incredibly helpful throughout the campaign.'
+                'content' => 'Une plateforme exceptionnelle pour le financement participatif. Le processus est simple et l\'équipe de support est incroyablement réactive tout au long du parcours.'
             ],
             // Add more testimonials...
         ];
@@ -90,14 +90,14 @@ class HomeController extends AbstractController
 
         // Ready Section Content
         $readyContent = [
-            'subtitle' => 'Your story starts from here',
-            'title' => 'Ready to raise funds for idea?'
+            'subtitle' => 'Votre histoire commence ici',
+            'title' => 'Prêt à récolter des fonds pour votre projet ?'
         ];
 
         // Video Section
         $videoContent = [
             'videoUrl' => 'https://www.youtube.com/watch?v=Get7rqXYrbQ',
-            'videoTitle' => 'Abeille Solidaire is evolving the way<br>individuals works'
+            'videoTitle' => 'Abeilles Solidaires révolutionne la façon<br>dont les individus s\'entraident'
         ];
 
         return $this->render('public/pages/home.html.twig', [

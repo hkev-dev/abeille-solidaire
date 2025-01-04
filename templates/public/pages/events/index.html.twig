@@ -1,16 +1,16 @@
 {# templates/pages/events/index.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Events - Qrowd Crowdfunding Platform{% endblock %}
+{% block title %}Événements - Abeilles Solidaires{% endblock %}
 
 {% block content %}
     {# Include page header component #}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Events',
-        subtitle: 'Check out our upcoming events',
+        title: 'Événements',
+        subtitle: 'Découvrez nos prochains événements',
         breadcrumbs: [
-            {label: 'Home', path: 'landing.home'},
-            {label: 'Events', path: null}
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Événements', path: null}
         ],
         class: 'page-header--large',
         background_image: 'assets/images/backgrounds/custom-bg.jpg',
