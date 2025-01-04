@@ -40,10 +40,23 @@ class RegistrationType extends AbstractType
                 'label_attr' => ['class' => 'form-label mb-3'],
                 'expanded' => true,
                 'multiple' => false,
-                'choice_attr' => function ($choice, $key, $value) {
-                    return ['class' => 'form-check-input'];
+                'choice_attr' => function($choice, $key, $value) {
+                    return [
+                        'class' => 'form-check-input',
+                        'data-icon' => match($value) {
+                            'PRIVATE' => 'fa-user',
+                            'ENTERPRISE' => 'fa-building',
+                            'ASSOCIATION' => 'fa-users'
+                        },
+                        'data-description' => match($value) {
+                            'PRIVATE' => 'Perfect for individual members joining our community',
+                            'ENTERPRISE' => 'Designed for businesses and corporate entities',
+                            'ASSOCIATION' => 'Ideal for non-profit organizations and associations'
+                        }
+                    ];
                 },
-                'row_attr' => ['class' => 'account-type-selector mb-4']
+                'row_attr' => ['class' => 'account-type-selector mb-4'],
+                'label_html' => true,
             ])
             ->add('username', TextType::class, [
                 'attr' => ['placeholder' => 'Username*'],
