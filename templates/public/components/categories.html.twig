@@ -1,53 +1,68 @@
 <section class="categories-one">
-    <div class="container">
-        {# Categories Header #}
-        <div class="categories-one__top">
-            <div class="row">
-                <div class="col-xl-6 col-lg-7">
-                    <div class="categories-one__top-left">
-                        <div class="section-title text-left">
-                            <span class="section-title__tagline">Explorer les catégories</span>
-                            <h2 class="section-title__title">Découvrez la catégorie qui vous intéresse</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="categories-one__backers">
-                <div class="categories-one__backers-tagline">
-                    <p>Découvrez-le en premier sur Abeilles Solidaires.</p>
-                </div>
-                <div class="categories-one__backers-box">
-                    <div class="categories-one__backers-icon">
-                        <span class="icon-computer"></span>
-                    </div>
-                    <div class="categories-one__backers-content">
-                        <h3 class="odometer" data-count="37400">00</h3>
-                        <p>Porteurs de Projets</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+	<div
+		class="container">
+		{# Categories Header #}
+		<div class="categories-one__top">
+			<div class="row">
+				<div class="col-xl-6 col-lg-7">
+					<div class="categories-one__top-left">
+						<div class="section-title text-left">
+							<span class="section-title__tagline">Explorer les catégories</span>
+							<h2 class="section-title__title">Découvrez la catégorie qui vous intéresse</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="categories-one__backers">
+				<div class="categories-one__backers-tagline">
+					<p>Découvrez-le en premier sur Abeilles Solidaires.</p>
+				</div>
+				<div class="categories-one__backers-box">
+					<div class="categories-one__backers-icon">
+						<span class="icon-computer"></span>
+					</div>
+					<div class="categories-one__backers-content">
+						<h3 class="odometer" data-count="37400">00</h3>
+						<p>Porteurs de Projets</p>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        {# Categories Grid #}
-        <div class="categories-one__bottom">
-            <div class="categories-one__bottom-inner">
-                <div class="row">
-                    {% for category in categories %}
-                        <div class="col-xl-2 col-lg-4 col-md-6 wow fadeInLeft" data-wow-delay="{{ loop.index * 100 }}ms">
-                            <div class="categories-one__single">
-                                <div class="categories-one__icon">
-                                    <span class="{{ category.icon }}"></span>
-                                </div>
-                                <h4 class="categories-one__title">{{ category.name }}</h4>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <p class="categories-one__bottom-text">
-                Découvrez des projets qui vous correspondent et obtenez d'excellentes recommandations lorsque vous 
-                <span>sélectionnez vos centres d'intérêt.</span>
-            </p>
-        </div>
-    </div>
+		{# Categories Slider #}
+		<div class="thm-swiper__slider swiper-container" data-swiper-options='{
+				            "spaceBetween": 30,
+				            "slidesPerView": 6,
+				            "loop": true,
+				            "autoplay": { "delay": 3000 },
+				            "breakpoints": {
+				                "0": { "spaceBetween": 20, "slidesPerView": 2 },
+				                "375": { "spaceBetween": 20, "slidesPerView": 2 },
+				                "575": { "spaceBetween": 20, "slidesPerView": 3 },
+				                "767": { "spaceBetween": 30, "slidesPerView": 4 },
+				                "991": { "spaceBetween": 30, "slidesPerView": 5 },
+				                "1199": { "spaceBetween": 30, "slidesPerView": 6 }
+				            }}'>
+			<div class="swiper-wrapper">
+				{% for category in categories %}
+					<div class="swiper-slide">
+						<div class="categories-one__single d-flex flex-column h-100 p-3">
+							<div class="categories-one__icon d-flex justify-content-center align-items-center mb-3">
+								<span class="{{ category.icon }} fa-2x"></span>
+							</div>
+							<div class="categories-one__title-wrapper d-flex align-items-center justify-content-center flex-grow-1">
+								<h4 class="categories-one__title text-center mb-0 small px-2" style="min-height: 50px;">{{ category.name }}</h4>
+
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		<p class="categories-one__bottom-text">
+			Découvrez des projets qui vous correspondent et obtenez d'excellentes recommandations lorsque vous
+			<span>sélectionnez vos centres d'intérêt.</span>
+		</p>
+	</div>
 </section>
