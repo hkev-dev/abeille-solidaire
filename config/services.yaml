@@ -15,6 +15,7 @@ parameters:
     coinpayments.public_key: "%env(COINPAYMENTS_PUBLIC_KEY)%"
     coinpayments.private_key: "%env(COINPAYMENTS_PRIVATE_KEY)%"
     coinpayments.ipn_secret: "%env(COINPAYMENTS_IPN_SECRET)%"
+    app.secret: '%env(APP_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -57,6 +58,7 @@ services:
             $mailer: "@mailer"
             $senderEmail: "%env(MAILER_FROM_ADDRESS)%"
             $senderName: "%env(MAILER_FROM_NAME)%"
+            $appSecret: "%app.secret%"
 
     App\Service\SecurityService:
         arguments:

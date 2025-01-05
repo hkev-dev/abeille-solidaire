@@ -22,7 +22,8 @@ class EmailService
         private readonly string $senderEmail,
         private readonly string $senderName,
         private readonly LoggerInterface $logger,
-        private readonly UrlGeneratorInterface $router
+        private readonly UrlGeneratorInterface $router,
+        private readonly string $appSecret
     ) {
     }
 
@@ -208,6 +209,6 @@ class EmailService
 
     private function generateUnsubscribeToken(string $email): string
     {
-        return hash_hmac('sha256', $email, $_ENV['APP_SECRET']);
+        return hash_hmac('sha256', $email, $this->appSecret);
     }
 }
