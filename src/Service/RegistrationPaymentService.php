@@ -114,49 +114,66 @@ class RegistrationPaymentService
 
     public function verifyCoinPaymentsIpn(array $ipnData, string $hmac): bool
     {
-        if (!isset($ipnData['ipn_mode']) || $ipnData['ipn_mode'] !== 'hmac') {
-            return false;
+        if (!isset($ipnData['ipn_mode'], $ipnData['merchant'])) {
+            throw new WebhookException('Invalid IPN data format');
+        }
+
+        if ($ipnData['ipn_mode'] !== 'hmac') {
+            throw new WebhookException('Invalid IPN mode');
         }
 
         $merchantId = $this->params->get('coinpayments.merchant_id');
-        $ipnSecret = $this->params->get('coinpayments.ipn_secret');
-
-        // Check the merchant ID matches
         if ($ipnData['merchant'] !== $merchantId) {
-            return false;
+            throw new WebhookException('Invalid merchant ID');
         }
 
-        // Calculate HMAC
+        // Verify HMAC
         $rawPostData = file_get_contents('php://input');
-        $calculatedHmac = hash_hmac('sha512', $rawPostData, $ipnSecret);
+        if (empty($rawPostData)) {
+            throw new WebhookException('Empty POST data');
+        }
+
+        $calculatedHmac = hash_hmac(
+            'sha512', 
+            $rawPostData, 
+            $this->params->get('coinpayments.ipn_secret')
+        );
 
         return hash_equals($calculatedHmac, $hmac);
     }
 
     public function handlePaymentSuccess(User $user, string $paymentMethod, string $transactionId = null): void
     {
+        $this->entityManager->beginTransaction();
+        
         try {
             // Update user status
-            $user->setRegistrationPaymentStatus('completed');
-            $user->setWaitingSince(null);
-            $user->setIsVerified(true);
+            $user->setRegistrationPaymentStatus('completed')
+                ->setWaitingSince(null)
+                ->setIsVerified(true);
 
-            $this->entityManager->flush();
-
+            // Get transaction details for crypto payments
             $cryptoDetails = null;
             if ($paymentMethod === 'coinpayments' && $transactionId) {
-                $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
+                try {
+                    $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
+                } catch (\Exception $e) {
+                    $this->logger->warning('Failed to fetch crypto details', [
+                        'error' => $e->getMessage(),
+                        'user_id' => $user->getId(),
+                        'txn_id' => $transactionId
+                    ]);
+                }
             }
 
-            // Create initial donation record
+            // Create initial donation and membership records
             $donation = $this->donationService->createRegistrationDonation(
-                $user,
-                $paymentMethod,
+                $user, 
+                $paymentMethod, 
                 $transactionId,
                 $cryptoDetails
             );
 
-            // Create initial membership
             $membership = $this->membershipService->createInitialMembership(
                 $user,
                 $paymentMethod,
@@ -164,22 +181,15 @@ class RegistrationPaymentService
                 $cryptoDetails
             );
 
-            // Dispatch event with membership information
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+
+            // Dispatch events after successful commit
             $event = new UserRegistrationEvent($user, $donation, $paymentMethod, $membership);
             $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_COMPLETED);
 
-            $this->logger->info('Registration payment completed successfully', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'transaction_id' => $transactionId
-            ]);
         } catch (\Exception $e) {
-            $this->logger->error('Failed to process successful payment', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'transaction_id' => $transactionId,
-                'error' => $e->getMessage()
-            ]);
+            $this->entityManager->rollback();
             throw $e;
         }
     }

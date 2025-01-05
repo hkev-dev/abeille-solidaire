@@ -253,51 +253,124 @@ class AuthController extends AbstractController
     public function coinPaymentsWebhook(Request $request): Response
     {
         try {
+            // Get webhook data
             $ipnData = $request->request->all();
             $hmac = $request->headers->get('HMAC');
+            $webhookId = uniqid('whk_', true);
 
-            if (!$this->registrationPaymentService->verifyCoinPaymentsIpn($ipnData, $hmac)) {
-                throw new \Exception('Invalid IPN signature');
-            }
-
-            $this->logger->info('CoinPayments IPN received', [
+            $this->logger->info('Webhook received', [
+                'webhook_id' => $webhookId,
                 'ipn_type' => $ipnData['ipn_type'] ?? 'unknown',
-                'status' => $ipnData['status'] ?? 'unknown'
+                'txn_id' => $ipnData['txn_id'] ?? null,
+                'timestamp' => time()
             ]);
 
-            if (isset($ipnData['ipn_type']) && $ipnData['ipn_type'] === 'api') {
-                $user = $this->userRepository->find($ipnData['item_number']);
+            // Verify IPN signature
+            if (!$this->registrationPaymentService->verifyCoinPaymentsIpn($ipnData, $hmac)) {
+                $this->logger->warning('Invalid webhook signature', [
+                    'webhook_id' => $webhookId,
+                    'ipn_data' => $ipnData
+                ]);
+                return new Response('Invalid signature', Response::HTTP_UNAUTHORIZED);
+            }
 
-                if (!$user) {
-                    throw new \Exception('User not found');
+            // Check for duplicate webhook
+            $processingKey = "webhook_processing_{$ipnData['txn_id']}";
+            if (!$this->lockWebhook($processingKey)) {
+                $this->logger->info('Duplicate webhook detected', [
+                    'webhook_id' => $webhookId,
+                    'txn_id' => $ipnData['txn_id']
+                ]);
+                return new Response('Webhook already processing', Response::HTTP_TOO_MANY_REQUESTS);
+            }
+
+            $startTime = microtime(true);
+
+            try {
+                if (isset($ipnData['ipn_type']) && $ipnData['ipn_type'] === 'api') {
+                    $user = $this->userRepository->find($ipnData['item_number']);
+
+                    if (!$user) {
+                        throw new \Exception("User not found for item_number: {$ipnData['item_number']}");
+                    }
+
+                    $paymentStatus = (int) $ipnData['status'];
+                    $this->logger->info('Processing payment status', [
+                        'webhook_id' => $webhookId,
+                        'user_id' => $user->getId(),
+                        'status' => $paymentStatus,
+                        'status_text' => $ipnData['status_text'] ?? null
+                    ]);
+
+                    match ($paymentStatus) {
+                        // Complete
+                        100 => $this->registrationPaymentService->handlePaymentSuccess(
+                            user: $user,
+                            paymentMethod: 'coinpayments',
+                            transactionId: $ipnData['txn_id']
+                        ),
+                        // Cancelled/Timeout
+                        -1 => $this->registrationPaymentService->handlePaymentFailure(
+                            user: $user,
+                            paymentMethod: 'coinpayments',
+                            errorMessage: $ipnData['status_text'] ?? 'Payment cancelled or timed out'
+                        ),
+                        // Pending
+                        0 => $this->logger->info('Payment pending', [
+                            'webhook_id' => $webhookId,
+                            'user_id' => $user->getId()
+                        ]),
+                        // Other statuses
+                        default => $this->logger->warning('Unexpected payment status', [
+                            'webhook_id' => $webhookId,
+                            'status' => $paymentStatus,
+                            'user_id' => $user->getId()
+                        ])
+                    };
+
+                    $processingTime = microtime(true) - $startTime;
+                    $this->logger->info('Webhook processed', [
+                        'webhook_id' => $webhookId,
+                        'processing_time' => $processingTime,
+                        'user_id' => $user->getId()
+                    ]);
                 }
-
-                match ((int) $ipnData['status']) {
-                    100 => $this->registrationPaymentService->handlePaymentSuccess(
-                        user: $user,
-                        paymentMethod: 'coinpayments',
-                        transactionId: $ipnData['txn_id']
-                    ),
-                    -1 => $this->registrationPaymentService->handlePaymentFailure(
-                        user: $user,
-                        paymentMethod: 'coinpayments',
-                        errorMessage: $ipnData['status_text'] ?? 'Payment cancelled or timed out'
-                    ),
-                    default => null
-                };
+            } finally {
+                // Always release the lock
+                $this->releaseWebhook($processingKey);
             }
 
             return new Response('IPN Processed', Response::HTTP_OK);
 
         } catch (\Exception $e) {
-            $this->logger->error('CoinPayments IPN error', [
+            $this->logger->error('Webhook processing error', [
+                'webhook_id' => $webhookId ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'ipn_data' => $ipnData ?? []
             ]);
 
-            return new Response('IPN Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+            // Return 202 to avoid webhook retries for business logic errors
+            $statusCode = $e instanceof WebhookException 
+                ? Response::HTTP_ACCEPTED 
+                : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+            return new Response('IPN Error: ' . $e->getMessage(), $statusCode);
         }
+    }
+
+    private function lockWebhook(string $key): bool
+    {
+        // Using APCu for simplicity, but could use Redis or other distributed lock mechanism
+        if (apcu_exists($key)) {
+            return false;
+        }
+        return apcu_add($key, true, 300); // 5-minute lock
+    }
+
+    private function releaseWebhook(string $key): void
+    {
+        apcu_delete($key);
     }
 
     #[Route('/registration/crypto/currencies', name: 'app.registration.crypto.currencies', methods: ['GET'])]
