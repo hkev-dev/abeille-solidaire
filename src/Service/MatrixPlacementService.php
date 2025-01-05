@@ -159,4 +159,60 @@ class MatrixPlacementService
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findNextReferralPosition(User $referrer, Flower $flower): ?int
+    {
+        // Try to get a lock for atomic operation
+        $lock = $this->lockFactory->createLock(
+            sprintf('referral_matrix_%d_%d', $referrer->getId(), $flower->getId()),
+            30
+        );
+
+        if (!$lock->acquire()) {
+            throw new LockConflictedException('Referral matrix is being processed');
+        }
+
+        try {
+            // Get current positions in referrer's matrix
+            $matrixState = $this->getMatrixState($flower);
+            $referrerPositions = array_filter(
+                $matrixState,
+                fn($userId) => $userId === $referrer->getId()
+            );
+
+            // Find first available position after referrer's positions
+            for ($position = 1; $position <= self::MATRIX_SIZE; $position++) {
+                if (!isset($matrixState[$position]) && 
+                    $this->validateReferralPlacement($referrer, $position, $flower)) {
+                    return $position;
+                }
+            }
+
+            return null;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function validateReferralPlacement(
+        User $referrer,
+        int $position,
+        Flower $flower
+    ): bool {
+        // Ensure referrer has a position in this flower
+        $referrerPositions = $this->donationRepository->findReferrerPositions($referrer, $flower);
+        if (empty($referrerPositions)) {
+            return false;
+        }
+
+        // Ensure position is valid
+        if ($position < 1 || $position > self::MATRIX_SIZE) {
+            return false;
+        }
+
+        // Add any additional validation rules here
+        // For example, ensuring the position maintains proper matrix structure
+
+        return true;
+    }
 }

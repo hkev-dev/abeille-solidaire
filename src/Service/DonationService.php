@@ -13,8 +13,10 @@ class DonationService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly MatrixPlacementService $matrixPlacementService,
-        private readonly FlowerRepository $flowerRepository
-    ) {}
+        private readonly FlowerRepository $flowerRepository,
+        private readonly FlowerProgressionService $flowerProgressionService
+    ) {
+    }
 
     public function createRegistrationDonation(
         User $donor,
@@ -38,10 +40,10 @@ class DonationService
             case 'stripe':
                 $donation->setStripePaymentIntentId($transactionId);
                 break;
-            
+
             case 'coinpayments':
                 $donation->setCoinpaymentsTransactionId($transactionId);
-                
+
                 // Store crypto-specific details if available
                 if ($cryptoDetails) {
                     $donation->setCryptoAmount($cryptoDetails['crypto_amount'])
@@ -85,10 +87,10 @@ class DonationService
             case 'stripe':
                 $donation->setStripePaymentIntentId($transactionId);
                 break;
-            
+
             case 'coinpayments':
                 $donation->setCoinpaymentsTransactionId($transactionId);
-                
+
                 // Store crypto-specific details if available
                 if ($cryptoDetails) {
                     $donation->setCryptoAmount($cryptoDetails['crypto_amount'])
@@ -102,6 +104,11 @@ class DonationService
 
         $this->entityManager->persist($donation);
         $this->entityManager->flush();
+
+        // Check for flower progression after donation
+        if ($type === 'direct') {
+            $this->flowerProgressionService->checkAndProcessProgression($recipient);
+        }
 
         return $donation;
     }
@@ -136,15 +143,15 @@ class DonationService
                 null,
                 $this->matrixPlacementService->getMatrixState($flower)
             );
-            
+
             $this->matrixPlacementService->lockPosition($position, $flower);
 
             $donation = new Donation();
             $donation->setDonor($donor)
-                    ->setRecipient($recipient)
-                    ->setFlower($flower)
-                    ->setDonationType($donationType)
-                    ->setCyclePosition($position);
+                ->setRecipient($recipient)
+                ->setFlower($flower)
+                ->setDonationType($donationType)
+                ->setCyclePosition($position);
 
             $this->entityManager->persist($donation);
             $this->entityManager->flush();

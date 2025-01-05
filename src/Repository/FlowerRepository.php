@@ -96,4 +96,30 @@ class FlowerRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countUserCyclesInFlower(User $user, Flower $flower): int
+    {
+        return $this->createQueryBuilder('f')
+            ->select('COUNT(DISTINCT d.id) as cycles')
+            ->join('App:Donation', 'd', 'WITH', 'd.flower = f')
+            ->where('f = :flower')
+            ->andWhere('d.recipient = :user')
+            ->andWhere('d.donationType = :type')
+            ->setParameter('flower', $flower)
+            ->setParameter('user', $user)
+            ->setParameter('type', 'direct')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getActiveUsersInFlower(Flower $flower): array
+    {
+        return $this->createQueryBuilder('f')
+            ->select('u')
+            ->join('App:User', 'u', 'WITH', 'u.currentFlower = f')
+            ->where('f = :flower')
+            ->setParameter('flower', $flower)
+            ->getQuery()
+            ->getResult();
+    }
 }

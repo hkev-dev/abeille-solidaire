@@ -283,6 +283,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addToWalletBalance(float $amount): self
+    {
+        $this->walletBalance += $amount;
+        return $this;
+    }
+
     public function getCurrentFlower(): ?Flower
     {
         return $this->currentFlower;
