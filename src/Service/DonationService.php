@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Donation;
 use App\Entity\User;
+use App\Entity\Flower;
 use App\Repository\FlowerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -116,5 +117,42 @@ class DonationService
             ]);
 
         return $existingDonations + 1;
+    }
+
+    public function processDonation(User $donor, Flower $flower, string $donationType): ?Donation
+    {
+        if ($this->matrixPlacementService->isMatrixFull($flower)) {
+            // Handle matrix overflow - could create new matrix or waitlist
+            return null;
+        }
+
+        $recipient = $this->matrixPlacementService->findNextAvailablePosition($flower);
+        if (!$recipient) {
+            return null;
+        }
+
+        try {
+            $position = array_search(
+                null,
+                $this->matrixPlacementService->getMatrixState($flower)
+            );
+            
+            $this->matrixPlacementService->lockPosition($position, $flower);
+
+            $donation = new Donation();
+            $donation->setDonor($donor)
+                    ->setRecipient($recipient)
+                    ->setFlower($flower)
+                    ->setDonationType($donationType)
+                    ->setCyclePosition($position);
+
+            $this->entityManager->persist($donation);
+            $this->entityManager->flush();
+
+            return $donation;
+        } catch (\Exception $e) {
+            // Handle error and possibly retry
+            return null;
+        }
     }
 }
