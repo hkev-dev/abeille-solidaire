@@ -1,39 +1,71 @@
 {% extends 'emails/base.html.twig' %}
 
+{% block title %}Annual Membership Confirmation - Abeilles Solidaires{% endblock %}
+
 {% block content %}
-    <h1>Annual Membership Confirmation</h1>
-    
-    <p>Dear {{ user.firstName }},</p>
-    
-    <p>Thank you for joining Abeilles Solidaires! Your annual membership has been successfully activated.</p>
-    
-    <div class="membership-details">
-        <h2>Membership Details</h2>
-        <ul>
-            <li>Start Date: {{ startDate }}</li>
-            <li>End Date: {{ endDate }}</li>
-            <li>Amount: €{{ amount }}</li>
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: var(--qrowd-primary);">Annual Membership Confirmed! 🎉</h2>
+        <p style="font-size: 18px; color: var(--qrowd-black);">Thank you for renewing your commitment to our community.</p>
+    </div>
+
+    <div class="info-box">
+        <h3>Membership Details</h3>
+        <ul style="margin: 0; padding: 0;">
+            <li style="color: var(--qrowd-gray); font-weight: 500;">
+                Membership Period: 
+                <strong style="color: var(--qrowd-black);">
+                    {{ startDate }} to {{ endDate }}
+                </strong>
+            </li>
+            <li style="color: var(--qrowd-gray); font-weight: 500;">
+                Amount Paid: 
+                <strong style="color: var(--qrowd-base);">€{{ amount|number_format(2, '.', ',') }}</strong>
+            </li>
+            <li style="color: var(--qrowd-gray); font-weight: 500;">
+                Payment Method: 
+                <strong style="color: var(--qrowd-black);">{{ paymentMethod|title }}</strong>
+            </li>
             {% if paymentMethod == 'cryptocurrency' and cryptoDetails %}
-                <li>Paid with: {{ cryptoDetails.amount }} {{ cryptoDetails.currency }}</li>
+                <li style="color: var(--qrowd-gray); font-weight: 500;">
+                    Crypto Amount: 
+                    <strong style="color: var(--qrowd-black);">
+                        {{ cryptoDetails.amount }} {{ cryptoDetails.currency }}
+                    </strong>
+                </li>
             {% endif %}
         </ul>
     </div>
 
-    <p>Your membership gives you full access to our platform and allows you to:</p>
-    <ul>
-        <li>Participate in donation flowers</li>
-        <li>Create and manage projects</li>
-        <li>Make withdrawals from your wallet</li>
-        <li>Access exclusive community features</li>
-    </ul>
-
-    <p>You can view your membership details and manage your account at any time by visiting your dashboard:</p>
-    
-    <div class="button-container">
-        <a href="{{ dashboardUrl }}" class="button">Access Dashboard</a>
+    <div style="margin: 30px 0;">
+        <h3 style="color: var(--qrowd-primary);">Your Benefits Include:</h3>
+        <ul>
+            <li>Full access to all flower cycles</li>
+            <li>Project creation and management</li>
+            <li>Ability to receive and make donations</li>
+            <li>Withdrawal privileges</li>
+            <li>Community support features</li>
+        </ul>
     </div>
 
-    <p>Remember to renew your membership before {{ endDate }} to maintain uninterrupted access to our platform.</p>
+    <div class="info-box" style="background: var(--qrowd-extra);">
+        <h4>Important Dates</h4>
+        <ul style="margin: 0;">
+            <li>Membership Start: {{ startDate }}</li>
+            <li>Next Renewal: {{ endDate }}</li>
+        </ul>
+        <p style="margin-top: 15px; color: var(--qrowd-black); font-size: 14px;">
+            <strong>Note:</strong> To maintain uninterrupted access, please ensure renewal before the end date.
+        </p>
+    </div>
 
-    <p>If you have any questions about your membership, please don't hesitate to contact our support team.</p>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ dashboardUrl }}" class="button">View Membership Details</a>
+    </div>
+
+    <p style="text-align: center; margin-top: 30px; color: var(--qrowd-gray); font-size: 14px;">
+        Questions about your membership? Contact our support team at 
+        <a href="mailto:support@abeillesolidaires.club" style="color: var(--qrowd-primary);">
+            support@abeillesolidaires.club
+        </a>
+    </p>
 {% endblock %}

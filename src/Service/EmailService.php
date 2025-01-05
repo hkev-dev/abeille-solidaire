@@ -3,17 +3,22 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\Flower;
 use App\Entity\Membership;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Mailer\Messenger\SendEmailMessage;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class EmailService
 {
     public function __construct(
         private readonly MailerInterface $mailer,
+        private readonly MessageBusInterface $messageBus,
         private readonly string $senderEmail,
         private readonly string $senderName,
         private readonly LoggerInterface $logger,
@@ -23,101 +28,83 @@ class EmailService
 
     public function sendWelcomeEmail(User $user): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Welcome to Abeilles Solidaires - Complete Your Registration')
-            ->htmlTemplate('emails/registration/welcome.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/registration/welcome.html.twig',
+            $user->getEmail(),
+            'Welcome to Abeilles Solidaires - Complete Your Registration',
+            [
                 'user' => $user,
                 'paymentUrl' => $this->router->generate(
                     'app.registration.payment',
                     ['id' => $user->getId()],
                     UrlGeneratorInterface::ABSOLUTE_URL
                 )
-            ]);
-
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to send welcome email', [
-                'user_id' => $user->getId(),
-                'error' => $e->getMessage()
-            ]);
-        }
+            ]
+        );
     }
 
     public function sendPaymentConfirmation(User $user, string $paymentMethod): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Payment Confirmed - Welcome to Abeilles Solidaires')
-            ->htmlTemplate('emails/registration/payment_confirmed.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/registration/payment_confirmed.html.twig',
+            $user->getEmail(),
+            'Payment Confirmed - Welcome to Abeilles Solidaires',
+            [
                 'user' => $user,
                 'paymentMethod' => $paymentMethod,
                 'loginUrl' => '/login'
-            ]);
-
-        $this->mailer->send($email);
+            ]
+        );
     }
 
     public function sendDonationReceipt(User $user, array $receipt): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Your Donation Receipt - Abeilles Solidaires')
-            ->htmlTemplate('emails/donation/receipt.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/donation/receipt.html.twig',
+            $user->getEmail(),
+            'Your Donation Receipt - Abeilles Solidaires',
+            [
                 'user' => $user,
                 'receipt' => $receipt
-            ]);
-
-        $this->mailer->send($email);
+            ]
+        );
     }
 
     public function sendPaymentFailureNotification(User $user, ?string $errorMessage): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Payment Failed - Action Required')
-            ->htmlTemplate('emails/registration/payment_failed.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/registration/payment_failed.html.twig',
+            $user->getEmail(),
+            'Payment Failed - Action Required',
+            [
                 'user' => $user,
                 'errorMessage' => $errorMessage,
                 'retryUrl' => sprintf('/register/payment/%s', $user->getId())
-            ]);
-
-        $this->mailer->send($email);
+            ]
+        );
     }
 
     public function sendCommunityWelcome(User $user): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Welcome to Our Community - Next Steps')
-            ->htmlTemplate('emails/registration/community_welcome.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/registration/community_welcome.html.twig',
+            $user->getEmail(),
+            'Welcome to Our Community - Next Steps',
+            [
                 'user' => $user,
                 'dashboardUrl' => '/dashboard',
                 'guideUrl' => '/guide'
-            ]);
-
-        $this->mailer->send($email);
+            ]
+        );
     }
 
     public function sendMembershipConfirmation(User $user, Membership $membership): void
     {
-        $email = (new TemplatedEmail())
-            ->from(new Address($this->senderEmail, $this->senderName))
-            ->to($user->getEmail())
-            ->subject('Your Annual Membership Confirmation - Abeilles Solidaires')
-            ->htmlTemplate('emails/membership/confirmation.html.twig')
-            ->context([
+        $this->queueEmail(
+            'emails/membership/confirmation.html.twig',
+            $user->getEmail(),
+            'Your Annual Membership Confirmation - Abeilles Solidaires',
+            [
                 'user' => $user,
                 'membership' => $membership,
                 'startDate' => $membership->getStartDate()->format('d/m/Y'),
@@ -129,23 +116,62 @@ class EmailService
                     'currency' => $membership->getCryptoCurrency()
                 ] : null,
                 'dashboardUrl' => '#'
-            ]);
+            ]
+        );
+    }
+
+    public function sendFlowerProgressionEmail(User $user, Flower $newFlower, Flower $previousFlower, float $solidarityAmount): void
+    {
+        $this->queueEmail(
+            'emails/flower/progression.html.twig',
+            $user->getEmail(),
+            'Congratulations on Your Flower Progression!',
+            [
+                'user' => $user,
+                'flower' => $newFlower,
+                'previousFlower' => $previousFlower,
+                'solidarityAmount' => $solidarityAmount
+            ]
+        );
+    }
+
+    private function queueEmail(string $template, string $recipient, string $subject, array $context): void
+    {
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->senderEmail, $this->senderName))
+            ->to($recipient)
+            ->subject($subject)
+            ->htmlTemplate($template)
+            ->context(array_merge($context, [
+                'unsubscribe_url' => $this->generateUnsubscribeUrl($recipient)
+            ]));
 
         try {
-            $this->mailer->send($email);
-
-            $this->logger->info('Membership confirmation email sent', [
-                'user_id' => $user->getId(),
-                'membership_id' => $membership->getId(),
-                'email' => $user->getEmail()
+            $this->messageBus->dispatch(new SendEmailMessage($email));
+            
+            $this->logger->info('Email queued successfully', [
+                'template' => $template,
+                'recipient' => $recipient
             ]);
         } catch (\Exception $e) {
-            $this->logger->error('Failed to send membership confirmation email', [
-                'user_id' => $user->getId(),
-                'membership_id' => $membership->getId(),
+            $this->logger->error('Failed to queue email', [
+                'template' => $template,
+                'recipient' => $recipient,
                 'error' => $e->getMessage()
             ]);
             throw $e;
         }
+    }
+
+    private function generateUnsubscribeUrl(string $email): string
+    {
+        return $this->router->generate('app_email_unsubscribe', [
+            'token' => $this->generateUnsubscribeToken($email)
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
+    }
+
+    private function generateUnsubscribeToken(string $email): string
+    {
+        return hash_hmac('sha256', $email, $_ENV['APP_SECRET']);
     }
 }

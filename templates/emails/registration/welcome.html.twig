@@ -1,26 +1,31 @@
 {% extends 'emails/base.html.twig' %}
 
-{% block title %}Welcome to Abeilles Solidaires{% endblock %}
+{% block title %}Welcome to Abeilles Solidaires
+{% endblock %}
 
 {% block content %}
-    <h1>Welcome {{ user.firstName }}!</h1>
-    
-    <p>Thank you for joining Abeilles Solidaires. Your account has been created successfully, but there's one more step to complete your registration.</p>
-    
-    <h2>Complete Your Registration</h2>
-    <p>To activate your account and join your first flower cycle (Violette), please complete the registration process by making the initial donation of 25€.</p>
-    
-    <div class="button-container">
-        <a href="{{ paymentUrl }}" class="button">Complete Registration</a>
-    </div>
-    
-    <h3>What happens next?</h3>
-    <ul>
-        <li>Make your initial 25€ donation</li>
-        <li>Get placed in the Violette flower cycle</li>
-        <li>Start participating in the community</li>
-        <li>Begin receiving donations for your project</li>
-    </ul>
-    
-    <p>If you have any questions, please don't hesitate to contact our support team.</p>
+	<div style="text-align: center; margin-bottom: 30px;">
+		<h1 style="color: var(--qrowd-primary);">Welcome
+			{{ user.firstName }}!</h1>
+		<p style="font-size: 18px; color: var(--qrowd-black);">Your journey with Abeilles Solidaires begins here.</p>
+	</div>
+
+	<div class="info-box">
+		<h3>Complete Your Registration</h3>
+		<p>To activate your account and join your first flower cycle (Violette), please complete your registration with the initial donation of €25.</p>
+
+		<div style="text-align: center; margin-top: 20px;">
+			<a href="{{ paymentUrl }}" class="button">Complete Registration</a>
+		</div>
+	</div>
+
+	<div style="margin-top: 30px;">
+		<h3 style="color: var(--qrowd-primary);">What happens next?</h3>
+		<ul>
+			<li>Make your initial €25 donation</li>
+			<li>Get placed in the Violette flower cycle</li>
+			<li>Start participating in the community</li>
+			<li>Begin receiving donations for your project</li>
+		</ul>
+	</div>
 {% endblock %}

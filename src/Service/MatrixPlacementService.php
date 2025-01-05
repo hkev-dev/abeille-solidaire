@@ -60,17 +60,28 @@ class MatrixPlacementService
 
     public function getMatrixState(Flower $flower): array
     {
-        return $this->cache->get(
-            sprintf('matrix_state_%d', $flower->getId()),
-            function () use ($flower) {
-                $positions = $this->donationRepository->findByFlowerMatrix($flower);
-                $matrix = [];
-                foreach ($positions as $position) {
-                    $matrix[$position['cyclePosition']] = $position['recipient_id'];
+        try {
+            return $this->cache->get(
+                sprintf('matrix_state_%d', $flower->getId()),
+                function () use ($flower) {
+                    $positions = $this->donationRepository->findByFlowerMatrix($flower);
+                    $matrix = [];
+                    foreach ($positions as $position) {
+                        $matrix[$position['cyclePosition']] = $position['recipient_id'];
+                    }
+                    return $matrix;
                 }
-                return $matrix;
+            ) ?? [];
+        } catch (\Throwable $e) {
+            // Log the error if you have a logger service
+            // Fallback to direct database query without caching
+            $positions = $this->donationRepository->findByFlowerMatrix($flower);
+            $matrix = [];
+            foreach ($positions as $position) {
+                $matrix[$position['cyclePosition']] = $position['recipient_id'];
             }
-        );
+            return $matrix;
+        }
     }
 
     public function lockPosition(int $position, Flower $flower): void

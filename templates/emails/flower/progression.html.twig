@@ -1,0 +1,27 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: var(--qrowd-primary);">Congratulations!</h2>
+        <p style="font-size: 24px; color: var(--qrowd-black); font-weight: 800;">You've Progressed to {{ flower.name }}! 🌸</p>
+    </div>
+    
+    <div class="info-box">
+        <h3 style="color: var(--qrowd-primary); margin-bottom: 15px;">Your Achievement</h3>
+        <ul style="margin: 0; padding: 0;">
+            <li style="color: var(--qrowd-gray); font-weight: 500;">Previous Flower: <strong style="color: var(--qrowd-black);">{{ previousFlower.name }}</strong></li>
+            <li style="color: var(--qrowd-gray); font-weight: 500;">New Flower: <strong style="color: var(--qrowd-base);">{{ flower.name }}</strong></li>
+            <li style="color: var(--qrowd-gray); font-weight: 500;">Donation Amount: <strong style="color: var(--qrowd-black);">€{{ flower.donationAmount|number_format(2, '.', ',') }}</strong></li>
+        </ul>
+    </div>
+
+    <p style="font-size: 18px; text-align: center; margin: 30px 0;">
+        Your solidarity donation of <strong style="color: var(--qrowd-base);">€{{ solidarityAmount|number_format(2, '.', ',') }}</strong> has been distributed to support other members.
+    </p>
+
+    <div style="text-align: center;">
+        <a href="{{ absolute_url(path('app_dashboard')) }}" class="button">
+            View Your Progress
+        </a>
+    </div>
+{% endblock %}

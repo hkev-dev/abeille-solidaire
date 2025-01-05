@@ -1,45 +1,61 @@
 {% extends 'emails/base.html.twig' %}
 
 {% block content %}
-    <h2>Donation Receipt</h2>
-    
-    <div class="info-box" style="background: #fff; border: 2px solid #dee2e6;">
-        <div style="text-align: right;">
-            <strong>Receipt #:</strong> {{ receipt.receipt_number }}<br>
-            <strong>Date:</strong> {{ receipt.donation_date|date("d/m/Y H:i") }}
-        </div>
+	<div style="text-align: center; margin-bottom: 30px;">
+		<h2>Donation Receipt</h2>
+		<p style="color: var(--qrowd-primary); font-size: 18px;">Thank you for your contribution!</p>
+	</div>
 
-        <hr style="margin: 20px 0; border: 1px solid #eee;">
+	<div class="info-box" style="background: #fff; border: 2px solid var(--qrowd-extra);">
+		<div style="text-align: right; margin-bottom: 20px;">
+			<strong>Receipt #:</strong>
+			{{ receipt.receipt_number }}<br>
+			<strong>Date:</strong>
+			{{ receipt.donation_date|date("d/m/Y H:i") }}
+		</div>
 
-        <div style="margin-bottom: 20px;">
-            <h3 style="margin-bottom: 10px;">Donation Details</h3>
-            <table style="width: 100%;">
-                <tr>
-                    <td><strong>Donor:</strong></td>
-                    <td>{{ receipt.donor }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Recipient:</strong></td>
-                    <td>{{ receipt.recipient }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Amount:</strong></td>
-                    <td>€{{ receipt.amount|number_format(2, '.', ',') }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Type:</strong></td>
-                    <td>{{ receipt.donation_type|title }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Flower:</strong></td>
-                    <td>{{ receipt.flower_name }}</td>
-                </tr>
-            </table>
-        </div>
+		<h3 style="color: var(--qrowd-primary); border-bottom: 1px solid var(--qrowd-extra); padding-bottom: 10px;">
+			Donation Details
+		</h3>
 
-        <div style="font-size: 12px; color: #666; margin-top: 20px; text-align: center;">
-            <p>This is an official receipt from Abeilles Solidaires.</p>
-            <p>Please keep this for your records.</p>
-        </div>
-    </div>
+		<table style="width: 100%; border-collapse: collapse;">
+			<tr>
+				<td style="padding: 10px 0;">
+					<strong>Donor:</strong>
+				</td>
+				<td style="padding: 10px 0;">{{ receipt.donor }}</td>
+			</tr>
+			<tr>
+				<td style="padding: 10px 0;">
+					<strong>Recipient:</strong>
+				</td>
+				<td style="padding: 10px 0;">{{ receipt.recipient }}</td>
+			</tr>
+			<tr>
+				<td style="padding: 10px 0;">
+					<strong>Amount:</strong>
+				</td>
+				<td style="padding: 10px 0; color: var(--qrowd-primary);">
+					€{{ receipt.amount|number_format(2, '.', ',') }}
+				</td>
+			</tr>
+			<tr>
+				<td style="padding: 10px 0;">
+					<strong>Type:</strong>
+				</td>
+				<td style="padding: 10px 0;">{{ receipt.donation_type|title }}</td>
+			</tr>
+			<tr>
+				<td style="padding: 10px 0;">
+					<strong>Flower:</strong>
+				</td>
+				<td style="padding: 10px 0;">{{ receipt.flower_name }}</td>
+			</tr>
+		</table>
+	</div>
+
+	<div style="text-align: center; margin-top: 30px; color: var(--qrowd-gray);">
+		<p>This is an official receipt from Abeilles Solidaires.</p>
+		<p>Please keep this for your records.</p>
+	</div>
 {% endblock %}

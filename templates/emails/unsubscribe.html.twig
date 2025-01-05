@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email Preferences - Abeilles Solidaires{% endblock %}
+
+{% block body %}
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4">Email Preferences</h2>
+                        
+                        {% if success %}
+                            <div class="alert alert-success">
+                                <p>You have been successfully unsubscribed from our marketing emails.</p>
+                                <p>You will still receive important account-related notifications.</p>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <p>Invalid or expired unsubscribe link.</p>
+                            </div>
+                        {% endif %}
+
+                        <a href="{{ path('app_home') }}" class="btn btn-primary mt-3">
+                            Return to Homepage
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
