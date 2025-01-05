@@ -50,23 +50,27 @@ final class StripeWebhookConsumer implements ConsumerInterface
             throw new WebhookException('Missing user ID in payment metadata');
         }
 
+        if (!$paymentType) {
+            throw new WebhookException('Missing payment type in metadata');
+        }
+
         $user = $this->userRepository->find($userId);
         if (!$user) {
             throw new WebhookException('User not found');
         }
 
-        if ($paymentType === 'registration') {
-            $this->paymentService->handlePaymentSuccess(
-                $user,
-                'stripe',
-                $paymentIntent['id']
-            );
-        }
+        $this->paymentService->handlePaymentSuccess(
+            $user,
+            'stripe',
+            $paymentType,
+            $paymentIntent['id']
+        );
 
         return [
             'status' => 'success',
             'type' => 'payment_intent.succeeded',
-            'payment_intent' => $paymentIntent['id']
+            'payment_intent' => $paymentIntent['id'],
+            'payment_type' => $paymentType
         ];
     }
 

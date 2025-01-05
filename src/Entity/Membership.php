@@ -41,6 +41,9 @@ class Membership
     #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
     private ?float $cryptoAmount = null;  // Add crypto amount
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $amount = self::ANNUAL_FEE;
+
     public function __construct()
     {
         $this->startDate = new \DateTimeImmutable();
@@ -127,6 +130,17 @@ class Membership
     public function setCryptoAmount(?float $amount): self
     {
         $this->cryptoAmount = $amount;
+        return $this;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(float $amount): self
+    {
+        $this->amount = $amount;
         return $this;
     }
 }

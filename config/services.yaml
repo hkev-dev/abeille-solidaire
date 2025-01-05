@@ -75,3 +75,7 @@ services:
     App\Controller\Public\AuthController:
         autowire: true
         # Remove explicit logger argument since it will be autowired
+
+    App\EventSubscriber\MembershipEventSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }

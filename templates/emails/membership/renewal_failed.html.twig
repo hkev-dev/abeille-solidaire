@@ -1,0 +1,28 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Membership Renewal Failed{% endblock %}
+
+{% block content %}
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: var(--qrowd-base);">Membership Renewal Failed</h2>
+        <p style="font-size: 18px; color: var(--qrowd-black);">We encountered an issue processing your membership renewal.</p>
+    </div>
+
+    <div class="info-box" style="border-left-color: var(--qrowd-base);">
+        <h3>What Happened?</h3>
+        <p>{{ error }}</p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ absolute_url(retryUrl) }}" class="button">Try Again</a>
+    </div>
+
+    <div class="info-box" style="background: var(--qrowd-extra);">
+        <h4>Need Help?</h4>
+        <ul>
+            <li>Check your payment method details</li>
+            <li>Ensure sufficient funds are available</li>
+            <li>Contact our support team if the issue persists</li>
+        </ul>
+    </div>
+{% endblock %}

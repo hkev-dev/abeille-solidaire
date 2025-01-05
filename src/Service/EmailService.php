@@ -135,6 +135,42 @@ class EmailService
         );
     }
 
+    public function sendMembershipRenewalConfirmation(User $user, Membership $membership): void
+    {
+        $this->queueEmail(
+            'emails/membership/confirmation.html.twig',
+            $user->getEmail(),
+            'Membership Renewal Confirmation - Abeilles Solidaires',
+            [
+                'user' => $user,
+                'membership' => $membership,
+                'startDate' => $membership->getStartDate()->format('d/m/Y'),
+                'endDate' => $membership->getEndDate()->format('d/m/Y'),
+                'amount' => $membership->getAmount(),
+                'paymentMethod' => $membership->getStripePaymentIntentId() ? 'card' : 'cryptocurrency',
+                'cryptoDetails' => $membership->getCryptoAmount() ? [
+                    'amount' => $membership->getCryptoAmount(),
+                    'currency' => $membership->getCryptoCurrency()
+                ] : null,
+                'dashboardUrl' => $this->router->generate('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ]
+        );
+    }
+
+    public function sendMembershipRenewalFailure(User $user, string $errorMessage): void
+    {
+        $this->queueEmail(
+            'emails/membership/renewal_failed.html.twig',
+            $user->getEmail(),
+            'Membership Renewal Failed - Action Required',
+            [
+                'user' => $user,
+                'error' => $errorMessage,
+                'retryUrl' => $this->router->generate('app.membership.renew', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ]
+        );
+    }
+
     private function queueEmail(string $template, string $recipient, string $subject, array $context): void
     {
         $email = (new TemplatedEmail())
@@ -148,7 +184,7 @@ class EmailService
 
         try {
             $this->messageBus->dispatch(new SendEmailMessage($email));
-            
+
             $this->logger->info('Email queued successfully', [
                 'template' => $template,
                 'recipient' => $recipient
