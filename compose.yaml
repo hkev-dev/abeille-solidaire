@@ -11,10 +11,10 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - uploads_data:/app/public/uploads
       - ./public/uploads:/app/public/uploads
+      - ./var:/app/var
+      - ./vendor:/app/vendor
 
 volumes:
   caddy_data:
   caddy_config:
-  uploads_data:
