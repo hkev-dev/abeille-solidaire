@@ -4,7 +4,7 @@ framework:
             - assets/
             - assets/landing/
             - assets/landing/vendors/
-        missing_import_mode: strict
+        missing_import_mode: ignore
         extensions:
             - .js
             - .css
@@ -21,4 +21,4 @@ framework:
 when@prod:
     framework:
         asset_mapper:
-            missing_import_mode: warn
+            missing_import_mode: ignore

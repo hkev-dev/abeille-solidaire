@@ -124,7 +124,7 @@
 						</div>
 						<div class="main-menu__btn-box">
 							{% if app.user %}
-								<a href="#" class="thm-btn main-menu__btn">
+								<a href="{{ path('app.user.dashboard') }}" class="thm-btn main-menu__btn">
 									<i class="icon-benchmark fs-4"></i>Tableau de bord
 								</a>
 							{% else %}

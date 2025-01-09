@@ -1,0 +1,15 @@
+<meta charset="utf-8"/>
+<title>
+	{% block title %}
+		{{ page_title|default('Metronic - Tailwind CSS') }}
+	{% endblock %}
+</title>
+
+<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport"/>
+
+{# Fonts & Styles #}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+{% block stylesheets %}
+	<link href="{{ asset('admin/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+	<link href="{{ asset('admin/css/styles.css') }}" rel="stylesheet"/>
+{% endblock %}
