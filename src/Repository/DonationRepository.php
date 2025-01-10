@@ -107,4 +107,59 @@ class DonationRepository extends ServiceEntityRepository
 
         return $positions;
     }
+
+    public function getTotalReceivedByUser(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.recipient = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function getTotalMadeByUser(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.donor = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function getCurrentFlowerProgress(User $user): array
+    {
+        $qb = $this->createQueryBuilder('d');
+        $received = $qb->select('COUNT(d.id)')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType = :type')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $user->getCurrentFlower())
+            ->setParameter('type', 'direct')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'received' => (int) $received,
+            'total' => 4,
+            'percentage' => ($received / 4) * 100
+        ];
+    }
+
+    public function findRecentByUser(User $user, int $limit): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.recipient = :user')
+            ->setParameter('user', $user)
+            ->orderBy('d.transactionDate', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

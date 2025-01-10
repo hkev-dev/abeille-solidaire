@@ -1,70 +1,153 @@
 {% import "user/components/menu-item.html.twig" as menuItem %}
 
-<div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
-    {{ menuItem.render({
+<div
+	class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+	{# Dashboard #}
+	{{ menuItem.render({
         label: 'Tableau de bord',
-        url: null, 
         icon: 'ki-duotone ki-element-11',
-        submenu: null
+        route: 'app.user.dashboard'
     }) }}
 
-    {{ menuItem.render({
-        label: 'Mon Projet',
-        url: null,
-        icon: 'ki-duotone ki-rocket',
-        submenu: [
-            {label: 'Description', url: null},
-            {label: 'Statistiques', url: null}
-        ]
+	{# Current Flower Section with donation progress #}
+	{{ menuItem.render({
+        label: 'Ma Fleur Actuelle',
+        icon: 'ki-duotone ki-abstract-26',
+        badge: {
+            text: '2/4',
+            class: 'badge-info'
+        }
     }) }}
 
-    {{ menuItem.render({
+	{# Donations Management #}
+	{{ menuItem.render({
         label: 'Dons',
-        url: null,
         icon: 'ki-duotone ki-heart',
         submenu: [
-            {label: 'Mes Dons', url: null},
-            {label: 'Dons Reçus', url: null},
-            {label: 'Dons Solidaires', url: null}
+            {
+                label: 'Dons Reçus',
+                badge: {
+                    text: '2',
+                    class: 'badge-success'
+                }
+            },
+            {
+                label: 'Dons Envoyés',
+            },
+            {
+                label: 'Dons Solidaires',
+            }
         ]
     }) }}
 
-    {{ menuItem.render({
-        label: 'Fleurs',
-        url: null,
-        icon: 'ki-duotone ki-abstract-26',
-        submenu: [
-            {label: 'Violette (25€)', url: null},
-            {label: 'Coquelicot (50€)', url: null},
-            {label: 'Bouton d\'Or (100€)', url: null},
-            {label: 'Laurier Rose (200€)', url: null},
-            {label: 'Tulipe (400€)', url: null},
-            {label: 'Germini (800€)', url: null},
-            {label: 'Lys (1600€)', url: null},
-            {label: 'Clématite (3200€)', url: null},
-            {label: 'Chrysanthème (6400€)', url: null},
-            {label: 'Rose Gold (12800€)', url: null}
-        ]
-    }) }}
-
-    {{ menuItem.render({
-        label: 'Mon Portefeuille',
-        url: null,
+	{# Wallet & Withdrawals #}
+	{{ menuItem.render({
+        label: 'Portefeuille',
         icon: 'ki-duotone ki-wallet',
         submenu: [
-            {label: 'Solde', url: null},
-            {label: 'Retraits', url: null},
-            {label: 'Historique', url: null}
+            {
+                label: 'Solde',
+                badge: {
+                    text: '€ 1,250',
+                    class: 'badge-primary'
+                }
+            },
+            {
+                label: 'Retrait',
+            },
+            {
+                label: 'Historique',
+            }
         ]
     }) }}
 
-    {{ menuItem.render({
+	{# Project Management #}
+	{{ menuItem.render({
+        label: 'Mon Projet',
+        icon: 'ki-duotone ki-rocket',
+        submenu: [
+            {
+                label: 'Présentation',
+            },
+            {
+                label: 'Story',
+            },
+            {
+                label: 'Actualités',
+            },
+            {
+                label: 'Questions/Réponses'
+            },
+            {
+                label: 'Témoignages'
+            }
+        ]
+    }) }}
+
+	{# Flower Progress #}
+	{{ menuItem.render({
+        label: 'Progression',
+        icon: 'ki-duotone ki-chart-line',
+        submenu: [
+            {
+                label: 'Matrice Actuelle',
+            },
+            {
+                label: 'Cycles Complétés',
+                badge: {
+                    text: '3',
+                    class: 'badge-success'
+                }
+            },
+            {
+                label: 'Prochaine Fleur',
+            }
+        ]
+    }) }}
+
+	{# Referral System #}
+	{{ menuItem.render({
         label: 'Parrainage',
-        url: null,
         icon: 'ki-duotone ki-people',
         submenu: [
-            {label: 'Mes Filleuls', url: null},
-            {label: 'Lien de Parrainage', url: null}
+            {
+                label: 'Mes Filleuls',
+                badge: {
+                    text: '4/4',
+                    class: 'badge-primary'
+                }
+            },
+            {
+                label: 'Lien de Parrainage',
+            },
+            {
+                label: 'Statistiques',
+            }
+        ]
+    }) }}
+
+	{# Settings & Profile #}
+	{{ menuItem.render({
+        label: 'Paramètres',
+        icon: 'ki-duotone ki-setting-2',
+        submenu: [
+            {
+                label: 'KYC Vérification',
+                badge: {
+                    text: 'Requis',
+                    class: 'badge-warning'
+                }
+            },
+            {
+                label: 'Méthodes de Paiement',
+            },
+            {
+                label: 'Adhésion Annuelle',
+                badge: {
+                    text: 'À renouveler',
+                    class: 'badge-danger'
+                }
+            }
         ]
     }) }}
 </div>
