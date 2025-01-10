@@ -540,4 +540,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->organizationNumber = $organizationNumber;
         return $this;
     }
+
+    public function getFlowerProgress(): array
+    {
+        $receivedCount = $this->donationsReceived
+            ->filter(fn($donation) => 
+                $donation->getFlower() === $this->currentFlower && 
+                $donation->getDonationType() === 'direct'
+            )
+            ->count();
+
+        return [
+            'received' => $receivedCount,
+            'total' => 4,
+            'percentage' => ($receivedCount / 4) * 100
+        ];
+    }
 }
