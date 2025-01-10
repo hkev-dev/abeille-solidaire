@@ -14,7 +14,6 @@ services:
       - ./public/uploads:/app/public/uploads
       - ./var:/app/var
       - ./vendor:/app/vendor
-      - ./:/app
 
 volumes:
   caddy_data:
