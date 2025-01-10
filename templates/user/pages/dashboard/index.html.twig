@@ -1,22 +1,7 @@
 {% extends 'user/layouts/default.html.twig' %}
 
-{% block page_stylesheets %}
-	<link href="{{ asset('admin/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
-{% endblock %}
-
 {% block content %}
 	<div class="container-fixed">
-		<div
-			class="grid gap-5 lg:gap-7.5">
-			{# Teams Overview Grid Section #}
-			{% include 'user/pages/dashboard/widgets/teams-overview.html.twig' %}
-
-			{# Team List & Block List Section #}
-			{% include 'user/pages/dashboard/widgets/highlights.html.twig' %}
-		</div>
+		
 	</div>
-{% endblock %}
-
-{% block page_scripts %}
-	<script src="{{ asset('admin/vendors/apexcharts/apexcharts.min.js') }}"></script>
 {% endblock %}
