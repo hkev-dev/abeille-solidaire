@@ -1,0 +1,70 @@
+{% import "user/components/menu-item.html.twig" as menuItem %}
+
+<div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+    {{ menuItem.render({
+        label: 'Tableau de bord',
+        url: null, 
+        icon: 'ki-duotone ki-element-11',
+        submenu: null
+    }) }}
+
+    {{ menuItem.render({
+        label: 'Mon Projet',
+        url: null,
+        icon: 'ki-duotone ki-rocket',
+        submenu: [
+            {label: 'Description', url: null},
+            {label: 'Statistiques', url: null}
+        ]
+    }) }}
+
+    {{ menuItem.render({
+        label: 'Dons',
+        url: null,
+        icon: 'ki-duotone ki-heart',
+        submenu: [
+            {label: 'Mes Dons', url: null},
+            {label: 'Dons Reçus', url: null},
+            {label: 'Dons Solidaires', url: null}
+        ]
+    }) }}
+
+    {{ menuItem.render({
+        label: 'Fleurs',
+        url: null,
+        icon: 'ki-duotone ki-abstract-26',
+        submenu: [
+            {label: 'Violette (25€)', url: null},
+            {label: 'Coquelicot (50€)', url: null},
+            {label: 'Bouton d\'Or (100€)', url: null},
+            {label: 'Laurier Rose (200€)', url: null},
+            {label: 'Tulipe (400€)', url: null},
+            {label: 'Germini (800€)', url: null},
+            {label: 'Lys (1600€)', url: null},
+            {label: 'Clématite (3200€)', url: null},
+            {label: 'Chrysanthème (6400€)', url: null},
+            {label: 'Rose Gold (12800€)', url: null}
+        ]
+    }) }}
+
+    {{ menuItem.render({
+        label: 'Mon Portefeuille',
+        url: null,
+        icon: 'ki-duotone ki-wallet',
+        submenu: [
+            {label: 'Solde', url: null},
+            {label: 'Retraits', url: null},
+            {label: 'Historique', url: null}
+        ]
+    }) }}
+
+    {{ menuItem.render({
+        label: 'Parrainage',
+        url: null,
+        icon: 'ki-duotone ki-people',
+        submenu: [
+            {label: 'Mes Filleuls', url: null},
+            {label: 'Lien de Parrainage', url: null}
+        ]
+    }) }}
+</div>

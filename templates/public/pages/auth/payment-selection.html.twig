@@ -1,6 +1,7 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Finaliser l'Inscription - Abeilles Solidaires{% endblock %}
+{% block title %}Finaliser l'Inscription - Abeilles Solidaires
+{% endblock %}
 
 {% block stylesheets %}
 	{{ parent() }}
@@ -43,17 +44,22 @@
 
 	<section class="login-register">
 		<div class="container">
-            {% if app.environment == 'dev' or app.environment == 'test' %}
-                <div class="alert alert-info">
-                    <strong>Informations de Paiement en Mode Test :</strong><br>
-                    <ul class="mb-0">
-                        <li>Numéro de carte test : <code>4242 4242 4242 4242</code></li>
-                        <li>Date d'expiration : Date future (ex: <code>12/25</code>)</li>
-                        <li>CVC : 3 chiffres (ex: <code>123</code>)</li>
-                        <li>Code postal : 5 chiffres (ex: <code>12345</code>)</li>
-                    </ul>
-                </div>
-            {% endif %}
+			{% if app.environment == 'dev' or app.environment == 'test' %}
+				<div class="alert alert-info">
+					<strong>Informations de Paiement en Mode Test :</strong><br>
+					<ul class="mb-0">
+						<li>Numéro de carte test :
+							<code>4242 4242 4242 4242</code>
+						</li>
+						<li>Date d'expiration : Date future (ex:
+							<code>12/25</code>)</li>
+						<li>CVC : 3 chiffres (ex:
+							<code>123</code>)</li>
+						<li>Code postal : 5 chiffres (ex:
+							<code>12345</code>)</li>
+					</ul>
+				</div>
+			{% endif %}
 			<div class="row justify-content-center">
 				<div class="col-lg-8">
 					{% include 'public/components/flash-messages.html.twig' %}
@@ -125,7 +131,7 @@
 						{# Crypto Payment Form - Updated for CoinPayments #}
 						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" class="mt-4" style="display: none;">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
-							
+
 							<div class="mb-4">
 								<label for="crypto-currency-select" class="form-label">Sélectionner une Cryptomonnaie</label>
 								<select id="crypto-currency-select" name="currency" class="form-select" required>
@@ -136,9 +142,12 @@
 										<div class="row">
 											<div class="col">
 												<small>
-													<strong>Taux de Change :</strong> <span class="rate-display">-</span><br>
-													<strong>Frais de Réseau :</strong> <span class="fee-display">-</span><br>
-													<strong>Confirmations Requises :</strong> <span class="confirms-display">-</span>
+													<strong>Taux de Change :</strong>
+													<span class="rate-display">-</span><br>
+													<strong>Frais de Réseau :</strong>
+													<span class="fee-display">-</span><br>
+													<strong>Confirmations Requises :</strong>
+													<span class="confirms-display">-</span>
 												</small>
 											</div>
 											<div class="col-auto">
@@ -151,7 +160,7 @@
 									</div>
 								</div>
 							</div>
-						
+
 							<div class="mb-3">
 								<p class="text-muted">
 									<i class="fas fa-info-circle me-2"></i>
@@ -160,12 +169,13 @@
 								{% if app.environment == 'dev' or app.environment == 'test' %}
 									<div class="alert alert-warning">
 										<small>
-											<strong>Test :</strong> Utilisez LTCT (Litecoin Testnet) pour les tests. Aucun fonds réel ne sera utilisé.
+											<strong>Test :</strong>
+											Utilisez LTCT (Litecoin Testnet) pour les tests. Aucun fonds réel ne sera utilisé.
 										</small>
 									</div>
 								{% endif %}
 							</div>
-						
+
 							<button type="submit" class="thm-btn login-register__btn w-100" disabled>
 								<i class="fab fa-bitcoin me-2"></i>
 								Continuer avec le Paiement en Cryptomonnaie
@@ -189,7 +199,7 @@
 	{{ parent() }}
 	<script src="https://js.stripe.com/v3/"></script>
 	<script type="module">
-		import {PaymentProcessor} from '{{ asset('js/payment-processing.js') }}';
+		import {PaymentProcessor} from '{{ asset('scripts/payment-processing.js') }}';
 
 const processor = new PaymentProcessor({
 stripePublicKey: '{{ stripe_public_key }}',
