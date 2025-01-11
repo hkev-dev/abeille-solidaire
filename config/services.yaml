@@ -74,6 +74,11 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $donationService: '@App\Service\DonationService'
 
+    App\Service\CoinPaymentsService:
+        arguments:
+            $params: '@parameter_bag'
+            $logger: '@logger'
+
     App\Controller\Public\AuthController:
         autowire: true
         # Remove explicit logger argument since it will be autowired

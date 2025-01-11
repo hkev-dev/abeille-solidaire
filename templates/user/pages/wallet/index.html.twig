@@ -1,0 +1,206 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Mon Portefeuille' %}
+
+{% block content %}
+<div class="container-fixed">
+    {# Wallet Overview Card #}
+    <div class="card mb-6">
+        <div class="card-body flex flex-col md:flex-row items-center justify-between p-8">
+            <div class="text-center md:text-left mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold mb-2">Solde Disponible</h2>
+                <div class="text-4xl font-bold text-primary">€{{ walletBalance|number_format(2, ',', ' ') }}</div>
+                <p class="text-gray-600 mt-2">
+                    {% if lastWithdrawal %}
+                        Dernier retrait il y a {{ lastWithdrawal.requestedAt|time_diff }}
+                    {% else %}
+                        Aucun retrait effectué
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex gap-4">
+                <a href="{{ path('app.user.wallet.withdraw') }}" class="btn btn-primary btn-lg">
+                    <i class="ki-duotone ki-bank text-2xl me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Faire un retrait
+                </a>
+                <a href="{{ path('app.user.wallet.history') }}" class="btn btn-light btn-lg">
+                    <i class="ki-duotone ki-timer text-2xl me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Historique
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {# Left Column - Stats #}
+        <div class="lg:col-span-1">
+            {# Withdrawal Limits Card #}
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h3 class="card-title">Limites de Retrait</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-600">Limite hebdomadaire</span>
+                                <span class="font-semibold">€{{ withdrawalStats.weeklyLimit|number_format(2, ',', ' ') }}</span>
+                            </div>
+                            <div class="relative pt-1">
+                                <div class="overflow-hidden h-2 text-xs flex rounded bg-primary-light">
+                                    <div style="width:{{ (withdrawalStats.totalWithdrawn / withdrawalStats.weeklyLimit) * 100 }}%" 
+                                         class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">
+                                €{{ withdrawalStats.totalWithdrawn|number_format(2, ',', ' ') }} utilisés sur les 7 derniers jours
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-t border-gray-200">
+                            <span class="text-gray-600">Montant minimum</span>
+                            <span class="font-semibold">€{{ withdrawalStats.minWithdrawal|number_format(2, ',', ' ') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-t border-gray-200">
+                            <span class="text-gray-600">Commission</span>
+                            <span class="font-semibold">6%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Payment Methods Card #}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Méthodes de Paiement</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-light rounded-lg">
+                            <div class="flex items-center">
+                                <i class="ki-duotone ki-credit-cart text-2xl text-gray-600 me-3"></i>
+                                <div>
+                                    <div class="font-medium">Virement Bancaire</div>
+                                    <div class="text-sm text-gray-600">Via Stripe</div>
+                                </div>
+                            </div>
+                            <span class="badge badge-success">Actif</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-light rounded-lg">
+                            <div class="flex items-center">
+                                <i class="ki-duotone ki-bitcoin text-2xl text-gray-600 me-3"></i>
+                                <div>
+                                    <div class="font-medium">Crypto</div>
+                                    <div class="text-sm text-gray-600">Via CoinPayments</div>
+                                </div>
+                            </div>
+                            <span class="badge badge-success">Actif</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Right Column - Recent Activity #}
+        <div class="lg:col-span-2">
+            {# Pending Withdrawals #}
+            {% if pendingWithdrawals|length > 0 %}
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h3 class="card-title">Retraits en Cours</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3">
+                            <thead>
+                                <tr class="fw-bold text-muted">
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Méthode</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in pendingWithdrawals %}
+                                <tr>
+                                    <td>{{ withdrawal.requestedAt|date('d/m/Y H:i') }}</td>
+                                    <td class="text-primary fw-bold">€{{ withdrawal.amount|number_format(2, ',', ' ') }}</td>
+                                    <td>
+                                        {% if withdrawal.withdrawalMethod == 'stripe' %}
+                                            <span class="badge badge-light-primary">Virement</span>
+                                        {% else %}
+                                            <span class="badge badge-light-warning">Crypto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-warning">En cours</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Recent Activity #}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Activité Récente</h3>
+                    <div class="card-toolbar">
+                        <a href="{{ path('app.user.wallet.history') }}" class="btn btn-sm btn-light">
+                            Voir tout
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3">
+                            <thead>
+                                <tr class="fw-bold text-muted">
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Méthode</th>
+                                    <th>Commission</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdrawal in recentWithdrawals %}
+                                <tr>
+                                    <td>{{ withdrawal.requestedAt|date('d/m/Y H:i') }}</td>
+                                    <td class="text-primary fw-bold">€{{ withdrawal.amount|number_format(2, ',', ' ') }}</td>
+                                    <td>
+                                        {% if withdrawal.withdrawalMethod == 'stripe' %}
+                                            <span class="badge badge-light-primary">Virement</span>
+                                        {% else %}
+                                            <span class="badge badge-light-warning">Crypto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>€{{ withdrawal.feeAmount|number_format(2, ',', ' ') }}</td>
+                                    <td>
+                                        {% if withdrawal.status == 'processed' %}
+                                            <span class="badge badge-success">Traité</span>
+                                        {% elseif withdrawal.status == 'pending' %}
+                                            <span class="badge badge-warning">En cours</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Échoué</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

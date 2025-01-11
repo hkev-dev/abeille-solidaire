@@ -1,0 +1,287 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Historique des Retraits' %}
+
+{% block content %}
+<div class="container-fixed">
+    {# Stats Cards Grid #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {# Total Amount Card #}
+        <div class="card bg-primary hover:bg-primary-active transition-colors duration-200">
+            <div class="card-body">
+                <div class="flex flex-col">
+                    <div class="text-white/80 text-sm font-medium">Total des retraits</div>
+                    <div class="mt-2.5">
+                        <span class="text-white text-2xl font-bold">€{{ total_amount|number_format(2, ',', ' ') }}</span>
+                    </div>
+                    <div class="mt-2 text-white/70 text-xs">
+                        {{ withdrawals|length }} transactions au total
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Fees Card #}
+        <div class="card bg-danger hover:bg-danger-active transition-colors duration-200">
+            <div class="card-body">
+                <div class="flex flex-col">
+                    <div class="text-white/80 text-sm font-medium">Total des frais</div>
+                    <div class="mt-2.5">
+                        <span class="text-white text-2xl font-bold">€{{ total_fees|number_format(2, ',', ' ') }}</span>
+                    </div>
+                    <div class="mt-2 text-white/70 text-xs">
+                        Commission de 6% par transaction
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Success Rate Card #}
+        <div class="card bg-success hover:bg-success-active transition-colors duration-200">
+            <div class="card-body">
+                <div class="flex flex-col">
+                    <div class="text-white/80 text-sm font-medium">Taux de réussite</div>
+                    <div class="mt-2.5">
+                        <span class="text-white text-2xl font-bold">{{ stats.success_rate|number_format(1) }}%</span>
+                    </div>
+                    <div class="mt-2 text-white/70 text-xs">
+                        Des retraits traités avec succès
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Methods Distribution Card #}
+        <div class="card bg-info hover:bg-info-active transition-colors duration-200">
+            <div class="card-body">
+                <div class="flex flex-col">
+                    <div class="text-white/80 text-sm font-medium">Méthodes utilisées</div>
+                    <div class="mt-2.5 flex justify-between items-center">
+                        <div class="flex flex-col">
+                            <span class="text-white text-xl font-bold">{{ stats.stripe_count }}</span>
+                            <span class="text-white/70 text-xs">Virements</span>
+                        </div>
+                        <div class="w-px h-8 bg-white/20"></div>
+                        <div class="flex flex-col">
+                            <span class="text-white text-xl font-bold">{{ stats.crypto_count }}</span>
+                            <span class="text-white/70 text-xs">Crypto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Main Content Card #}
+    <div class="card">
+        <div class="card-header border-gray-200 pt-6">
+            <div class="card-title">
+                <h3 class="card-title">Liste des Transactions</h3>
+            </div>
+            <div class="card-toolbar">
+                <a href="{{ path('app.user.wallet.withdraw') }}" class="btn btn-primary">
+                    <i class="ki-duotone ki-plus fs-2 me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                        <span class="path4"></span>
+                    </i>
+                    Nouveau Retrait
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body pt-0">
+            <div class="table-responsive">
+                <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3">
+                    <thead>
+                        <tr class="fw-bold text-muted bg-light">
+                            <th class="min-w-150px">Date</th>
+                            <th class="min-w-140px">ID Transaction</th>
+                            <th class="min-w-120px">Méthode</th>
+                            <th class="min-w-120px">Montant</th>
+                            <th class="min-w-120px">Commission</th>
+                            <th class="min-w-120px">Montant Net</th>
+                            <th class="min-w-100px">Statut</th>
+                            <th class="min-w-100px text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdrawal in withdrawals %}
+                        <tr>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{{ withdrawal.requestedAt|date('d/m/Y') }}</span>
+                                    <span class="text-gray-600 fs-7">{{ withdrawal.requestedAt|date('H:i') }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-gray-600 fw-bold">
+                                    {% if withdrawal.withdrawalMethod == 'stripe' %}
+                                        {{ withdrawal.stripePayoutId }}
+                                    {% else %}
+                                        {{ withdrawal.coinpaymentsWithdrawalId }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if withdrawal.withdrawalMethod == 'stripe' %}
+                                    <div class="d-flex align-items-center">
+                                        <i class="ki-duotone ki-credit-cart fs-2 me-2 text-primary"></i>
+                                        <span class="fw-bold">Virement</span>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex align-items-center">
+                                        <i class="ki-duotone ki-bitcoin fs-2 me-2 text-warning"></i>
+                                        <span class="fw-bold">{{ withdrawal.cryptoCurrency }}</span>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold text-primary">€{{ withdrawal.amount|number_format(2, ',', ' ') }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-danger">€{{ withdrawal.feeAmount|number_format(2, ',', ' ') }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold">€{{ withdrawal.netAmount|number_format(2, ',', ' ') }}</span>
+                            </td>
+                            <td>
+                                {% if withdrawal.status == 'processed' %}
+                                    <span class="badge badge-light-success">Traité</span>
+                                {% elseif withdrawal.status == 'pending' %}
+                                    <span class="badge badge-light-warning">En cours</span>
+                                {% else %}
+                                    <span class="badge badge-light-danger">Échoué</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-icon btn-sm btn-light-primary" data-bs-toggle="tooltip" title="Détails">
+                                    <i class="ki-duotone ki-eye fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-10">
+                                <div class="text-gray-600 fs-5 mb-2">Aucun retrait effectué</div>
+                                <a href="{{ path('app.user.wallet.withdraw') }}" class="btn btn-sm btn-primary">
+                                    Faire un premier retrait
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Enhanced Pagination #}
+            {% if withdrawals|length > 0 %}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6">
+                <div class="text-gray-600 font-medium">
+                    Affichage de {{ withdrawals|length }} résultats
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item first {{ filters.page <= 1 ? 'disabled' : '' }}">
+                            <a href="#" class="page-link"><i class="ki-duotone ki-double-left fs-6"></i></a>
+                        </li>
+                        <li class="page-item previous {{ filters.page <= 1 ? 'disabled' : '' }}">
+                            <a href="#" class="page-link"><i class="ki-duotone ki-left fs-6"></i></a>
+                        </li>
+                        {% for p in max(1, filters.page - 2)..min(filters.page + 2, filters.total_pages) %}
+                            <li class="page-item {{ p == filters.page ? 'active' : '' }}">
+                                <a href="#" class="page-link">{{ p }}</a>
+                            </li>
+                        {% endfor %}
+                        <li class="page-item next {{ filters.page >= filters.total_pages ? 'disabled' : '' }}">
+                            <a href="#" class="page-link"><i class="ki-duotone ki-right fs-6"></i></a>
+                        </li>
+                        <li class="page-item last {{ filters.page >= filters.total_pages ? 'disabled' : '' }}">
+                            <a href="#" class="page-link"><i class="ki-duotone ki-double-right fs-6"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date range picker
+    $("#date_range").daterangepicker({
+        startDate: '{{ filters.start_date }}',
+        endDate: '{{ filters.end_date }}',
+        locale: {
+            format: 'DD/MM/YYYY',
+            applyLabel: 'Appliquer',
+            cancelLabel: 'Annuler',
+        }
+    });
+
+    // Handle filter changes
+    function applyFilters() {
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        // Update search params with current filters
+        const dates = $('#date_range').val().split(' - ');
+        if (dates[0]) {
+            searchParams.set('start_date', dates[0]);
+            searchParams.set('end_date', dates[1]);
+        }
+        
+        // Get current status and method from active buttons
+        const status = document.querySelector('[data-status].active')?.dataset.status;
+        const method = document.querySelector('[data-method].active')?.dataset.method;
+        const search = document.querySelector('input[type="text"]').value;
+
+        if (status) searchParams.set('status', status);
+        if (method) searchParams.set('method', method);
+        if (search) searchParams.set('search', search);
+
+        // Redirect with new filters
+        window.location.href = `${window.location.pathname}?${searchParams.toString()}`;
+    }
+
+    // Bind events
+    $('#date_range').on('apply.daterangepicker', applyFilters);
+    document.querySelectorAll('[data-status], [data-method]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.dropdown').querySelectorAll('.dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            this.classList.add('active');
+            applyFilters();
+        });
+    });
+
+    // Handle search with debounce
+    let searchTimeout;
+    document.querySelector('input[type="text"]').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(applyFilters, 500);
+    });
+
+    // Clear search
+    document.getElementById('clear-search')?.addEventListener('click', function() {
+        document.querySelector('input[type="text"]').value = '';
+        applyFilters();
+    });
+
+    // Reset dates
+    document.getElementById('reset-dates')?.addEventListener('click', function() {
+        $('#date_range').data('daterangepicker').setStartDate(moment().subtract(30, 'days'));
+        $('#date_range').data('daterangepicker').setEndDate(moment());
+        applyFilters();
+    });
+});
+</script>
+{% endblock %}

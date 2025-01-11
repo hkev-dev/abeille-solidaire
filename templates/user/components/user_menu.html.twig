@@ -50,19 +50,23 @@
 		{{ menuItem.render({
             label: 'Portefeuille',
             icon: 'ki-duotone ki-wallet',
+            routes: ['app.user.wallet.index', 'app.user.wallet.withdraw', 'app.user.wallet.history'],
             submenu: [
                 {
                     label: 'Solde',
+                    route: 'app.user.wallet.index',
                     badge: {
                         text: '€ ' ~ walletBalance|number_format(2, ',', ' '),
                         class: 'badge-primary'
                     }
                 },
                 {
-                    label: 'Retrait'
+                    label: 'Retrait',
+                    route: 'app.user.wallet.withdraw'
                 },
                 {
-                    label: 'Historique'
+                    label: 'Historique',
+                    route: 'app.user.wallet.history'
                 }
             ]
         }) }}

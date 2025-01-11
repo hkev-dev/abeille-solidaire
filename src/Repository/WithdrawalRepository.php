@@ -54,4 +54,46 @@ class WithdrawalRepository extends ServiceEntityRepository
 
         return (float) $result ?? 0.0;
     }
+
+    public function findUserWithdrawalsWithFilters(
+        User $user,
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
+        ?string $status = null,
+        ?string $method = null,
+        ?string $search = null
+    ): array {
+        $qb = $this->createQueryBuilder('w')
+            ->where('w.user = :user')
+            ->andWhere('w.requestedAt BETWEEN :startDate AND :endDate')
+            ->setParameter('user', $user)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+
+        if ($status) {
+            $qb->andWhere('w.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if ($method) {
+            $qb->andWhere('w.withdrawalMethod = :method')
+                ->setParameter('method', $method);
+        }
+
+        if ($search) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('w.stripePayoutId', ':search'),
+                    $qb->expr()->like('w.coinpaymentsWithdrawalId', ':search'),
+                    $qb->expr()->like('w.cryptoCurrency', ':search'),
+                    $qb->expr()->like('CAST(w.amount AS STRING)', ':search')
+                )
+            )
+            ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->orderBy('w.requestedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
