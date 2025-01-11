@@ -12,8 +12,6 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - ./public/uploads:/app/public/uploads
-      - ./var:/app/var
-      - ./vendor:/app/vendor
 
 volumes:
   caddy_data:
