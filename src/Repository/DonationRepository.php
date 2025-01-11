@@ -152,6 +152,9 @@ class DonationRepository extends ServiceEntityRepository
         ];
     }
 
+    /**
+     * @return Donation[]
+     */
     public function findRecentByUser(User $user, int $limit): array
     {
         return $this->createQueryBuilder('d')

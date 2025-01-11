@@ -174,7 +174,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUsersAwaitingDonationsInFlower(Flower $flower): array
     {
         $qb = $this->createQueryBuilder('u');
-        
+
         return $qb->select('u', 'COUNT(d.id) as donation_count')
             ->leftJoin('u.donationsReceived', 'd', 'WITH', 'd.flower = :flower')
             ->where('u.currentFlower = :flower')
@@ -196,7 +196,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('status', 'completed')
             ->getQuery()
             ->getSingleScalarResult();
-            
         return (int) $result ?? 0;
     }
 }

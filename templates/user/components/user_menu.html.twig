@@ -1,0 +1,154 @@
+{% import "user/components/menu-item.html.twig" as menuItem %}
+
+<div {{ attributes }}>
+    <div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+        {# Dashboard #}
+        {{ menuItem.render({
+            label: 'Tableau de bord',
+            icon: 'ki-duotone ki-element-11',
+            route: 'app.user.dashboard'
+        }) }}
+
+        {# Current Flower Section with donation progress #}
+        {{ menuItem.render({
+            label: 'Ma Fleur Actuelle',
+            icon: 'ki-duotone ki-abstract-26',
+            badge: {
+                text: flowerProgress.received ~ '/4',
+                class: flowerProgress.received == 4 ? 'badge-success' : 'badge-info'
+            }
+        }) }}
+
+        {# Donations Management #}
+        {{ menuItem.render({
+            label: 'Dons',
+            icon: 'ki-duotone ki-heart',
+            submenu: [
+                {
+                    label: 'Dons Reçus',
+                    badge: unreadDonationsCount > 0 ? {
+                        text: unreadDonationsCount,
+                        class: 'badge-success'
+                    } : null
+                },
+                {
+                    label: 'Dons Envoyés'
+                },
+                {
+                    label: 'Dons Solidaires'
+                }
+            ]
+        }) }}
+
+        {# Wallet & Withdrawals #}
+        {{ menuItem.render({
+            label: 'Portefeuille',
+            icon: 'ki-duotone ki-wallet',
+            submenu: [
+                {
+                    label: 'Solde',
+                    badge: {
+                        text: '€ ' ~ walletBalance|number_format(2, ',', ' '),
+                        class: 'badge-primary'
+                    }
+                },
+                {
+                    label: 'Retrait'
+                },
+                {
+                    label: 'Historique'
+                }
+            ]
+        }) }}
+
+        {# Project Management #}
+        {{ menuItem.render({
+            label: 'Mon Projet',
+            icon: 'ki-duotone ki-rocket',
+            submenu: [
+                {
+                    label: 'Présentation'
+                },
+                {
+                    label: 'Story'
+                },
+                {
+                    label: 'Actualités'
+                },
+                {
+                    label: 'Questions/Réponses'
+                },
+                {
+                    label: 'Témoignages'
+                }
+            ]
+        }) }}
+
+        {# Flower Progress #}
+        {{ menuItem.render({
+            label: 'Progression',
+            icon: 'ki-duotone ki-chart-line',
+            submenu: [
+                {
+                    label: 'Matrice Actuelle'
+                },
+                {
+                    label: 'Cycles Complétés',
+                    badge: completedCycles > 0 ? {
+                        text: completedCycles,
+                        class: 'badge-success'
+                    } : null
+                },
+                {
+                    label: 'Prochaine Fleur'
+                }
+            ]
+        }) }}
+
+        {# Referral System #}
+        {{ menuItem.render({
+            label: 'Parrainage',
+            icon: 'ki-duotone ki-people',
+            submenu: [
+                {
+                    label: 'Mes Filleuls',
+                    badge: {
+                        text: referralCount ~ '/4',
+                        class: referralCount >= 4 ? 'badge-success' : 'badge-primary'
+                    }
+                },
+                {
+                    label: 'Lien de Parrainage'
+                },
+                {
+                    label: 'Statistiques'
+                }
+            ]
+        }) }}
+
+        {# Settings & Profile #}
+        {{ menuItem.render({
+            label: 'Paramètres',
+            icon: 'ki-duotone ki-setting-2',
+            submenu: [
+                {
+                    label: 'KYC Vérification',
+                    badge: not kycStatus ? {
+                        text: 'Requis',
+                        class: 'badge-warning'
+                    } : null
+                },
+                {
+                    label: 'Méthodes de Paiement'
+                },
+                {
+                    label: 'Adhésion Annuelle',
+                    badge: not currentMembership ? {
+                        text: 'À renouveler',
+                        class: 'badge-danger'
+                    } : null
+                }
+            ]
+        }) }}
+    </div>
+</div>
