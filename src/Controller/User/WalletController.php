@@ -56,18 +56,18 @@ class WalletController extends AbstractController
     public function withdraw(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         // Check all withdrawal prerequisites
-        $canWithdraw = 
-            $user->isKycVerified() && 
-            $user->getProjectDescription() && 
-            $user->getCurrentMembership() && 
+        $canWithdraw =
+            $user->isKycVerified() &&
+            $user->getProjectDescription() &&
+            $user->getCurrentMembership() &&
             $user->getWalletBalance() >= \App\Entity\Withdrawal::MIN_AMOUNT;
 
         $form = $this->createForm(WithdrawalFormType::class, null, [
             'crypto_currencies' => $this->coinPaymentsService->getAcceptedCurrencies()
         ]);
-        
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -82,49 +82,26 @@ class WalletController extends AbstractController
     }
 
     #[Route('/history', name: 'history')]
-    public function history(Request $request): Response
+    public function history(): Response
     {
         $user = $this->getUser();
-        
-        // Get filters from request
-        $filters = [
-            'start_date' => $request->query->get('start_date', '-30 days'),
-            'end_date' => $request->query->get('end_date', 'now'),
-            'status' => $request->query->get('status'),
-            'method' => $request->query->get('method'),
-            'search' => $request->query->get('search'), // Add search parameter
-            'page' => (int)$request->query->get('page', 1),
-            'total_pages' => 1 // Will be calculated based on results
-        ];
-        
-        // Convert dates to DateTime objects
-        $startDate = new \DateTime($filters['start_date']);
-        $endDate = new \DateTime($filters['end_date']);
-        
-        // Get all withdrawals with filters
-        $withdrawals = $this->withdrawalRepository->findUserWithdrawalsWithFilters(
-            user: $user,
-            startDate: $startDate,
-            endDate: $endDate,
-            status: $filters['status'],
-            method: $filters['method']
-        );
+        $withdrawals = $this->withdrawalRepository->findUserWithdrawals($user);
 
-        // Calculate totals
+        // Calculate simple stats
         $totalAmount = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getAmount(), 0.0);
         $totalFees = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getFeeAmount(), 0.0);
+        $stripeCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'stripe'));
+        $cryptoCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'crypto'));
+        $successCount = count(array_filter($withdrawals, fn($w) => $w->getStatus() === 'processed'));
 
         return $this->render('user/pages/wallet/history.html.twig', [
             'withdrawals' => $withdrawals,
             'total_amount' => $totalAmount,
             'total_fees' => $totalFees,
-            'filters' => $filters,
             'stats' => [
-                'stripe_count' => count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'stripe')),
-                'crypto_count' => count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'crypto')),
-                'success_rate' => count($withdrawals) > 0 
-                    ? (count(array_filter($withdrawals, fn($w) => $w->getStatus() === 'processed')) / count($withdrawals)) * 100 
-                    : 0
+                'stripe_count' => $stripeCount,
+                'crypto_count' => $cryptoCount,
+                'success_rate' => count($withdrawals) > 0 ? ($successCount / count($withdrawals)) * 100 : 0
             ]
         ]);
     }

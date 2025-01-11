@@ -89,10 +89,20 @@ class WithdrawalRepository extends ServiceEntityRepository
                     $qb->expr()->like('CAST(w.amount AS STRING)', ':search')
                 )
             )
-            ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%' . $search . '%');
         }
 
         return $qb->orderBy('w.requestedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findUserWithdrawals(User $user): array
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('w.requestedAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
