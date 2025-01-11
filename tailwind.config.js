@@ -630,6 +630,7 @@ module.exports = {
     require("./assets/core/plugins/components/scrollable"),
     require("./assets/core/plugins/components/progress"),
     require("./assets/core/plugins/components/apexcharts"),
-    require("./assets/core/plugins/components/leaflet")
+    require("./assets/core/plugins/components/leaflet"),
+    require("./assets/core/plugins/components/timeline")
   ]
 };

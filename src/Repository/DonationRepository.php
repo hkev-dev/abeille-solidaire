@@ -165,4 +165,110 @@ class DonationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByFlowerAndRecipient(Flower $flower, User $recipient, int $limit): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.flower = :flower')
+            ->andWhere('d.recipient = :recipient')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('recipient', $recipient)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->orderBy('d.transactionDate', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTotalReceivedInFlower(User $user, Flower $flower): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.flower = :flower')
+            ->andWhere('d.recipient = :recipient')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('recipient', $user)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function getUserPositionInFlower(User $user, Flower $flower): ?int
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('d.cyclePosition')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result ? $result['cyclePosition'] : null;
+    }
+
+    public function findByFlowerWithActivity(Flower $flower, int $limit): array
+    {
+        $donations = $this->createQueryBuilder('d')
+            ->select('d', 'donor', 'recipient')
+            ->join('d.donor', 'donor')
+            ->join('d.recipient', 'recipient')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->orderBy('d.transactionDate', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        // Transform donations into activity items
+        return array_map(function($donation) {
+            $type = match ($donation->getDonationType()) {
+                'direct' => 'primary',
+                'registration' => 'success',
+                'referral_placement' => 'info',
+                default => 'secondary'
+            };
+            
+            $icon = match ($donation->getDonationType()) {
+                'direct' => 'gift',
+                'registration' => 'user-tick',
+                'referral_placement' => 'profile-circle',
+                default => 'notification'
+            };
+
+            $description = match ($donation->getDonationType()) {
+                'direct' => sprintf(
+                    '%s a envoyé un don à %s',
+                    $donation->getDonor()->getFullName(),
+                    $donation->getRecipient()->getFullName()
+                ),
+                'registration' => sprintf(
+                    '%s a rejoint la fleur',
+                    $donation->getRecipient()->getFullName()
+                ),
+                'referral_placement' => sprintf(
+                    '%s a été placé par son parrain',
+                    $donation->getRecipient()->getFullName()
+                ),
+                default => 'Activité'
+            };
+
+            return [
+                'type' => $type,
+                'icon' => $icon,
+                'description' => $description,
+                'date' => $donation->getTransactionDate(),
+                'amount' => $donation->getAmount()
+            ];
+        }, $donations);
+    }
 }

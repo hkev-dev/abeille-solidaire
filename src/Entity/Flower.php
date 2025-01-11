@@ -14,6 +14,17 @@ class Flower
 {
     use TimestampableTrait;
 
+    public const VIOLETTE = 1;
+    public const COQUELICOT = 2;
+    public const BOUTON_OR = 3;
+    public const LAURIER_ROSE = 4;
+    public const TULIPE = 5;
+    public const GERMINI = 6;
+    public const LYS = 7;
+    public const CLEMATITE = 8;
+    public const CHRYSANTHEME = 9;
+    public const ROSE_GOLD = 10;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -102,6 +113,124 @@ class Flower
         return $this->cycleCompletions
             ->filter(fn(FlowerCycleCompletion $completion) => $completion->getUser() === $user)
             ->first() ?: null;
+    }
+
+    public function getMatrixPosition(): int
+    {
+        return match ($this->level) {
+            self::VIOLETTE => 1,
+            self::COQUELICOT => 2,
+            self::BOUTON_OR => 3,
+            self::LAURIER_ROSE => 4,
+            self::TULIPE => 5,
+            self::GERMINI => 6,
+            self::LYS => 7,
+            self::CLEMATITE => 8,
+            self::CHRYSANTHEME => 9,
+            self::ROSE_GOLD => 10,
+            default => 0,
+        };
+    }
+
+    public static function getFlowerByPosition(int $position): string
+    {
+        return match ($position) {
+            1 => 'Violette',
+            2 => 'Coquelicot',
+            3 => 'Bouton d\'Or',
+            4 => 'Laurier Rose',
+            5 => 'Tulipe',
+            6 => 'Germini',
+            7 => 'Lys',
+            8 => 'Clématite',
+            9 => 'Chrysanthème',
+            10 => 'Rose Gold',
+            default => '',
+        };
+    }
+
+    public function getUserPosition(User $user): ?int
+    {
+        foreach ($this->donations as $donation) {
+            if (
+                $donation->getRecipient() === $user &&
+                in_array($donation->getDonationType(), ['direct', 'registration', 'referral_placement'])
+            ) {
+                return $donation->getCyclePosition();
+            }
+        }
+        return null;
+    }
+
+    public function isCurrentUserFlower(User $user): bool
+    {
+        return $user->getCurrentFlower() === $this;
+    }
+
+    public function getFlowerCycles(): array
+    {
+        $cycles = [];
+        foreach ($this->donations as $donation) {
+            $cycleNumber = ceil($donation->getCyclePosition() / 5);
+            if (!isset($cycles[$cycleNumber])) {
+                $cycles[$cycleNumber] = [
+                    'positions' => [],
+                    'complete' => false
+                ];
+            }
+            $cycles[$cycleNumber]['positions'][] = [
+                'position' => $donation->getCyclePosition() % 5 ?: 5,
+                'user' => $donation->getRecipient()
+            ];
+            $cycles[$cycleNumber]['complete'] = count($cycles[$cycleNumber]['positions']) === 5;
+        }
+        return $cycles;
+    }
+
+    public static function getAllFlowers(): array
+    {
+        return [
+            self::VIOLETTE => [
+                'name' => 'Violette',
+                'amount' => 25
+            ],
+            self::COQUELICOT => [
+                'name' => 'Coquelicot',
+                'amount' => 50
+            ],
+            self::BOUTON_OR => [
+                'name' => 'Bouton d\'Or',
+                'amount' => 100
+            ],
+            self::LAURIER_ROSE => [
+                'name' => 'Laurier Rose',
+                'amount' => 200
+            ],
+            self::TULIPE => [
+                'name' => 'Tulipe',
+                'amount' => 400
+            ],
+            self::GERMINI => [
+                'name' => 'Germini',
+                'amount' => 800
+            ],
+            self::LYS => [
+                'name' => 'Lys',
+                'amount' => 1600
+            ],
+            self::CLEMATITE => [
+                'name' => 'Clématite',
+                'amount' => 3200
+            ],
+            self::CHRYSANTHEME => [
+                'name' => 'Chrysanthème',
+                'amount' => 6400
+            ],
+            self::ROSE_GOLD => [
+                'name' => 'Rose Gold',
+                'amount' => 12800
+            ]
+        ];
     }
 
     public function __toString(): string

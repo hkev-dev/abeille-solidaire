@@ -13,6 +13,7 @@
         {{ menuItem.render({
             label: 'Ma Fleur Actuelle',
             icon: 'ki-duotone ki-abstract-26',
+            route: 'app.user.flower.current',
             badge: {
                 text: flowerProgress.received ~ '/4',
                 class: flowerProgress.received == 4 ? 'badge-success' : 'badge-info'

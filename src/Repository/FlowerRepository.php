@@ -41,7 +41,7 @@ class FlowerRepository extends ServiceEntityRepository
         $qb = $this->getEntityManager()->createQueryBuilder();
         
         return $qb->select('d.cyclePosition, IDENTITY(d.recipient) as recipient_id')
-            ->from('App:Donation', 'd')
+            ->from('App\Entity\Donation', 'd')
             ->where('d.flower = :flower')
             ->andWhere('d.donationType IN (:types)')
             ->setParameter('flower', $flower)
@@ -121,5 +121,24 @@ class FlowerRepository extends ServiceEntityRepository
             ->setParameter('flower', $flower)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findNextRecipientInFlower(Flower $flower): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.currentFlower = :flower')
+            ->andWhere('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->andSelect(
+                '(SELECT COUNT(d) FROM App\Entity\Donation d 
+                WHERE d.recipient = u AND d.flower = :flower) as donation_count'
+            )
+            ->having('donation_count < 4')
+            ->setParameter('flower', $flower)
+            ->setParameter('status', 'completed')
+            ->orderBy('u.waitingSince', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

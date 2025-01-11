@@ -198,4 +198,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getSingleScalarResult();
         return (int) $result ?? 0;
     }
+
+    public function findByReferrerAndFlower(User $referrer, Flower $flower): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.referrer = :referrer')
+            ->andWhere('u.currentFlower = :flower')
+            ->andWhere('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->setParameter('referrer', $referrer)
+            ->setParameter('flower', $flower)
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getResult();
+    }
 }

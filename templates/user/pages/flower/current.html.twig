@@ -1,0 +1,205 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Ma Fleur Actuelle - ' ~ flower.name %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Flower Navigation Path #}
+        <div class="mb-8">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-between">
+                    {% for f in allFlowers %}
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-full 
+                                      {{ f.id == flower.id ? 'bg-primary text-white' : 
+                                         f.id < flower.id ? 'bg-success-light text-success' : 
+                                         'bg-gray-100 text-gray-400' }}">
+                                <span class="ki-duotone ki-flower2 text-xl"></span>
+                            </div>
+                            <span class="mt-2 text-xs font-medium {{ f.id == flower.id ? 'text-primary' : 'text-gray-500' }}">
+                                {{ f.name }}
+                            </span>
+                            <span class="text-2xs text-gray-400">€{{ f.donationAmount|number_format(2) }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {# Left Column - Current Status & Matrix #}
+            <div class="lg:col-span-2 space-y-6">
+                {# Current Status Cards #}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card bg-primary hover:bg-primary-active transition-colors text-white">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-primary-inverse/70">Position Actuelle</p>
+                                    <h3 class="text-2xl font-bold">{{ userPosition|default('--') }}</h3>
+                                </div>
+                                <span class="ki-duotone ki-flower2 text-3xl text-primary-inverse/30"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-success-inverse/70">Dons Reçus</p>
+                                    <h3 class="text-2xl font-bold">{{ progress.received }}/4</h3>
+                                </div>
+                                <span class="ki-duotone ki-gift text-3xl text-success-inverse/30"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-warning-inverse/70">Total Reçu</p>
+                                    <h3 class="text-2xl font-bold">€{{ totalReceivedInFlower|number_format(2) }}</h3>
+                                </div>
+                                <span class="ki-duotone ki-euro text-3xl text-warning-inverse/30"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Matrix with Referrals #}
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="card-header border-b border-gray-200">
+                        <h3 class="card-title flex items-center gap-2">
+                            <span class="ki-duotone ki-abstract-26 text-primary"></span>
+                            Matrice de {{ flower.name }}
+                        </h3>
+                    </div>
+                    <div class="card-body p-6">
+                        <div class="grid grid-cols-4 gap-4">
+                            {% for i in 1..16 %}
+                                {% set position = matrixPositions[i-1]|default(null) %}
+                                {% set isCurrentUser = position and position.recipient_id == app.user.id %}
+                                {% set isReferral = position and position.recipient_id in referralsInFlower|map(r => r.id) %}
+                                
+                                <div class="relative aspect-square rounded-xl border-2 
+                                    {{ isCurrentUser ? 'border-primary bg-primary-light' :
+                                       isReferral ? 'border-success bg-success-light' :
+                                       position ? 'border-gray-300 bg-gray-50' : 'border-gray-200' }}
+                                    flex flex-col items-center justify-center p-2">
+                                    {% if position %}
+                                        <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full 
+                                            {{ isCurrentUser ? 'bg-primary' : 
+                                               isReferral ? 'bg-success' : 'bg-gray-500' }} 
+                                            text-white flex items-center justify-center text-xs font-semibold">
+                                            {{ i }}
+                                        </div>
+                                        <div class="text-center">
+                                            {% if isCurrentUser %}
+                                                <span class="ki-duotone ki-star text-primary text-xl mb-1"></span>
+                                                <div class="text-sm font-semibold text-primary">Vous</div>
+                                            {% elseif isReferral %}
+                                                <span class="ki-duotone ki-profile-user text-success text-xl mb-1"></span>
+                                                <div class="text-sm font-semibold text-success">Filleul</div>
+                                            {% else %}
+                                                <span class="ki-duotone ki-user text-gray-400 text-xl mb-1"></span>
+                                                <div class="text-sm text-gray-500">Occupé</div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center text-gray-400">
+                                            <span class="ki-duotone ki-plus-square text-xl mb-1"></span>
+                                            <div class="text-sm">Disponible</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Right Column - Progress & Activity #}
+            <div class="space-y-6">
+                {# Progress Card #}
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="card-header border-b border-gray-200">
+                        <h3 class="card-title flex items-center gap-2">
+                            <span class="ki-duotone ki-chart-line text-primary"></span>
+                            Progression
+                        </h3>
+                    </div>
+                    <div class="card-body p-6">
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium">Cycle Actuel</span>
+                                <span class="text-sm text-primary font-semibold">{{ progress.received }}/4</span>
+                            </div>
+                            <div class="h-3 rounded-full bg-primary-light overflow-hidden">
+                                <div class="h-full bg-primary transition-all duration-500" 
+                                     style="width: {{ progress.percentage }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium">Cycles Complétés</p>
+                                <p class="text-xs text-gray-500">Sur un maximum de 10</p>
+                            </div>
+                            <div class="text-2xl font-bold text-primary">{{ completedCycles }}/10</div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Recent Activity Timeline #}
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="card-header border-b border-gray-200">
+                        <h3 class="card-title flex items-center gap-2">
+                            <span class="ki-duotone ki-calendar-tick text-primary"></span>
+                            Activité Récente
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="timeline">
+                            {% for activity in recentActivity %}
+                                <div class="timeline-item">
+                                    <div class="timeline-badge hover:border-{{ activity.type }} group">
+                                        <i class="ki-duotone ki-{{ activity.icon }} text-{{ activity.type }} group-hover:scale-110"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <span class="timeline-title">{{ activity.description|split(' a ')|first }}</span>
+                                            <span class="timeline-time" title="{{ activity.date|date('d/m/Y H:i') }}">
+                                                {{ activity.date|ago }}
+                                            </span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            {{ activity.description }}
+                                        </p>
+                                        {% if activity.amount %}
+                                            <div class="timeline-amount">
+                                                <i class="ki-duotone ki-euro"></i>
+                                                {{ activity.amount|number_format(2, ',', ' ') }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="p-8 text-center">
+                                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
+                                        <i class="ki-duotone ki-notification text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h3 class="text-gray-500 text-sm">Aucune activité récente</h3>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
