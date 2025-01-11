@@ -271,4 +271,52 @@ class DonationRepository extends ServiceEntityRepository
             ];
         }, $donations);
     }
+
+    public function findTotalMadeInFlower(User $user, ?Flower $flower): float
+    {
+        if (!$flower) {
+            return 0.0;
+        }
+
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.donor = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function findTotalSolidarityReceived(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.recipient = :user')
+            ->andWhere('d.donationType = :type')
+            ->setParameter('user', $user)
+            ->setParameter('type', 'solidarity')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function findTotalSolidarityDistributed(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.donor = :user')
+            ->andWhere('d.donationType = :type')
+            ->setParameter('user', $user)
+            ->setParameter('type', 'solidarity')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
 }

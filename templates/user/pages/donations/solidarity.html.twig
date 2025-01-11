@@ -1,0 +1,123 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Stats Cards #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {# Total Received #}
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-600">Dons Solidaires Reçus</h3>
+                        <span class="text-success ki-duotone ki-heart-circle text-2xl"></span>
+                    </div>
+                    <div class="text-2xl font-semibold">€{{ stats.totalReceived|number_format(2) }}</div>
+                    <div class="text-sm text-gray-500">Total reçu en dons solidaires</div>
+                </div>
+            </div>
+
+            {# Total Distributed #}
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-600">Dons Solidaires Distribués</h3>
+                        <span class="text-primary ki-duotone ki-share text-2xl"></span>
+                    </div>
+                    <div class="text-2xl font-semibold">€{{ stats.totalDistributed|number_format(2) }}</div>
+                    <div class="text-sm text-gray-500">Total redistribué en dons solidaires</div>
+                </div>
+            </div>
+        </div>
+
+        {# Solidarity Donations Table #}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Historique des Dons Solidaires</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>De/Vers</th>
+                                <th>Fleur d'Origine</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for donation in pagination %}
+                                <tr>
+                                    <td>{{ donation.transactionDate|date('d/m/Y H:i') }}</td>
+                                    <td>
+                                        {% if donation.donor == app.user %}
+                                            <span class="badge badge-light-primary">Distribué</span>
+                                        {% else %}
+                                            <span class="badge badge-light-success">Reçu</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if donation.donor == app.user %}
+                                            <div class="d-flex align-items-center">
+                                                <span>Vers {{ donation.recipient.fullName }}</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="d-flex align-items-center">
+                                                <span>De {{ donation.donor.fullName }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ donation.flower.name }}</td>
+                                    <td>€{{ donation.amount|number_format(2) }}</td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}" 
+                                               class="btn btn-sm btn-light-primary">
+                                                <i class="ki-duotone ki-document text-primary"></i>
+                                                Reçu
+                                            </a>
+                                            <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}" 
+                                               class="btn btn-sm btn-light-info">
+                                                <i class="ki-duotone ki-document-download text-info"></i>
+                                                PDF
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        Aucun don solidaire pour le moment
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="px-6 py-4">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
+        </div>
+        
+        {# Information Card #}
+        <div class="card mt-6">
+            <div class="card-body">
+                <div class="flex items-start gap-4">
+                    <span class="text-info ki-duotone ki-information-5 text-4xl"></span>
+                    <div>
+                        <h4 class="text-lg font-medium mb-2">À propos des Dons Solidaires</h4>
+                        <p class="text-gray-600">
+                            Lorsqu'un membre complète un cycle de fleur, 50% du total reçu est automatiquement redistribué 
+                            sous forme de don solidaire à un autre membre de la communauté. Cette redistribution aide à 
+                            soutenir d'autres projets et maintient l'esprit de solidarité de notre plateforme.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

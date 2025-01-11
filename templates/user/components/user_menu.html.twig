@@ -1,16 +1,17 @@
 {% import "user/components/menu-item.html.twig" as menuItem %}
 
 <div {{ attributes }}>
-    <div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
-        {# Dashboard #}
-        {{ menuItem.render({
+	<div
+		class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+		{# Dashboard #}
+		{{ menuItem.render({
             label: 'Tableau de bord',
             icon: 'ki-duotone ki-element-11',
             route: 'app.user.dashboard'
         }) }}
 
-        {# Current Flower Section with donation progress #}
-        {{ menuItem.render({
+		{# Current Flower Section with donation progress #}
+		{{ menuItem.render({
             label: 'Ma Fleur Actuelle',
             icon: 'ki-duotone ki-abstract-26',
             route: 'app.user.flower.current',
@@ -20,29 +21,33 @@
             }
         }) }}
 
-        {# Donations Management #}
-        {{ menuItem.render({
+		{# Donations Management #}
+		{{ menuItem.render({
             label: 'Dons',
             icon: 'ki-duotone ki-heart',
+            routes: ['app.user.donations.received', 'app.user.donations.sent', 'app.user.donations.solidarity'],
             submenu: [
                 {
                     label: 'Dons Reçus',
+                    route: 'app.user.donations.received',
                     badge: unreadDonationsCount > 0 ? {
                         text: unreadDonationsCount,
                         class: 'badge-success'
                     } : null
                 },
                 {
-                    label: 'Dons Envoyés'
+                    label: 'Dons Envoyés',
+                    route: 'app.user.donations.sent'
                 },
                 {
-                    label: 'Dons Solidaires'
+                    label: 'Dons Solidaires',
+                    route: 'app.user.donations.solidarity'
                 }
             ]
         }) }}
 
-        {# Wallet & Withdrawals #}
-        {{ menuItem.render({
+		{# Wallet & Withdrawals #}
+		{{ menuItem.render({
             label: 'Portefeuille',
             icon: 'ki-duotone ki-wallet',
             submenu: [
@@ -62,8 +67,8 @@
             ]
         }) }}
 
-        {# Project Management #}
-        {{ menuItem.render({
+		{# Project Management #}
+		{{ menuItem.render({
             label: 'Mon Projet',
             icon: 'ki-duotone ki-rocket',
             submenu: [
@@ -85,8 +90,8 @@
             ]
         }) }}
 
-        {# Flower Progress #}
-        {{ menuItem.render({
+		{# Flower Progress #}
+		{{ menuItem.render({
             label: 'Progression',
             icon: 'ki-duotone ki-chart-line',
             submenu: [
@@ -106,8 +111,8 @@
             ]
         }) }}
 
-        {# Referral System #}
-        {{ menuItem.render({
+		{# Referral System #}
+		{{ menuItem.render({
             label: 'Parrainage',
             icon: 'ki-duotone ki-people',
             submenu: [
@@ -127,8 +132,8 @@
             ]
         }) }}
 
-        {# Settings & Profile #}
-        {{ menuItem.render({
+		{# Settings & Profile #}
+		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
             submenu: [
@@ -151,5 +156,5 @@
                 }
             ]
         }) }}
-    </div>
+	</div>
 </div>
