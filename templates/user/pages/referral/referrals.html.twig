@@ -1,0 +1,182 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Mes Filleuls' %}
+
+{% block title %}{{ page_title }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Stats Grid #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {# Stats cards with modern design #}
+            <div class="card bg-light-primary hover:shadow-lg transition-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="symbol symbol-45px">
+                            <span class="symbol-label bg-primary/10">
+                                <i class="ki-duotone ki-profile-circle fs-2x text-primary">
+                                    <i class="path1"></i><i class="path2"></i><i class="path3"></i>
+                                </i>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="text-gray-700 fs-6 fw-bold">{{ referralCount }}/4</div>
+                            <div class="text-gray-500 fs-7">Total Filleuls</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Active Referrals - Enhanced design #}
+            <div class="card bg-light-success hover:shadow-lg transition-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="symbol symbol-45px">
+                            <span class="symbol-label bg-success/10">
+                                <i class="ki-duotone ki-user-tick fs-2x text-success">
+                                    <i class="path1"></i><i class="path2"></i>
+                                </i>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="text-gray-700 fs-6 fw-bold">{{ referralStats.activeReferrals }}</div>
+                            <div class="text-gray-500 fs-7">Filleuls Actifs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Pending Referrals - Enhanced design #}
+            <div class="card bg-light-warning hover:shadow-lg transition-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="symbol symbol-45px">
+                            <span class="symbol-label bg-warning/10">
+                                <i class="ki-duotone ki-update-file fs-2x text-warning">
+                                    <i class="path1"></i><i class="path2"></i>
+                                </i>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="text-gray-700 fs-6 fw-bold">{{ referralStats.pendingReferrals }}</div>
+                            <div class="text-gray-500 fs-7">En Attente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Total Earnings - Enhanced design #}
+            <div class="card bg-light-info hover:shadow-lg transition-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="symbol symbol-45px">
+                            <span class="symbol-label bg-info/10">
+                                <i class="ki-duotone ki-euro fs-2x text-info">
+                                    <i class="path1"></i><i class="path2"></i>
+                                </i>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="text-gray-700 fs-6 fw-bold">{{ referralStats.totalEarnings|format_currency('EUR') }}</div>
+                            <div class="text-gray-500 fs-7">Gains Totaux</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Referrals List - Modern Table Design #}
+        <div class="card">
+            <div class="card-header border-0">
+                <h3 class="card-title align-items-start flex-column">
+                    <span class="text-dark fw-bold fs-3 mb-1">Mes Filleuls Directs</span>
+                </h3>
+            </div>
+            <div class="card-body py-4">
+                {% if directReferrals|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead>
+                                <tr class="text-gray-400 fw-bold fs-7 text-uppercase">
+                                    <th class="min-w-200px">Membre</th>
+                                    <th class="min-w-150px">Date d'Inscription</th>
+                                    <th class="min-w-150px">Fleur Actuelle</th>
+                                    <th class="min-w-100px">Status</th>
+                                    <th class="min-w-200px">Progression</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600">
+                                {% for referral in directReferrals %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="symbol symbol-45px me-5">
+                                                    {% if referral.avatar %}
+                                                        <img src="{{ vich_uploader_asset(referral, 'avatarFile') }}" alt="">
+                                                    {% else %}
+                                                        <span class="symbol-label bg-light-primary text-primary fs-6 fw-bold">
+                                                            {{ referral.firstName|first }}{{ referral.lastName|first }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <span class="text-gray-800 mb-1">{{ referral.fullName }}</span>
+                                                    <span class="text-gray-500">{{ referral.email }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ referral.createdAt|date('d/m/Y') }}</td>
+                                        <td>
+                                            {% if referral.currentFlower %}
+                                                <div class="badge badge-light-primary fs-7 fw-bold">{{ referral.currentFlower.name }}</div>
+                                            {% else %}
+                                                <div class="badge badge-light fs-7">-</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if referral.isVerified %}
+                                                <div class="badge badge-light-success">Actif</div>
+                                            {% else %}
+                                                <div class="badge badge-light-warning">En Attente</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if referral.isVerified and referral.currentFlower %}
+                                                {% set progress = referral.flowerProgress %}
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="flex-grow-1">
+                                                        <div class="h-6px w-100 bg-light-primary rounded">
+                                                            <div class="bg-primary rounded h-6px" style="width: {{ progress.percentage }}%"></div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="text-gray-700 fw-bold">{{ progress.received }}/{{ progress.total }}</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-gray-500">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-10">
+                        <div class="mb-4">
+                            <i class="ki-duotone ki-people fs-5x text-gray-300">
+                                <i class="path1"></i><i class="path2"></i><i class="path3"></i>
+                            </i>
+                        </div>
+                        <div class="text-gray-600 fw-semibold fs-6 mb-4">Vous n'avez pas encore de filleuls</div>
+                        {% if canAcceptNewReferrals %}
+                            <a href="{{ path('app.user.referral.link') }}" class="btn btn-light-primary">
+                                <i class="ki-duotone ki-plus fs-2"></i>
+                                Commencer à Inviter
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

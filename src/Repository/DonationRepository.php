@@ -319,4 +319,55 @@ class DonationRepository extends ServiceEntityRepository
 
         return (float) $result ?? 0.0;
     }
+
+    public function findTotalReferralEarningsForUser(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.recipient = :user')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('types', ['referral_placement', 'solidarity'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $result ?? 0.0;
+    }
+
+    public function findMonthlyReferralEarnings(User $user): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        
+        $sql = '
+            SELECT to_char(transaction_date, \'YYYY-MM\') as month,
+                   SUM(amount) as total
+            FROM donation
+            WHERE recipient_id = :userId
+            AND donation_type IN (:types)
+            AND transaction_date >= :yearAgo
+            GROUP BY month
+            ORDER BY month ASC
+        ';
+
+        $stmt = $conn->executeQuery(
+            $sql,
+            [
+                'userId' => $user->getId(),
+                'types' => ['referral_placement', 'solidarity'],
+                'yearAgo' => (new \DateTime('-1 year'))->format('Y-m-d')
+            ],
+            [
+                'types' => \Doctrine\DBAL\Connection::PARAM_STR_ARRAY
+            ]
+        );
+
+        $results = $stmt->fetchAllAssociative();
+        
+        $earnings = [];
+        foreach ($results as $result) {
+            $earnings[$result['month']] = (float)$result['total'];
+        }
+
+        return $earnings;
+    }
 }

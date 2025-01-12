@@ -1,0 +1,170 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Lien de Parrainage' %}
+
+{% block title %}Lien de Parrainage -
+	{{ parent() }}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fixed">
+        <div class="grid grid-cols-1 gap-6">
+            {# Stats Overview Card #}
+            <div class="card bg-primary">
+                <div class="card-body p-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="col-span-2">
+                            <h2 class="text-white text-2xl font-bold mb-4">Programme de Parrainage</h2>
+                            <p class="text-white/80 text-lg mb-6">
+                                Pour chaque nouveau membre qui s'inscrit via votre lien, vous devenez leur parrain et les accompagnez à travers toutes les fleurs. Un moyen efficace de développer votre réseau et d'augmenter vos opportunités.
+                            </p>
+                            <div class="bg-white/10 rounded-lg p-4 inline-block">
+                                <span class="text-white text-sm font-medium">Bonus de Parrainage</span>
+                                <div class="text-white text-2xl font-bold">Suivi sur 10 Fleurs</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <span class="ki-duotone ki-award text-9xl text-white/20">
+                                <i class="path1"></i><i class="path2"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Referral Links Card #}
+            <div class="card">
+                <div class="card-body p-8">
+                    {# Link Section #}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4">Votre Lien de Parrainage</h3>
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-600 mb-2 block">Lien Unique</label>
+                                    <div class="flex gap-3">
+                                        <input type="text" class="form-control flex-grow bg-white" readonly value="{{ referralUrl }}" id="referralUrl">
+                                        <button class="btn btn-primary min-w-[120px]" type="button" data-clipboard-target="#referralUrl">
+                                            <i class="ki-duotone ki-copy fs-2 me-2"><i class="path1"></i><i class="path2"></i></i>
+                                            Copier
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-600 mb-2 block">Code de Parrainage</label>
+                                    <div class="flex gap-3">
+                                        <input type="text" class="form-control flex-grow bg-white" readonly value="{{ referralCode }}" id="referralCode">
+                                        <button class="btn btn-secondary min-w-[120px]" type="button" data-clipboard-target="#referralCode">
+                                            <i class="ki-duotone ki-copy fs-2 me-2"><i class="path1"></i><i class="path2"></i></i>
+                                            Copier
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Enhanced Share Options #}
+                    <div class="mb-12">
+                        <h3 class="text-xl font-bold mb-6">Partagez votre invitation</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <a href="https://wa.me/?text={{ ('Rejoignez-moi sur Abeilles Solidaires ! ' ~ referralUrl)|url_encode }}" 
+                               target="_blank" 
+                               class="bg-[#25D366] hover:bg-[#128C7E] transition-colors duration-200 rounded-xl p-4 text-white text-center group">
+                                <i class="ki-duotone ki-whatsapp text-4xl mb-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                <div class="font-medium">WhatsApp</div>
+                            </a>
+                            
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ referralUrl|url_encode }}&quote={{ 'Rejoignez-moi sur Abeilles Solidaires !'|url_encode }}" 
+                               target="_blank" 
+                               class="bg-[#1877F2] hover:bg-[#166FE5] transition-colors duration-200 rounded-xl p-4 text-white text-center group">
+                                <i class="ki-duotone ki-facebook text-4xl mb-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                <div class="font-medium">Facebook</div>
+                            </a>
+                            
+                            <a href="mailto:?subject=Invitation à Abeilles Solidaires&body=Bonjour,%0D%0A%0D%0AJe souhaite vous inviter à rejoindre Abeilles Solidaires, une plateforme d'entraide et de solidarité.%0D%0A%0D%0AVoici mon lien d'invitation : {{ referralUrl }}%0D%0A%0D%0AÀ bientôt !" 
+                               class="bg-primary hover:bg-primary-active transition-colors duration-200 rounded-xl p-4 text-white text-center group">
+                                <i class="ki-duotone ki-message-text-2 text-4xl mb-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                <div class="font-medium">Email</div>
+                            </a>
+                            
+                            <button onclick="navigator.clipboard.writeText('{{ referralUrl }}'); this.querySelector('.label').textContent='Copié !'; setTimeout(() => this.querySelector('.label').textContent='Copier le lien', 2000)" 
+                                    class="bg-gray-800 hover:bg-gray-700 transition-colors duration-200 rounded-xl p-4 text-white text-center group">
+                                <i class="ki-duotone ki-copy text-4xl mb-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                <div class="font-medium label">Copier le lien</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Enhanced How It Works Section #}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-8">Comment ça marche ?</h3>
+                        <div class="relative">                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+                                {# Step 1 #}
+                                <div class="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 transform hover:-translate-y-1 transition-all duration-200">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">1</div>
+                                        <h4 class="text-lg font-bold text-gray-900">Partagez</h4>
+                                    </div>
+                                    <p class="text-gray-600">Invitez vos contacts à rejoindre la communauté via votre lien unique. Plus votre réseau grandit, plus vos opportunités se multiplient.</p>
+                                    <div class="mt-4 text-primary">
+                                        <i class="ki-duotone ki-share text-3xl"></i>
+                                    </div>
+                                </div>
+
+                                {# Step 2 #}
+                                <div class="bg-gradient-to-br from-success/5 to-success/10 rounded-2xl p-6 transform hover:-translate-y-1 transition-all duration-200">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="w-12 h-12 rounded-full bg-success text-white flex items-center justify-center text-xl font-bold">2</div>
+                                        <h4 class="text-lg font-bold text-gray-900">Ils rejoignent</h4>
+                                    </div>
+                                    <p class="text-gray-600">Vos filleuls s'inscrivent et deviennent membres de votre équipe. Leur succès contribue directement à votre progression.</p>
+                                    <div class="mt-4 text-success">
+                                        <i class="ki-duotone ki-user-edit text-3xl"></i>
+                                    </div>
+                                </div>
+
+                                {# Step 3 #}
+                                <div class="bg-gradient-to-br from-info/5 to-info/10 rounded-2xl p-6 transform hover:-translate-y-1 transition-all duration-200">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="w-12 h-12 rounded-full bg-info text-white flex items-center justify-center text-xl font-bold">3</div>
+                                        <h4 class="text-lg font-bold text-gray-900">Évoluez ensemble</h4>
+                                    </div>
+                                    <p class="text-gray-600">Accompagnez vos filleuls à travers les 10 fleurs. Leur réussite est votre réussite, créant une chaîne de solidarité durable.</p>
+                                    <div class="mt-4 text-info">
+                                        <i class="ki-duotone ki-chart-line-star text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const clipboard = new ClipboardJS('[data-clipboard-target]');
+            
+            clipboard.on('success', function(e) {
+                const btn = e.trigger;
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="ki-duotone ki-check fs-2 me-2"><i class="path1"></i><i class="path2"></i></i>Copié !';
+                btn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                }, 2000);
+                
+                e.clearSelection();
+            });
+        });
+    </script>
+{% endblock %}

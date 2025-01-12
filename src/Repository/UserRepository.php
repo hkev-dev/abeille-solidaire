@@ -212,4 +212,46 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    public function findReferralStatsByFlower(User $referrer): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        
+        $sql = '
+            WITH flower_stats AS (
+                SELECT f.id, f.name, f.donation_amount,
+                       COUNT(DISTINCT r.id) as total_referrals,
+                       COUNT(DISTINCT fc.id) as completed_cycles,
+                       COALESCE(SUM(d.amount), 0) as earnings
+                FROM flower f
+                LEFT JOIN "user" r ON r.referrer_id = :referrerId
+                LEFT JOIN flower_cycle_completion fc ON fc.user_id = r.id AND fc.flower_id = f.id
+                LEFT JOIN donation d ON d.recipient_id = r.id AND d.flower_id = f.id
+                WHERE r.is_verified = true
+                GROUP BY f.id, f.name, f.donation_amount
+                ORDER BY f.donation_amount ASC
+            )
+            SELECT *
+            FROM flower_stats
+        ';
+
+        $stmt = $conn->executeQuery(
+            $sql,
+            ['referrerId' => $referrer->getId()]
+        );
+
+        $results = $stmt->fetchAllAssociative();
+
+        return array_map(function($result) {
+            return [
+                'flower' => [
+                    'name' => $result['name'],
+                    'donationAmount' => $result['donation_amount']
+                ],
+                'totalReferrals' => (int)$result['total_referrals'],
+                'completedCycles' => (int)$result['completed_cycles'],
+                'earnings' => (float)$result['earnings']
+            ];
+        }, $results);
+    }
 }
