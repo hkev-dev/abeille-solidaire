@@ -98,19 +98,23 @@
 		{{ menuItem.render({
             label: 'Progression',
             icon: 'ki-duotone ki-chart-line',
+            routes: ['app.user.progression.matrix', 'app.user.progression.cycles', 'app.user.progression.next_flower'],
             submenu: [
                 {
-                    label: 'Matrice Actuelle'
+                    label: 'Matrice Actuelle',
+                    route: 'app.user.progression.matrix'
                 },
                 {
                     label: 'Cycles Complétés',
+                    route: 'app.user.progression.cycles',
                     badge: completedCycles > 0 ? {
                         text: completedCycles,
                         class: 'badge-success'
                     } : null
                 },
                 {
-                    label: 'Prochaine Fleur'
+                    label: 'Prochaine Fleur',
+                    route: 'app.user.progression.next_flower'
                 }
             ]
         }) }}

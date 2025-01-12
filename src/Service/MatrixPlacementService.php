@@ -109,14 +109,26 @@ class MatrixPlacementService
 
     public function visualizeMatrix(Flower $flower): array
     {
-        $matrixState = $this->getMatrixState($flower);
+        $matrixPositions = $this->donationRepository->findByFlowerWithMatrix($flower);
+        $userRepository = $this->entityManager->getRepository(User::class);
         $visualization = [];
 
         for ($row = 0; $row < self::MATRIX_ROWS; $row++) {
             $visualization[$row] = [];
             for ($col = 0; $col < self::MATRIX_COLS; $col++) {
                 $position = ($row * self::MATRIX_COLS) + $col + 1;
-                $visualization[$row][$col] = $matrixState[$position] ?? null;
+                $cellData = [
+                    'position' => $position,
+                    'user' => null,
+                    'joinedAt' => null
+                ];
+                
+                if (isset($matrixPositions[$position])) {
+                    $cellData['user'] = $userRepository->find($matrixPositions[$position]['user_id']);
+                    $cellData['joinedAt'] = $matrixPositions[$position]['joined_at'];
+                }
+                
+                $visualization[$row][$col] = $cellData;
             }
         }
 

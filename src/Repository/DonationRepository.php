@@ -370,4 +370,149 @@ class DonationRepository extends ServiceEntityRepository
 
         return $earnings;
     }
+
+    public function findUserPositionInFlower(User $user, Flower $flower): ?array
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('d.cyclePosition as cycle_position') // Fixed: Added alias for cyclePosition
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result ?: null;
+    }
+
+    public function calculateTotalReceivedInFlower(User $user, Flower $flower): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount) as total')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float)$result ?? 0.0;
+    }
+
+    public function findAllCompletedCycles(User $user): array
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select([
+                'IDENTITY(d.flower) as flower_id',
+                'COUNT(d.id) as cycle_number',
+                'MAX(d.transactionDate) as completed_at',
+                'SUM(CASE WHEN d.donationType IN (\'direct\', \'registration\') THEN d.amount ELSE 0 END) as earned_amount',
+                'SUM(CASE WHEN d.donationType = \'solidarity\' THEN d.amount ELSE 0 END) as solidarity_amount'
+            ])
+            ->where('d.recipient = :user')
+            ->andWhere('d.donationType IN (:types)')
+            ->groupBy('d.flower')
+            ->having('COUNT(d.id) >= 4')
+            ->setParameter('user', $user)
+            ->setParameter('types', ['direct', 'registration', 'solidarity'])
+            ->orderBy('d.flower', 'ASC');
+
+        $results = $qb->getQuery()->getResult();
+
+        // Fetch flower details and solidarity recipients
+        return array_map(function($cycle) use ($user) {
+            $flower = $this->getEntityManager()
+                ->getRepository('App:Flower')
+                ->find($cycle['flower_id']);
+
+            $solidarityRecipient = $this->createQueryBuilder('d2')
+                ->select('IDENTITY(d2.recipient) as recipient_id')
+                ->where('d2.donor = :user')
+                ->andWhere('d2.flower = :flower')
+                ->andWhere('d2.donationType = :type')
+                ->setParameter('user', $user)
+                ->setParameter('flower', $flower)
+                ->setParameter('type', 'solidarity')
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            $recipientUser = $solidarityRecipient ? 
+                $this->getEntityManager()->getRepository('App:User')->find($solidarityRecipient['recipient_id']) : 
+                null;
+
+            return [
+                'flower' => $flower,
+                'cycleNumber' => $cycle['cycle_number'],
+                'completedAt' => $cycle['completed_at'],
+                'earned' => $cycle['earned_amount'],
+                'solidarityAmount' => $cycle['solidarity_amount'],
+                'solidarityRecipient' => $recipientUser
+            ];
+        }, $results);
+    }
+
+    public function calculateTotalEarned(User $user): float
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount) as total')
+            ->where('d.recipient = :user')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('user', $user)
+            ->setParameter('types', ['direct', 'registration'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float)$result ?? 0.0;
+    }
+
+    public function findReferralsInFlower(User $user, Flower $flower): array
+    {
+        return $this->createQueryBuilder('d')
+            ->select('
+                IDENTITY(d.recipient) as user,
+                d.cyclePosition as position,
+                d.transactionDate as joined_at
+            ')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donationType = :type')
+            ->andWhere('d.recipient IN (
+                SELECT r.id FROM App\Entity\User r WHERE r.referrer = :user
+            )')
+            ->setParameter('flower', $flower)
+            ->setParameter('type', 'referral_placement')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByFlowerWithMatrix(Flower $flower): array
+    {
+        $results = $this->createQueryBuilder('d')
+            ->select('
+                d.cyclePosition,
+                IDENTITY(d.recipient) as user_id,
+                d.transactionDate as joined_at
+            ')
+            ->where('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration', 'referral_placement'])
+            ->orderBy('d.cyclePosition', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $positions = [];
+        foreach ($results as $result) {
+            $positions[$result['cyclePosition']] = [
+                'user_id' => $result['user_id'],
+                'joined_at' => $result['joined_at']
+            ];
+        }
+
+        return $positions;
+    }
 }

@@ -129,4 +129,119 @@ class FlowerProgressionService
         return $this->entityManager->getRepository(User::class)
             ->findOneBy(['currentFlower' => $this->flowerRepository->findOneBy(['name' => 'Violette'])]);
     }
+
+    public function getCurrentPosition(User $user): ?int
+    {
+        $currentFlower = $user->getCurrentFlower();
+        if (!$currentFlower) {
+            return null;
+        }
+
+        $result = $this->donationRepository->findUserPositionInFlower($user, $currentFlower);
+        
+        if (!$result || !isset($result['cycle_position'])) {
+            return null;
+        }
+
+        return (int) $result['cycle_position'];
+    }
+
+    public function getTotalReceivedInCurrentFlower(User $user): float
+    {
+        $currentFlower = $user->getCurrentFlower();
+        if (!$currentFlower) {
+            return 0.0;
+        }
+
+        return $this->donationRepository->calculateTotalReceivedInFlower($user, $currentFlower);
+    }
+
+    public function getAllCompletedCycles(User $user): array
+    {
+        return array_map(
+            function ($cycle) {
+                return [
+                    'flower' => $cycle['flower'],
+                    'cycleNumber' => $cycle['cycle_number'],
+                    'completedAt' => $cycle['completed_at'],
+                    'earned' => $cycle['earned_amount'],
+                    'solidarityAmount' => $cycle['solidarity_amount'],
+                    'solidarityRecipient' => $cycle['solidarity_recipient']
+                ];
+            },
+            $this->donationRepository->findAllCompletedCycles($user)
+        );
+    }
+
+    public function getTotalEarned(User $user): float
+    {
+        return $this->donationRepository->calculateTotalEarned($user);
+    }
+
+    public function getNextFlowerRequirements(User $user): array
+    {
+        $currentFlower = $user->getCurrentFlower();
+        if (!$currentFlower) {
+            return [];
+        }
+
+        $progress = $user->getFlowerProgress();
+        $requirements = [];
+
+        // Requirement 1: Complete current flower cycle
+        $requirements[] = [
+            'label' => 'Compléter le cycle actuel',
+            'description' => sprintf('Recevoir %d dons supplémentaires dans %s', 
+                4 - $progress['received'], 
+                $currentFlower->getName()
+            ),
+            'fulfilled' => $progress['received'] >= 4
+        ];
+
+        // Requirement 2: Have active referrals
+        $activeReferrals = count($user->getReferrals());
+        $requirements[] = [
+            'label' => 'Avoir des filleuls actifs',
+            'description' => sprintf('Vous avez %d/4 filleuls actifs', $activeReferrals),
+            'fulfilled' => $activeReferrals >= 1
+        ];
+
+        // Requirement 3: Valid KYC
+        $requirements[] = [
+            'label' => 'Vérification KYC valide',
+            'description' => $user->isKycVerified() ? 
+                'KYC validé le ' . $user->getKycVerifiedAt()?->format('d/m/Y') : 
+                'La vérification KYC est requise',
+            'fulfilled' => $user->isKycVerified()
+        ];
+
+        // Requirement 4: Project description
+        $requirements[] = [
+            'label' => 'Description du projet',
+            'description' => $user->getProjectDescription() ? 
+                'Description du projet complétée' : 
+                'Une description de projet est requise',
+            'fulfilled' => !empty($user->getProjectDescription())
+        ];
+
+        return $requirements;
+    }
+
+    public function getReferralsInNextFlower(User $user, ?Flower $nextFlower): array
+    {
+        if (!$nextFlower) {
+            return [];
+        }
+
+        return array_map(
+            function ($referral) use ($nextFlower) {
+                return [
+                    'user' => $referral['user'],
+                    'position' => $referral['position'],
+                    'joinedAt' => $referral['joined_at']
+                ];
+            },
+            $this->donationRepository->findReferralsInFlower($user, $nextFlower)
+        );
+    }
 }

@@ -1,0 +1,102 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Prochaine Fleur' %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Current Status #}
+        <div class="card mb-6">
+            <div class="card-body">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-primary/10 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-primary/70">Fleur Actuelle</p>
+                                <h3 class="text-2xl font-bold text-primary">{{ currentFlower.name }}</h3>
+                                <p class="text-sm text-primary/70 mt-1">€{{ currentFlower.donationAmount|number_format(2) }}</p>
+                            </div>
+                            <span class="ki-duotone ki-flower2 text-4xl text-primary/30"></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-success/10 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-success/70">Prochaine Fleur</p>
+                                <h3 class="text-2xl font-bold text-success">{{ nextFlower.name }}</h3>
+                                <p class="text-sm text-success/70 mt-1">€{{ nextFlower.donationAmount|number_format(2) }}</p>
+                            </div>
+                            <span class="ki-duotone ki-arrow-right text-4xl text-success/30"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Progress Requirements #}
+        <div class="card mb-6">
+            <div class="card-header border-b border-gray-200">
+                <h3 class="card-title flex items-center gap-2">
+                    <span class="ki-duotone ki-check-circle text-primary"></span>
+                    Conditions de Progression
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-4">
+                    {% for req in requirements %}
+                        <div class="flex items-center p-3 rounded-lg {{ req.fulfilled ? 'bg-success/10' : 'bg-gray-50' }}">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full 
+                                       {{ req.fulfilled ? 'bg-success text-white' : 'bg-gray-200 text-gray-500' }}
+                                       flex items-center justify-center">
+                                <span class="ki-duotone {{ req.fulfilled ? 'ki-check' : 'ki-cross' }} text-lg"></span>
+                            </span>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-medium {{ req.fulfilled ? 'text-success' : 'text-gray-700' }}">
+                                    {{ req.label }}
+                                </p>
+                                {% if req.description %}
+                                    <p class="text-sm text-gray-500">{{ req.description }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# Referrals in Next Flower #}
+        {% if referrals is not empty %}
+            <div class="card">
+                <div class="card-header border-b border-gray-200">
+                    <h3 class="card-title flex items-center gap-2">
+                        <span class="ki-duotone ki-profile-user text-primary"></span>
+                        Filleuls dans {{ nextFlower.name }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {% for referral in referrals %}
+                            <div class="p-4 rounded-lg border border-gray-200">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                        {% if referral.avatar %}
+                                            <img src="{{ vich_uploader_asset(referral, 'avatarFile') }}"
+                                                 alt="{{ referral.username }}"
+                                                 class="w-8 h-8 rounded-full">
+                                        {% else %}
+                                            <span class="ki-duotone ki-user text-xl text-gray-400"></span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="font-medium">{{ referral.username }}</p>
+                                        <p class="text-sm text-gray-500">Position {{ referral.position }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

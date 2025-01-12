@@ -1,0 +1,98 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% set page_title = 'Matrice de ' ~ currentFlower.name %}
+
+{% block content %}
+	<div
+		class="container-fixed">
+		{# Current Position Overview #}
+		<div class="card mb-6">
+			<div class="card-body">
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div class="bg-primary/10 rounded-lg p-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-primary/70">Votre Position</p>
+								<h3 class="text-2xl font-bold text-primary">{{ position }}</h3>
+							</div>
+							<span class="ki-duotone ki-position text-4xl text-primary/30"></span>
+						</div>
+					</div>
+
+					<div class="bg-success/10 rounded-lg p-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-success/70">Progression</p>
+								<h3 class="text-2xl font-bold text-success">{{ progress.received }}/4</h3>
+							</div>
+							<span class="ki-duotone ki-chart-line text-4xl text-success/30"></span>
+						</div>
+					</div>
+
+					<div class="bg-info/10 rounded-lg p-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-info/70">Total Reçu</p>
+								<h3 class="text-2xl font-bold text-info">€{{ totalReceived|number_format(2) }}</h3>
+							</div>
+							<span class="ki-duotone ki-euro text-4xl text-info/30"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		{# Matrix Visualization #}
+		<div class="card">
+			<div class="card-header">
+				<h3 class="card-title">
+					<span class="ki-duotone ki-abstract-26 text-primary me-2"></span>
+					Matrice Détaillée de
+					{{ currentFlower.name }}
+				</h3>
+			</div>
+			<div class="card-body">
+				<div class="grid grid-cols-4 gap-4">
+					{% for row in matrix %}
+						{% for cell in row %}
+							<div class="relative aspect-square rounded-xl border-2
+									                                {{ cell.user is same as(app.user) ? 'border-primary bg-primary/10' :
+									                                   cell.user and cell.user.referrer is same as(app.user) ? 'border-success bg-success/10' :
+									                                   cell.user ? 'border-gray-300 bg-gray-50' : 'border-dashed border-gray-200' }}
+									                                flex flex-col items-center justify-center p-3">
+
+								{% if cell.user %}
+									<div class="absolute -top-3 -right-3 w-6 h-6 rounded-full
+											                                        {{ cell.user is same as(app.user) ? 'bg-primary' :
+											                                           cell.user and cell.user.referrer is same as(app.user) ? 'bg-success' : 'bg-gray-500' }}
+											                                        text-white flex items-center justify-center text-xs">
+										{{ cell.position }}
+									</div>
+
+									<div class="text-center space-y-2">
+										<div class="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
+											{% if cell.user.avatar %}
+												<img src="{{ vich_uploader_asset(cell.user, 'avatarFile') }}" alt="{{ cell.user.username }}" class="w-10 h-10 rounded-full">
+											{% else %}
+												<span class="ki-duotone ki-user text-2xl text-gray-400"></span>
+											{% endif %}
+										</div>
+										<div>
+											<p class="font-medium truncate">{{ cell.user.username }}</p>
+											<p class="text-sm text-gray-500">{{ cell.joinedAt|ago }}</p>
+										</div>
+									</div>
+								{% else %}
+									<div class="text-center text-gray-400">
+										<span class="ki-duotone ki-plus-circle text-3xl mb-2"></span>
+										<p class="text-sm">Position {{ cell.position }}</p>
+									</div>
+								{% endif %}
+							</div>
+						{% endfor %}
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
