@@ -3,14 +3,19 @@
 namespace App\Service;
 
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
+use App\Entity\KycVerification;
 use App\Event\KycVerificationEvent;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class KycService
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly EventDispatcherInterface $eventDispatcher,
@@ -22,12 +27,14 @@ class KycService
 
     public function getKycStatus(User $user): array
     {
+        $verification = $this->entityManager->getRepository(KycVerification::class)
+            ->findOneBy(['user' => $user], ['submittedAt' => 'DESC']);
+
         return [
             'isVerified' => $user->isKycVerified(),
             'verifiedAt' => $user->getKycVerifiedAt(),
-            'provider' => $user->getKycProvider(),
-            'canSubmit' => !$user->isKycVerified() && !$this->hasPendingVerification($user),
-            'pendingVerification' => $this->hasPendingVerification($user)
+            'canSubmit' => !$user->isKycVerified() && !$verification,
+            'pendingVerification' => $verification && $verification->getStatus() === self::STATUS_PENDING
         ];
     }
 
@@ -37,13 +44,16 @@ class KycService
             // Store files securely
             $documentPaths = $this->storeKycDocuments($user, $files);
 
-            // Submit to KYC provider
-            $verificationId = $this->submitToProvider($user, $data, $documentPaths);
+            // Create verification record
+            $verification = new KycVerification();
+            $verification->setUser($user)
+                ->setReferenceId('KYC_' . uniqid())
+                ->setStatus(self::STATUS_PENDING)
+                ->setDocumentPaths($documentPaths)
+                ->setSubmittedData($data)
+                ->setSubmittedAt(new \DateTime());
 
-            // Update user status
-            $user->setKycReferenceId($verificationId)
-                 ->setKycProvider($this->kycProvider);
-            
+            $this->entityManager->persist($verification);
             $this->entityManager->flush();
 
             // Dispatch event
@@ -61,39 +71,9 @@ class KycService
         }
     }
 
-    public function handleVerificationWebhook(array $data): void
-    {
-        try {
-            $user = $this->entityManager->getRepository(User::class)
-                ->findOneBy(['kycReferenceId' => $data['reference_id']]);
-
-            if (!$user) {
-                throw new \Exception('User not found for KYC reference');
-            }
-
-            if ($data['status'] === 'approved') {
-                $user->setIsKycVerified(true);
-                $this->entityManager->flush();
-
-                $event = new KycVerificationEvent($user, 'approved');
-                $this->eventDispatcher->dispatch($event, KycVerificationEvent::APPROVED);
-            } elseif ($data['status'] === 'rejected') {
-                $event = new KycVerificationEvent($user, 'rejected', $data['reason'] ?? null);
-                $this->eventDispatcher->dispatch($event, KycVerificationEvent::REJECTED);
-            }
-
-        } catch (\Exception $e) {
-            $this->logger->error('KYC webhook processing failed', [
-                'error' => $e->getMessage(),
-                'data' => $data
-            ]);
-            throw $e;
-        }
-    }
-
     private function hasPendingVerification(User $user): bool
     {
-        return $user->getKycReferenceId() !== null && !$user->isKycVerified();
+        return !$user->isKycVerified();
     }
 
     private function storeKycDocuments(User $user, array $files): array
@@ -115,10 +95,52 @@ class KycService
         return $paths;
     }
 
-    private function submitToProvider(User $user, array $data, array $documentPaths): string
+    public function approveVerification(string $referenceId, string $adminComment = null): void
     {
-        // Implement KYC provider API call here
-        // This is a placeholder for the actual KYC provider integration
-        return uniqid('kyc_');
+        $verification = $this->getVerification($referenceId);
+        $user = $verification->getUser();
+
+        $verification->setStatus(self::STATUS_APPROVED)
+            ->setAdminComment($adminComment)
+            ->setProcessedAt(new \DateTime());
+
+        $user->setIsKycVerified(true);
+
+        $this->entityManager->flush();
+
+        $event = new KycVerificationEvent($user, 'approved');
+        $this->eventDispatcher->dispatch($event, KycVerificationEvent::APPROVED);
+    }
+
+    public function rejectVerification(string $referenceId, string $reason): void
+    {
+        $verification = $this->getVerification($referenceId);
+
+        $verification->setStatus(self::STATUS_REJECTED)
+            ->setAdminComment($reason)
+            ->setProcessedAt(new \DateTime());
+
+        $this->entityManager->flush();
+
+        $event = new KycVerificationEvent($verification->getUser(), 'rejected', $reason);
+        $this->eventDispatcher->dispatch($event, KycVerificationEvent::REJECTED);
+    }
+
+    public function getPendingVerifications(): array
+    {
+        return $this->entityManager->getRepository(KycVerification::class)
+            ->findBy(['status' => self::STATUS_PENDING], ['submittedAt' => 'ASC']);
+    }
+
+    private function getVerification(string $referenceId): KycVerification
+    {
+        $verification = $this->entityManager->getRepository(KycVerification::class)
+            ->findOneBy(['referenceId' => $referenceId]);
+
+        if (!$verification) {
+            throw new \Exception('Verification not found');
+        }
+
+        return $verification;
     }
 }

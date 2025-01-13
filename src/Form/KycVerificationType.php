@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
@@ -16,44 +17,49 @@ class KycVerificationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('documentType', TextType::class, [
-                'attr' => [
-                    'placeholder' => 'Type de document*',
-                    'class' => 'form-control'
+            ->add('documentType', ChoiceType::class, [
+                'choices' => [
+                    'Carte d\'identité nationale' => 'national_id',
+                    'Passeport' => 'passport',
+                    'Permis de conduire' => 'drivers_license',
+                    'Titre de séjour' => 'residence_permit'
                 ],
-                'label' => false,
+                'attr' => [
+                    'class' => 'select',
+                ],
+                'placeholder' => 'Choisir le type de document',
+                'label' => 'Type de Document',
                 'required' => true
             ])
             ->add('documentNumber', TextType::class, [
                 'attr' => [
-                    'placeholder' => 'Numéro du document*',
-                    'class' => 'form-control'
+                    'class' => 'input',
+                    'placeholder' => 'Numéro du document'
                 ],
-                'label' => false,
+                'label' => 'Numéro du Document',
                 'required' => true
             ])
             ->add('issuingCountry', CountryType::class, [
                 'attr' => [
-                    'class' => 'form-select'
+                    'class' => 'select',
+                    'placeholder' => 'Sélectionner le pays'
                 ],
-                'placeholder' => 'Pays émetteur*',
-                'label' => false,
+                'label' => 'Pays Émetteur',
                 'required' => true
             ])
             ->add('expiryDate', DateType::class, [
                 'attr' => [
-                    'class' => 'form-control'
+                    'class' => 'input',
                 ],
                 'widget' => 'single_text',
-                'label' => false,
+                'label' => 'Date d\'Expiration',
                 'required' => true
             ])
             ->add('frontImage', FileType::class, [
                 'attr' => [
-                    'class' => 'form-control',
-                    'accept' => 'image/*'
+                    'accept' => 'image/jpeg,image/png'
                 ],
-                'label' => false,
+                'label' => 'Recto du Document',
                 'required' => true,
                 'constraints' => [
                     new Assert\File([
@@ -67,10 +73,9 @@ class KycVerificationType extends AbstractType
             ])
             ->add('backImage', FileType::class, [
                 'attr' => [
-                    'class' => 'form-control',
-                    'accept' => 'image/*'
+                    'accept' => 'image/jpeg,image/png'
                 ],
-                'label' => false,
+                'label' => 'Verso du Document',
                 'required' => true,
                 'constraints' => [
                     new Assert\File([
@@ -84,10 +89,9 @@ class KycVerificationType extends AbstractType
             ])
             ->add('selfieImage', FileType::class, [
                 'attr' => [
-                    'class' => 'form-control',
-                    'accept' => 'image/*'
+                    'accept' => 'image/jpeg,image/png'
                 ],
-                'label' => false,
+                'label' => 'Selfie avec Document',
                 'required' => true,
                 'constraints' => [
                     new Assert\File([
@@ -104,8 +108,7 @@ class KycVerificationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => null,
-            'csrf_protection' => true,
+            'data_class' => null
         ]);
     }
 }

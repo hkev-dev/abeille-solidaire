@@ -98,12 +98,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $kycVerifiedAt = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $kycProvider = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $kycReferenceId = null;
-
     #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
     private Collection $memberships;
 
@@ -442,28 +436,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getKycVerifiedAt(): ?\DateTimeInterface
     {
         return $this->kycVerifiedAt;
-    }
-
-    public function getKycProvider(): ?string
-    {
-        return $this->kycProvider;
-    }
-
-    public function setKycProvider(?string $provider): self
-    {
-        $this->kycProvider = $provider;
-        return $this;
-    }
-
-    public function getKycReferenceId(): ?string
-    {
-        return $this->kycReferenceId;
-    }
-
-    public function setKycReferenceId(?string $referenceId): self
-    {
-        $this->kycReferenceId = $referenceId;
-        return $this;
     }
 
     public function getMemberships(): Collection

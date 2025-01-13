@@ -2,7 +2,11 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./assets/**/*.js", "./templates/user/**/*.html.twig"],
+  content: [
+    "./assets/**/*.js",
+    "./templates/user/**/*.html.twig",
+    "./src/**/*.php"
+  ],
   safelist: [
     "demo1",
     "hidden",

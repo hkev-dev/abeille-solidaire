@@ -1,0 +1,87 @@
+<div class="modal fade" id="renewalModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Renouveler mon Adhésion</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="text-center mb-8">
+					<div class="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
+						<i class="ki-duotone ki-star fs-2 text-primary"></i>
+					</div>
+					<h3 class="mb-2">Cotisation Annuelle</h3>
+					<p class="text-gray-600">Montant à payer :
+						{{ renewalAmount|number_format(2, ',', ' ') }}€</p>
+				</div>
+
+				<div
+					class="space-y-6">
+					{# Payment Method Selection #}
+					<div class="grid grid-cols-2 gap-4">
+						<label class="payment-method-option">
+							<input type="radio" name="payment_method" value="card" class="hidden" checked>
+							<div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
+								<div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
+									<i class="ki-duotone ki-credit-cart fs-2"></i>
+								</div>
+								<span class="font-medium">Carte bancaire</span>
+							</div>
+						</label>
+
+						<label class="payment-method-option">
+							<input type="radio" name="payment_method" value="crypto" class="hidden">
+							<div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
+								<div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
+									<i class="ki-duotone ki-bitcoin fs-2"></i>
+								</div>
+								<span class="font-medium">Cryptomonnaie</span>
+							</div>
+						</label>
+					</div>
+
+					{# Payment Forms #}
+					<div id="card-form" class="payment-form">
+						<div class="mb-5">
+							<label class="form-label">Numéro de carte</label>
+							<div id="card-element" class="form-control h-[44px] flex items-center"></div>
+							<div id="card-errors" class="invalid-feedback"></div>
+						</div>
+					</div>
+
+					<div id="crypto-form" class="payment-form hidden">
+						<div class="mb-5">
+							<label class="form-label">Cryptomonnaie</label>
+							<select class="form-select" name="crypto_currency">
+								{% for name, symbol in supportedCryptos|default({}) %}
+									<option value="{{ symbol }}">{{ name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+				<button type="button" class="btn btn-primary" id="submit-renewal">
+					<i class="ki-duotone ki-check fs-2 me-2"></i>
+					Payer
+					{{ renewalAmount|number_format(2, ',', ' ') }}€
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () { // Payment method selection
+document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+input.addEventListener('change', (e) => {
+document.querySelectorAll('.payment-form').forEach(form => form.classList.add('hidden'));
+document.getElementById(`${
+e.target.value
+}-form`).classList.remove('hidden');
+});
+});
+});
+</script>
