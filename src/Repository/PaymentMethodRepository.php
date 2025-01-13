@@ -14,7 +14,18 @@ class PaymentMethodRepository extends ServiceEntityRepository
         parent::__construct($registry, PaymentMethod::class);
     }
 
-    public function findDefaultMethodForUser(User $user): ?PaymentMethod
+    public function findByUserAndType(User $user, string $type): array
+    {
+        return $this->createQueryBuilder('pm')
+            ->where('pm.user = :user')
+            ->andWhere('pm.methodType = :type')
+            ->setParameter('user', $user)
+            ->setParameter('type', $type)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findUserDefaultMethod(User $user): ?PaymentMethod
     {
         return $this->createQueryBuilder('pm')
             ->where('pm.user = :user')
@@ -23,6 +34,22 @@ class PaymentMethodRepository extends ServiceEntityRepository
             ->setParameter('isDefault', true)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function removeUserDefaultMethods(User $user): void
+    {
+        $this->createQueryBuilder('pm')
+            ->update()
+            ->set('pm.isDefault', ':isDefault')
+            ->where('pm.user = :user')
+            ->andWhere('pm.isDefault = :wasDefault')
+            ->setParameters([
+                'user' => $user,
+                'isDefault' => false,
+                'wasDefault' => true
+            ])
+            ->getQuery()
+            ->execute();
     }
 
     public function findUserCryptoAddresses(User $user): array

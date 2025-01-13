@@ -1,0 +1,145 @@
+{% extends 'user/pages/settings/layout.html.twig' %}
+
+{% block page_title %}Adhésion Annuelle{% endblock %}
+
+{% block settings_content %}
+    {# Status Card #}
+    <div class="card mb-6">
+        <div class="card-body p-0">
+            <div class="px-6 py-12 {{ currentMembership ? 'bg-success/10' : 'bg-warning/10' }}">
+                <div class="text-center">
+                    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center 
+                        {{ currentMembership ? 'bg-success text-success-inverse' : 'bg-warning text-warning-inverse' }}">
+                        <i class="ki-duotone ki-star text-4xl"></i>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold mb-2">
+                        {% if currentMembership %}
+                            Adhésion Annuelle Active
+                        {% else %}
+                            Adhésion Annuelle Expirée
+                        {% endif %}
+                    </h2>
+                    
+                    {% if currentMembership %}
+                        <p class="text-gray-600">
+                            Votre adhésion est valide jusqu'au {{ currentMembership.endDate|date('d/m/Y') }}
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Renouvellement automatique prévu le {{ currentMembership.endDate|date('d/m/Y') }}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-600 max-w-2xl mx-auto">
+                            Votre adhésion a expiré. Pour continuer à accéder à toutes les fonctionnalités 
+                            de la plateforme, veuillez renouveler votre adhésion.
+                        </p>
+                        <div class="mt-6">
+                            <button type="button" 
+                                    class="btn btn-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#renewalModal">
+                                <i class="ki-duotone ki-star fs-2 me-2"></i>
+                                Renouveler mon Adhésion
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Membership Details #}
+    {% if currentMembership %}
+        <div class="card mb-6">
+            <div class="card-header">
+                <h3 class="card-title">Détails de l'Adhésion</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4">
+                        <p class="text-sm text-gray-500 mb-1">Date de Début</p>
+                        <p class="font-medium">{{ currentMembership.startDate|date('d/m/Y') }}</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <p class="text-sm text-gray-500 mb-1">Date d'Expiration</p>
+                        <p class="font-medium">{{ currentMembership.endDate|date('d/m/Y') }}</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <p class="text-sm text-gray-500 mb-1">État</p>
+                        <span class="badge badge-success">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Membership History #}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Historique des Adhésions</h3>
+        </div>
+        <div class="card-body">
+            {% if membershipHistory is empty %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 rounded-full bg-light mx-auto mb-4 flex items-center justify-center">
+                        <i class="ki-duotone ki-book fs-2"></i>
+                    </div>
+                    <p class="text-gray-500">Aucun historique d'adhésion</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Montant</th>
+                                <th>Méthode</th>
+                                <th>État</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for membership in membershipHistory %}
+                                <tr>
+                                    <td>
+                                        <span class="text-gray-600">
+                                            {{ membership.startDate|date('d/m/Y') }} - {{ membership.endDate|date('d/m/Y') }}
+                                        </span>
+                                    </td>
+                                    <td>€{{ membership.amount|number_format(2) }}</td>
+                                    <td>
+                                        {% if membership.stripePaymentIntentId %}
+                                            <span class="badge badge-light-primary">Carte Bancaire</span>
+                                        {% else %}
+                                            <span class="badge badge-light-info">Crypto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if membership.isActive %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-light">Expirée</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-light">
+                                            <i class="ki-duotone ki-document fs-2"></i>
+                                            Reçu
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Renewal Modal #}
+    {# {% include 'user/components/membership-renewal-modal.html.twig' with {
+        renewalAmount: renewalAmount
+    } %} #}
+{% endblock %}

@@ -64,7 +64,8 @@ class MembershipService
 
     public function getRenewalAmount(): float
     {
-        return 25.0; // Annual membership fee
+        // Annual membership fee is fixed at 25€
+        return Membership::ANNUAL_FEE;
     }
 
     public function processMembershipRenewal(
@@ -104,5 +105,14 @@ class MembershipService
         /** @var MembershipRepository $repository */
         $repository = $this->entityManager->getRepository(Membership::class);
         return $repository->findLatestByUser($user);
+    }
+
+    public function getMembershipHistory(User $user): array
+    {
+        return $this->entityManager->getRepository(Membership::class)
+            ->findBy(
+                ['user' => $user],
+                ['startDate' => 'DESC']
+            );
     }
 }

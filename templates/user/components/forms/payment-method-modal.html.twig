@@ -1,0 +1,62 @@
+<div class="modal fade" id="payment-method-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Moyen de Paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ form_start(form, {'attr': {'id': 'payment-method-form'}}) }}
+                    <div class="mb-5">
+                        {{ form_row(form.type, {
+                            'row_attr': {'class': 'payment-type-selector'},
+                            'attr': {'class': 'hidden'}
+                        }) }}
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <label for="payment_method_type_card" class="payment-type-option">
+                                <input type="radio" name="payment_method[type]" id="payment_method_type_card" value="card" class="hidden">
+                                <div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
+                                    <div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
+                                        <i class="ki-duotone ki-credit-cart fs-2"></i>
+                                    </div>
+                                    <span class="font-medium">Carte bancaire</span>
+                                </div>
+                            </label>
+                            
+                            <label for="payment_method_type_crypto" class="payment-type-option">
+                                <input type="radio" name="payment_method[type]" id="payment_method_type_crypto" value="crypto" class="hidden">
+                                <div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
+                                    <div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
+                                        <i class="ki-duotone ki-bitcoin fs-2"></i>
+                                    </div>
+                                    <span class="font-medium">Cryptomonnaie</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="card-form" class="payment-method-form hidden">
+                        <div class="mb-5">
+                            <label class="form-label">Numéro de carte</label>
+                            <div id="card-element" class="form-control h-[44px] flex items-center"></div>
+                            <div id="card-errors" class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div id="crypto-form" class="payment-method-form hidden">
+                        {{ form_row(form.cryptoCurrency) }}
+                        {{ form_row(form.walletAddress) }}
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary min-w-[200px]">
+                            <i class="ki-duotone ki-check fs-2 me-2"></i>
+                            Ajouter
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>

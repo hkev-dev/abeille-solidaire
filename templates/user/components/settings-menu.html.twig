@@ -1,0 +1,43 @@
+<div class="flex border-b border-gray-200 mb-6">
+    <nav class="flex space-x-8" aria-label="Settings">
+        {% for item in [
+            {
+                label: 'KYC Vérification',
+                icon: 'ki-shield-tick',
+                route: 'app.user.settings.kyc',
+                badge: not user.isKycVerified ? {
+                    text: 'Requis',
+                    class: 'badge-warning'
+                } : null
+            },
+            {
+                label: 'Méthodes de Paiement',
+                icon: 'ki-credit-cart',
+                route: 'app.user.settings.payment_methods'
+            },
+            {
+                label: 'Adhésion Annuelle',
+                icon: 'ki-star',
+                route: 'app.user.settings.membership',
+                badge: not currentMembership ? {
+                    text: 'À renouveler',
+                    class: 'badge-danger'
+                } : null
+            }
+        ] %}
+            <a href="{{ path(item.route) }}" 
+               class="flex items-center gap-2 py-4 border-b-2 px-1 
+                      {{ app.request.get('_route') == item.route 
+                         ? 'border-primary text-primary' 
+                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                <i class="ki-duotone {{ item.icon }} fs-2"></i>
+                <span class="font-medium">{{ item.label }}</span>
+                {# {% if item.badge is defined %}
+                    <span class="badge {{ item.badge.class }} text-xs">
+                        {{ item.badge.text }}
+                    </span>
+                {% endif %} #}
+            </a>
+        {% endfor %}
+    </nav>
+</div>

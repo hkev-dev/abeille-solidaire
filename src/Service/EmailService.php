@@ -172,6 +172,49 @@ class EmailService
         );
     }
 
+    public function sendKycSubmissionConfirmation(User $user): void
+    {
+        $this->queueEmail(
+            'emails/kyc/submission_confirmation.html.twig',
+            $user->getEmail(),
+            'KYC Verification Submission Received',
+            [
+                'user' => $user,
+                'submissionDate' => new \DateTime(),
+                'dashboardUrl' => $this->router->generate('app.user.settings.kyc', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ]
+        );
+    }
+
+    public function sendKycApprovalNotification(User $user): void
+    {
+        $this->queueEmail(
+            'emails/kyc/approval_notification.html.twig',
+            $user->getEmail(),
+            'KYC Verification Approved',
+            [
+                'user' => $user,
+                'approvalDate' => new \DateTime(),
+                'walletUrl' => $this->router->generate('app.user.wallet.index', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ]
+        );
+    }
+
+    public function sendKycRejectionNotification(User $user, ?string $reason): void
+    {
+        $this->queueEmail(
+            'emails/kyc/rejection_notification.html.twig',
+            $user->getEmail(),
+            'KYC Verification Needs Attention',
+            [
+                'user' => $user,
+                'rejectionDate' => new \DateTime(),
+                'reason' => $reason,
+                'retryUrl' => $this->router->generate('app.user.settings.kyc', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ]
+        );
+    }
+
     private function queueEmail(string $template, string $recipient, string $subject, array $context): void
     {
         $email = (new TemplatedEmail())

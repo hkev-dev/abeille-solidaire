@@ -1,0 +1,169 @@
+{% extends 'user/pages/settings/layout.html.twig' %}
+
+{% block page_title %}Méthodes de Paiement
+{% endblock %}
+
+{% block settings_content %}
+	<div
+		class="container-fixed">
+		{# Payment Methods Grid #}
+		<div
+			class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			{# Card Payments #}
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h3 class="flex items-center gap-2">
+							<i class="ki-duotone ki-credit-cart fs-2"></i>
+							Cartes Bancaires
+						</h3>
+					</div>
+					<div class="card-toolbar">
+						<button type="button" class="btn btn-sm btn-light-primary" data-payment-method="card">
+							<i class="ki-duotone ki-plus fs-2"></i>
+							Ajouter une Carte
+						</button>
+					</div>
+				</div>
+				<div class="card-body">
+					{% if paymentMethods.cards is empty %}
+						<div class="text-center py-8">
+							<div class="w-16 h-16 rounded-full bg-light mx-auto mb-4 flex items-center justify-center">
+								<i class="ki-duotone ki-credit-cart fs-2"></i>
+							</div>
+							<p class="text-gray-500">Aucune carte enregistrée</p>
+						</div>
+					{% else %}
+						<div class="space-y-4">
+							{% for card in paymentMethods.cards %}
+								<div class="flex items-center justify-between p-4 border rounded-lg">
+									<div class="flex items-center gap-4">
+										<div class="w-12 h-12 rounded-lg bg-light flex items-center justify-center">
+											<i class="ki-duotone ki-credit-cart fs-2"></i>
+										</div>
+										<div>
+											<p class="font-medium">•••• •••• ••••
+												{{ card.last4 }}</p>
+											<p class="text-sm text-gray-500">Expire
+												{{ card.expMonth }}/{{ card.expYear }}</p>
+										</div>
+									</div>
+									<div class="flex items-center gap-2">
+										{% if card.isDefault %}
+											<span class="badge badge-light-success">Par défaut</span>
+										{% endif %}
+										<button type="button" class="btn btn-sm btn-icon btn-light-danger">
+											<i class="ki-duotone ki-trash fs-2"></i>
+										</button>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+			{# Crypto Wallets #}
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h3 class="flex items-center gap-2">
+							<i class="ki-duotone ki-bitcoin fs-2"></i>
+							Portefeuilles Crypto
+						</h3>
+					</div>
+					<div class="card-toolbar">
+						<button type="button" class="btn btn-sm btn-light-primary" data-payment-method="crypto">
+							<i class="ki-duotone ki-plus fs-2"></i>
+							Ajouter un Portefeuille
+						</button>
+					</div>
+				</div>
+				<div class="card-body">
+					{% if paymentMethods.crypto is empty %}
+						<div class="text-center py-8">
+							<div class="w-16 h-16 rounded-full bg-light mx-auto mb-4 flex items-center justify-center">
+								<i class="ki-duotone ki-bitcoin fs-2"></i>
+							</div>
+							<p class="text-gray-500">Aucun portefeuille enregistré</p>
+						</div>
+					{% else %}
+						<div class="space-y-4">
+							{% for wallet in paymentMethods.crypto %}
+								<div class="flex items-center justify-between p-4 border rounded-lg">
+									<div class="flex items-center gap-4">
+										<div class="w-12 h-12 rounded-lg bg-light flex items-center justify-center">
+											<i class="ki-duotone ki-{{ wallet.currency|lower }} fs-2"></i>
+										</div>
+										<div>
+											<p class="font-medium">{{ wallet.currency }}</p>
+											<p class="text-sm text-gray-500">{{ wallet.address|slice(0, 20) }}...</p>
+										</div>
+									</div>
+									<div class="flex items-center gap-2">
+										{% if wallet.isDefault %}
+											<span class="badge badge-light-success">Par défaut</span>
+										{% endif %}
+										<button type="button" class="btn btn-sm btn-icon btn-light-danger">
+											<i class="ki-duotone ki-trash fs-2"></i>
+										</button>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		{# Supported Cryptocurrencies #}
+		<div class="card">
+			<div class="card-header">
+				<h3 class="card-title">Cryptomonnaies Supportées</h3>
+			</div>
+			<div class="card-body">
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+					{% for name, symbol in supportedCryptos %}
+						<div class="flex flex-col items-center p-4 border rounded-lg">
+							<div class="w-12 h-12 rounded-full bg-light flex items-center justify-center mb-2">
+								<i class="ki-duotone ki-{{ symbol|lower }} fs-2"></i>
+							</div>
+							<p class="font-medium">{{ name }}</p>
+							<p class="text-sm text-gray-500">{{ symbol }}</p>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Payment Method Modal #}
+	{% include 'user/components/forms/payment-method-modal.html.twig' with {
+        form: form
+    } %}
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script src="https://js.stripe.com/v3/"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const stripe = Stripe('{{ stripe_public_key }}');
+const paymentManager = new PaymentMethodManager(stripe);
+
+// Initialize payment method buttons
+document.querySelectorAll('[data-payment-method]').forEach(button => {
+button.addEventListener('click', () => {
+const type = button.dataset.paymentMethod;
+const modal = document.getElementById('payment-method-modal');
+const radioInput = modal.querySelector (`input[value="${type}"]`);
+if (radioInput) {
+radioInput.checked = true;
+radioInput.dispatchEvent(new Event('change'));
+}
+bootstrap.Modal.getOrCreateInstance(modal).show();
+});
+});
+});
+	</script>
+{% endblock %}

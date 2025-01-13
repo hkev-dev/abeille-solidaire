@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\PaymentMethodRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PaymentMethodRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -30,16 +31,17 @@ class PaymentMethod
     private User $user;
 
     #[ORM\Column(length: 20)]
+    #[Assert\Choice(choices: [self::TYPE_CARD, self::TYPE_CRYPTO])]
     private string $methodType;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $stripeCustomerId = null;
+    private ?string $stripePaymentMethodId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinpaymentsTag = null;  // Replace coinbase_account_id with coinpaymentsTag
+    private ?string $cryptoCurrency = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cryptoCurrency = null;  // Add preferred cryptocurrency for CoinPayments
+    private ?string $cryptoAddress = null;
 
     #[ORM\Column]
     private bool $isDefault = false;
@@ -83,25 +85,14 @@ class PaymentMethod
         return $this;
     }
 
-    public function getStripeCustomerId(): ?string
+    public function getStripePaymentMethodId(): ?string
     {
-        return $this->stripeCustomerId;
+        return $this->stripePaymentMethodId;
     }
 
-    public function setStripeCustomerId(?string $stripeCustomerId): self
+    public function setStripePaymentMethodId(?string $stripePaymentMethodId): self
     {
-        $this->stripeCustomerId = $stripeCustomerId;
-        return $this;
-    }
-
-    public function getCoinpaymentsTag(): ?string 
-    {
-        return $this->coinpaymentsTag;
-    }
-
-    public function setCoinpaymentsTag(?string $tag): self
-    {
-        $this->coinpaymentsTag = $tag;
+        $this->stripePaymentMethodId = $stripePaymentMethodId;
         return $this;
     }
 
@@ -110,9 +101,20 @@ class PaymentMethod
         return $this->cryptoCurrency;
     }
 
-    public function setCryptoCurrency(?string $currency): self
+    public function setCryptoCurrency(?string $cryptoCurrency): self
     {
-        $this->cryptoCurrency = $currency;
+        $this->cryptoCurrency = $cryptoCurrency;
+        return $this;
+    }
+
+    public function getCryptoAddress(): ?string
+    {
+        return $this->cryptoAddress;
+    }
+
+    public function setCryptoAddress(?string $cryptoAddress): self
+    {
+        $this->cryptoAddress = $cryptoAddress;
         return $this;
     }
 

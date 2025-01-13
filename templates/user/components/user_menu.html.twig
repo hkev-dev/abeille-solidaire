@@ -148,19 +148,23 @@
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
+            routes: ['app.user.settings.kyc', 'app.user.settings.payment_methods', 'app.user.settings.membership'],
             submenu: [
                 {
                     label: 'KYC Vérification',
+                    route: 'app.user.settings.kyc',
                     badge: not kycStatus ? {
                         text: 'Requis',
                         class: 'badge-warning'
                     } : null
                 },
                 {
-                    label: 'Méthodes de Paiement'
+                    label: 'Méthodes de Paiement',
+                    route: 'app.user.settings.payment_methods'
                 },
                 {
                     label: 'Adhésion Annuelle',
+                    route: 'app.user.settings.membership',
                     badge: not currentMembership ? {
                         text: 'À renouveler',
                         class: 'badge-danger'

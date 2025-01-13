@@ -16,6 +16,8 @@ parameters:
     coinpayments.private_key: "%env(COINPAYMENTS_PRIVATE_KEY)%"
     coinpayments.ipn_secret: "%env(COINPAYMENTS_IPN_SECRET)%"
     app.secret: '%env(APP_SECRET)%'
+    kyc_uploads_dir: '%kernel.project_dir%/private/uploads/kyc'
+    kyc_provider: 'sumsub' # or your chosen KYC provider
 
 services:
     # default configuration for services in *this* file
@@ -86,3 +88,21 @@ services:
     App\EventSubscriber\MembershipEventSubscriber:
         tags:
             - { name: kernel.event_subscriber }
+
+    App\Service\KycService:
+        arguments:
+            $kycUploadsDir: '%kyc_uploads_dir%'
+            $kycProvider: '%kyc_provider%'
+
+    # Update Stripe client service definition to match BaseStripeClient constructor
+    stripe.client:
+        class: Stripe\StripeClient
+        arguments: ['%stripe.secret_key%']
+
+    # Update PaymentMethodService to use properly initialized Stripe client
+    App\Service\PaymentMethodService:
+        arguments:
+            $stripe: '@stripe.client'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $coinPayments: '@App\Service\CoinPaymentsService'
+            $logger: '@logger'

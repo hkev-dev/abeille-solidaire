@@ -135,6 +135,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $organizationNumber = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripeCustomerId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $defaultPaymentMethodId = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -538,6 +544,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setOrganizationNumber(?string $organizationNumber): self
     {
         $this->organizationNumber = $organizationNumber;
+        return $this;
+    }
+
+    public function getStripeCustomerId(): ?string
+    {
+        return $this->stripeCustomerId;
+    }
+
+    public function setStripeCustomerId(?string $stripeCustomerId): self
+    {
+        $this->stripeCustomerId = $stripeCustomerId;
+        return $this;
+    }
+
+    public function getDefaultPaymentMethodId(): ?string
+    {
+        return $this->defaultPaymentMethodId;
+    }
+
+    public function setDefaultPaymentMethodId(?string $defaultPaymentMethodId): self
+    {
+        $this->defaultPaymentMethodId = $defaultPaymentMethodId;
         return $this;
     }
 

@@ -32,4 +32,5 @@
 /public/uploads/
 /public/uploads/*
 !public/uploads/.gitkeep
+/private/uploads/
 ###< Custom application ignores ###

@@ -1,0 +1,178 @@
+{% extends 'user/pages/settings/layout.html.twig' %}
+
+{% block page_title %}Vérification KYC{% endblock %}
+
+{% block settings_content %}
+    {# Status Card #}
+    <div class="card mb-6">
+        <div class="card-body p-0">
+            <div class="px-6 py-12 {{ user.isKycVerified ? 'bg-success/10' : 'bg-warning/10' }}">
+                <div class="text-center">
+                    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center {{ user.isKycVerified ? 'bg-success text-success-inverse' : 'bg-warning text-warning-inverse' }}">
+                        <i class="ki-duotone ki-shield-tick text-4xl"></i>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold mb-2">
+                        {% if user.isKycVerified %}
+                            Vérification KYC Complète
+                        {% else %}
+                            Vérification KYC Requise
+                        {% endif %}
+                    </h2>
+                    
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        {% if user.isKycVerified %}
+                            Votre compte a été vérifié avec succès le {{ user.kycVerifiedAt|date('d/m/Y') }}. 
+                            Vous avez maintenant accès à toutes les fonctionnalités de la plateforme.
+                        {% else %}
+                            La vérification KYC est requise pour effectuer des retraits et accéder à toutes 
+                            les fonctionnalités de la plateforme. Ce processus nous aide à maintenir un 
+                            environnement sûr et conforme.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not user.isKycVerified %}
+        {# KYC Form Card #}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Vérification d'Identité</h3>
+            </div>
+            <div class="card-body">
+                <div class="max-w-3xl mx-auto">
+                    {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {# Document Type #}
+                            <div class="form-group">
+                                {{ form_label(form.documentType, 'Type de Document') }}
+                                {{ form_widget(form.documentType, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.documentType) }}
+                            </div>
+
+                            {# Document Number #}
+                            <div class="form-group">
+                                {{ form_label(form.documentNumber, 'Numéro du Document') }}
+                                {{ form_widget(form.documentNumber) }}
+                                {{ form_errors(form.documentNumber) }}
+                            </div>
+
+                            {# Issuing Country #}
+                            <div class="form-group">
+                                {{ form_label(form.issuingCountry, 'Pays Émetteur') }}
+                                {{ form_widget(form.issuingCountry) }}
+                                {{ form_errors(form.issuingCountry) }}
+                            </div>
+
+                            {# Expiry Date #}
+                            <div class="form-group">
+                                {{ form_label(form.expiryDate, 'Date d\'Expiration') }}
+                                {{ form_widget(form.expiryDate) }}
+                                {{ form_errors(form.expiryDate) }}
+                            </div>
+                        </div>
+
+                        {# Document Upload Section #}
+                        <div class="mt-8 space-y-6">
+                            <h4 class="font-medium mb-4">Documents Requis</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {# Front Image #}
+                                <div class="image-input-wrapper">
+                                    <label class="block text-sm font-medium mb-2">Recto du Document</label>
+                                    {{ form_widget(form.frontImage, {
+                                        'attr': {
+                                            'class': 'image-input',
+                                            'data-preview': '#frontPreview'
+                                        }
+                                    }) }}
+                                    <div id="frontPreview" class="mt-2 image-preview"></div>
+                                    {{ form_errors(form.frontImage) }}
+                                </div>
+
+                                {# Back Image #}
+                                <div class="image-input-wrapper">
+                                    <label class="block text-sm font-medium mb-2">Verso du Document</label>
+                                    {{ form_widget(form.backImage, {
+                                        'attr': {
+                                            'class': 'image-input',
+                                            'data-preview': '#backPreview'
+                                        }
+                                    }) }}
+                                    <div id="backPreview" class="mt-2 image-preview"></div>
+                                    {{ form_errors(form.backImage) }}
+                                </div>
+
+                                {# Selfie Image #}
+                                <div class="image-input-wrapper">
+                                    <label class="block text-sm font-medium mb-2">Selfie avec Document</label>
+                                    {{ form_widget(form.selfieImage, {
+                                        'attr': {
+                                            'class': 'image-input',
+                                            'data-preview': '#selfiePreview'
+                                        }
+                                    }) }}
+                                    <div id="selfiePreview" class="mt-2 image-preview"></div>
+                                    {{ form_errors(form.selfieImage) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center mt-8">
+                            <button type="submit" class="btn btn-primary min-w-[200px]">
+                                <i class="ki-duotone ki-check fs-2 me-2"></i>
+                                Soumettre la Vérification
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize image previews
+            document.querySelectorAll('.image-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const preview = document.querySelector(this.dataset.preview);
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            preview.style.backgroundImage = `url(${e.target.result})`;
+                            preview.classList.add('has-image');
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .image-input-wrapper {
+            position: relative;
+        }
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2px dashed #e4e6ef;
+            border-radius: 0.475rem;
+        }
+        .image-preview.has-image {
+            border-style: solid;
+            border-color: var(--bs-primary);
+        }
+    </style>
+{% endblock %}

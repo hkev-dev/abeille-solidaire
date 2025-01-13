@@ -59,4 +59,14 @@ class MembershipRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByUser(User $user): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('m.startDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
