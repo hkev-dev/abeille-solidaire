@@ -1,62 +1,102 @@
-<div class="modal fade" id="payment-method-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Ajouter un Moyen de Paiement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                {{ form_start(form, {'attr': {'id': 'payment-method-form'}}) }}
-                    <div class="mb-5">
-                        {{ form_row(form.type, {
-                            'row_attr': {'class': 'payment-type-selector'},
-                            'attr': {'class': 'hidden'}
+<div class="modal" data-modal="true" id="payment-method-modal">
+	<div class="modal-content modal-center-y max-w-[600px]">
+		<div class="modal-header">
+			<h3 class="modal-title">Ajouter un moyen de paiement</h3>
+			<button class="btn btn-icon btn-sm btn-light hover:bg-gray-100" data-modal-dismiss="true">
+				<i class="ki-outline ki-cross fs-2"></i>
+			</button>
+		</div>
+
+		<div class="modal-body p-5">
+			{{ form_start(form, {'attr': {'id': 'payment-method-form', 'class': 'space-y-8'}}) }}
+
+			{# Payment Type Selection #}
+			<div class="grid grid-cols-2 gap-6">
+				{% set paymentTypes = {
+                    'card': {
+                        'title': 'Carte bancaire',
+                        'icon': 'ki-duotone ki-credit-cart',
+                        'description': 'Paiement sécurisé par carte bancaire'
+                    },
+                    'crypto': {
+                        'title': 'Cryptomonnaie',
+                        'icon': 'ki-duotone ki-bitcoin',
+                        'description': 'Paiement en cryptomonnaie via CoinPayments'
+                    }
+                } %}
+
+				{% for type, config in paymentTypes %}
+					<div data-payment-toggle="{{ type }}" class="payment-type-option cursor-pointer group">
+						<div class="relative p-8 rounded-xl border-2 border-dashed hover:bg-light-primary/50 hover:border-primary transition-all">
+							{{ form_widget(form.type[loop.index0], {
+                                'attr': {
+                                    'class': 'absolute inset-0 opacity-0 cursor-pointer',
+                                    'data-type': type
+                                }
+                            }) }}
+							<div class="text-center">
+								<div class="w-20 h-20 rounded-xl bg-light mx-auto mb-4 flex items-center justify-center group-hover:bg-white transition-colors">
+									<i class="{{ config.icon }} text-[50px] text-gray-600 group-hover:text-primary transition-colors"></i>
+								</div>
+								<h4 class="text-lg font-semibold mb-2">{{ config.title }}</h4>
+								<p class="text-sm text-gray-500">{{ config.description }}</p>
+							</div>
+							<div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+								<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+									<i class="ki-duotone ki-check fs-2 text-white"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+
+			{# Card Form #}
+			<div id="card-form" class="payment-method-form hidden space-y-4">
+				<div class="card bg-light-light">
+					<div class="card-body space-y-2">
+						<label class="block text-sm font-medium text-gray-700 required">Informations de la carte</label>
+						<div id="card-element" class="input p-3 !block"></div>
+						<div id="card-errors" class="text-danger text-sm mt-2 hidden"></div>
+					</div>
+				</div>
+			</div>
+
+			{# Crypto Form #}
+			<div id="crypto-form" class="payment-method-form hidden space-y-4">
+				<div class="card bg-light-light">
+					<div class="card-body space-y-4">
+						{{ form_row(form.cryptoCurrency, {
+                            'label_attr': {'class': 'block text-sm font-medium text-gray-700 required'},
+                            'attr': {
+                                'class': 'select bg-white',
+                                'data-control': 'select2',
+                                'data-placeholder': 'Sélectionnez une cryptomonnaie'
+                            },
+                            'row_attr': {'class': 'space-y-2'}
                         }) }}
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <label for="payment_method_type_card" class="payment-type-option">
-                                <input type="radio" name="payment_method[type]" id="payment_method_type_card" value="card" class="hidden">
-                                <div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
-                                    <div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
-                                        <i class="ki-duotone ki-credit-cart fs-2"></i>
-                                    </div>
-                                    <span class="font-medium">Carte bancaire</span>
-                                </div>
-                            </label>
-                            
-                            <label for="payment_method_type_crypto" class="payment-type-option">
-                                <input type="radio" name="payment_method[type]" id="payment_method_type_crypto" value="crypto" class="hidden">
-                                <div class="border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
-                                    <div class="w-12 h-12 rounded-full bg-light mx-auto mb-3 flex items-center justify-center">
-                                        <i class="ki-duotone ki-bitcoin fs-2"></i>
-                                    </div>
-                                    <span class="font-medium">Cryptomonnaie</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
 
-                    <div id="card-form" class="payment-method-form hidden">
-                        <div class="mb-5">
-                            <label class="form-label">Numéro de carte</label>
-                            <div id="card-element" class="form-control h-[44px] flex items-center"></div>
-                            <div id="card-errors" class="invalid-feedback"></div>
-                        </div>
-                    </div>
+						{{ form_row(form.walletAddress, {
+                            'label_attr': {'class': 'block text-sm font-medium text-gray-700 required'},
+                            'attr': {
+                                'class': 'input bg-white',
+                                'placeholder': 'Ex: 0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
+                            },
+                            'row_attr': {'class': 'space-y-2'}
+                        }) }}
+					</div>
+				</div>
+			</div>
 
-                    <div id="crypto-form" class="payment-method-form hidden">
-                        {{ form_row(form.cryptoCurrency) }}
-                        {{ form_row(form.walletAddress) }}
-                    </div>
-
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary min-w-[200px]">
-                            <i class="ki-duotone ki-check fs-2 me-2"></i>
-                            Ajouter
-                        </button>
-                    </div>
-                {{ form_end(form) }}
+			{# Submit Button #}
+            <div class="text-center mt-8">
+                <button type="submit" class="btn btn-lg btn-primary">
+                    Ajouter ce moyen de paiement
+                </button>
             </div>
-        </div>
-    </div>
+
+			{{ form_rest(form) }}
+			{{ form_end(form) }}
+		</div>
+	</div>
 </div>

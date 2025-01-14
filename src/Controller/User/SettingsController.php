@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\MapFromRequest;
 
 #[Route('/user/settings')]
 class SettingsController extends AbstractController
@@ -86,6 +87,72 @@ class SettingsController extends AbstractController
             'form' => $form,
             'supportedCryptos' => $this->paymentMethodService->getSupportedCryptoCurrencies(),
         ]);
+    }
+
+    #[Route('/payment-methods/add', name: 'app.user.settings.payment_methods.add', methods: ['POST'])]
+    public function addPaymentMethod(Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        $data = json_decode($request->getContent(), true);
+
+        try {
+            if ($data['type'] === 'card') {
+                $success = $this->paymentMethodService->addCardPaymentMethod(
+                    $user,
+                    $data['paymentMethodId']
+                );
+            } else {
+                $success = $this->paymentMethodService->addCryptoWallet(
+                    $user,
+                    $data['currency'],
+                    $data['address']
+                );
+            }
+
+            return new JsonResponse([
+                'success' => $success,
+                'message' => 'Moyen de paiement ajouté avec succès'
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    #[Route('/payment-methods/{id}/default', name: 'app.user.settings.payment_methods.default', methods: ['POST'])]
+    public function setDefaultPaymentMethod(int $id): JsonResponse
+    {
+        try {
+            $success = $this->paymentMethodService->setDefaultPaymentMethod($id, $this->getUser());
+            return new JsonResponse([
+                'success' => $success,
+                'message' => 'Moyen de paiement défini par défaut'
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    #[Route('/payment-methods/{id}/delete', name: 'app.user.settings.payment_methods.delete', methods: ['POST'])]
+    public function deletePaymentMethod(int $id): JsonResponse
+    {
+        try {
+            $success = $this->paymentMethodService->deletePaymentMethod($id, $this->getUser());
+            return new JsonResponse([
+                'success' => $success,
+                'message' => 'Moyen de paiement supprimé avec succès'
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
     #[Route('/membership', name: 'app.user.settings.membership')]
