@@ -88,18 +88,18 @@
 	{# Main Navigation #}
 	<nav class="main-menu">
 		<div class="main-menu__wrapper">
-			<div class="main-menu__wrapper-inner d-flex align-items-center justify-content-between">
-				<div class="main-menu__left d-flex align-items-center gap-4">
+			<div class="main-menu__wrapper-inner clearfix">
+				<div class="main-menu__left">
 					<div class="main-menu__logo">
 						<a href="{{ path('landing.home') }}">
-							<img src="{{ asset('images/app/logo-3.png') }}" alt="" style="max-height: 60px; width: auto;">
+							<img src="{{ asset('images/app/logo-3.png') }}" alt="" style="max-height: 99px; width: auto;">
 						</a>
 					</div>
 					<div class="main-menu__main-menu-box">
 						<a href="#" class="mobile-nav__toggler">
 							<i class="fa fa-bars"></i>
 						</a>
-						<ul class="main-menu__list d-flex align-items-center m-0 p-0">
+						<ul class="main-menu__list">
 							{% include 'public/layouts/navigation.html.twig' %}
 						</ul>
 					</div>

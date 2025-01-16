@@ -1,44 +1,56 @@
-<div class="mobile-nav__wrapper">
-    {# Mobile Navigation Overlay #}
-    <div class="mobile-nav__overlay mobile-nav__toggler"></div>
+<div
+	class="mobile-nav__wrapper">
+	{# Mobile Navigation Overlay #}
+	<div class="mobile-nav__overlay mobile-nav__toggler"></div>
 
-    {# Mobile Navigation Content #}
-    <div class="mobile-nav__content">
-        {# Close Button #}
-        <span class="mobile-nav__close mobile-nav__toggler">
-            <i class="fa fa-times"></i>
-        </span>
+	{# Mobile Navigation Content #}
+	<div
+		class="mobile-nav__content">
+		{# Close Button #}
+		<span class="mobile-nav__close mobile-nav__toggler">
+			<i class="fa fa-times"></i>
+		</span>
 
-        {# Mobile Logo #}
-        <div class="logo-box">
-            <a href="{{ path('landing.home') }}" aria-label="logo image">
-                <img src="{{ asset('landing/images/resources/logo-2.png') }}" width="143" alt="Qrowd Logo"/>
-            </a>
-        </div>
+		{# Mobile Logo #}
+		<div class="logo-box">
+			<a href="{{ path('landing.home') }}" aria-label="logo image">
+				<img src="{{ asset('landing/images/resources/logo-3.png') }}" height="100" alt="Abeille Solidaire Logo"/>
+			</a>
+		</div>
 
-        {# Mobile Navigation Container - Will be populated dynamically #}
-        <div class="mobile-nav__container"></div>
+		{# Mobile Navigation Container - Will be populated dynamically #}
+		<div class="mobile-nav__container"></div>
 
-        {# Mobile Contact Information #}
-        <ul class="mobile-nav__contact list-unstyled">
-            <li>
-                <i class="fa fa-envelope"></i>
-                <a href="mailto:needhelp@qrowd.com">needhelp@qrowd.com</a>
-            </li>
-            <li>
-                <i class="fa fa-phone-alt"></i>
-                <a href="tel:666-888-0000">666 888 0000</a>
-            </li>
-        </ul>
+		{# Mobile Contact Information #}
+		<ul class="mobile-nav__contact list-unstyled">
+			<li>
+				<i class="fa fa-envelope"></i>
+				<a href="mailto:{{ site_config.contact.email }}">{{ site_config.contact.email }}</a>
+			</li>
+			<li>
+				<i class="fa fa-phone-alt"></i>
+				<a href="tel:{{ site_config.contact.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">
+					{{ site_config.contact.phone }}
+				</a>
+			</li>
+		</ul>
 
-        {# Mobile Social Links #}
-        <div class="mobile-nav__top">
-            <div class="mobile-nav__social">
-                <a href="#" class="fab fa-twitter"></a>
-                <a href="#" class="fab fa-facebook-square"></a>
-                <a href="#" class="fab fa-pinterest-p"></a>
-                <a href="#" class="fab fa-instagram"></a>
-            </div>
-        </div>
-    </div>
+		{# Mobile Social Links #}
+		<div class="mobile-nav__top">
+			<div class="mobile-nav__social">
+				<a href="{{ site_config.social.twitter }}">
+					<i class="fab fa-twitter"></i>
+				</a>
+				<a href="{{ site_config.social.facebook }}">
+					<i class="fab fa-facebook"></i>
+				</a>
+				<a href="{{ site_config.social.pinterest }}">
+					<i class="fab fa-pinterest-p"></i>
+				</a>
+				<a href="{{ site_config.social.instagram }}">
+					<i class="fab fa-instagram"></i>
+				</a>
+			</div>
+		</div>
+	</div>
 </div>
