@@ -93,6 +93,24 @@
                 padding: 20px;
             }
         }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-input-wrapper .phone-flag {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .phone-input-wrapper input {
+            padding-left: 60px !important;
+        }
+        .phone-invalid {
+            border-color: #dc3545 !important;
+        }
+        .phone-valid {
+            border-color: #198754 !important;
+        }
     </style>
 {% endblock %}
 
@@ -158,8 +176,8 @@
                                 </div>
                             </div>
                             {{ form_row(form.email) }}
-                            {{ form_row(form.phone) }}
                             {{ form_row(form.country) }}
+                            {{ form_row(form.phone) }}
 
                             <h4 class="mb-3">Sécurité du Compte</h4>
                             {{ form_row(form.username) }}
@@ -208,6 +226,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    <script src="https://unpkg.com/libphonenumber-js@1.10.55/bundle/libphonenumber-js.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Add default referral code in dev/test environment if no referral code is present
@@ -290,6 +309,47 @@
 
             // Check initial state
             checkOrganizationVisibility();
+
+            // Phone number formatting and validation
+            const phoneInput = document.querySelector('input[name="registration[phone]"]');
+            const countrySelect = document.querySelector('select[name="registration[country]"]');
+            
+            if (phoneInput && countrySelect) {
+                function updatePhoneValidation() {
+                    const phoneNumber = phoneInput.value.trim();
+                    const countryCode = countrySelect.value;
+                    
+                    try {
+                        const parsedNumber = libphonenumber.parsePhoneNumber(phoneNumber, countryCode);
+                        const isValid = parsedNumber.isValid();
+                        
+                        phoneInput.classList.remove('phone-invalid', 'phone-valid');
+                        phoneInput.classList.add(isValid ? 'phone-valid' : 'phone-invalid');
+                        
+                       
+                        
+                        // Format the number as the user types
+                        if (isValid && phoneInput === document.activeElement) {
+                            const formattedNumber = parsedNumber.formatInternational();
+                            if (formattedNumber !== phoneInput.value) {
+                                phoneInput.value = formattedNumber;
+                            }
+                        }
+                        
+                        return isValid;
+                    } catch (error) {
+                        phoneInput.classList.remove('phone-valid');
+                        phoneInput.classList.add('phone-invalid');
+                        return false;
+                    }
+                }
+
+                phoneInput.addEventListener('input', updatePhoneValidation);
+                countrySelect.addEventListener('change', updatePhoneValidation);
+                
+                // Initial validation
+                updatePhoneValidation();
+            }
         });
     </script>
 {% endblock %}

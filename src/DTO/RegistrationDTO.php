@@ -2,7 +2,9 @@
 
 namespace App\DTO;
 
+use libphonenumber\PhoneNumber;
 use Symfony\Component\Validator\Constraints as Assert;
+use Misd\PhoneNumberBundle\Validator\Constraints\PhoneNumber as AssertPhoneNumber;
 
 class RegistrationDTO
 {
@@ -54,8 +56,8 @@ class RegistrationDTO
     #[Assert\Length(min: 2)]
     public ?string $country = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Regex(pattern: '/^\+?[1-9]\d{1,14}$/', message: 'Please enter a valid phone number')]
+    #[Assert\NotBlank(message: 'Le numéro de téléphone est requis')]
+    #[AssertPhoneNumber(message: 'Veuillez entrer un numéro de téléphone valide')]
     public ?string $phone = null;
 
     #[Assert\NotBlank]
