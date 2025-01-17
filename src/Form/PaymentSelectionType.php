@@ -4,6 +4,7 @@ namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -30,6 +31,21 @@ class PaymentSelectionType extends AbstractType
                     ])
                 ],
                 'attr' => ['class' => 'payment-method-selection']
+            ])
+            ->add('include_annual_membership', CheckboxType::class, [
+                'required' => false,
+                'label' => 'Payer l\'adhésion annuelle maintenant (25€)',
+                'label_attr' => ['class' => 'form-check-label'],
+                'attr' => [
+                    'class' => 'form-check-input',
+                    'data-toggle' => 'tooltip',
+                    'data-placement' => 'right',
+                    'title' => 'L\'adhésion annuelle est obligatoire pour les retraits et certaines fonctionnalités. Vous pouvez la payer maintenant ou plus tard.'
+                ],
+                'row_attr' => ['class' => 'form-check annual-membership-option mb-4'],
+                'help' => 'Le montant total sera de 50€ (25€ inscription + 25€ adhésion)',
+                'help_attr' => ['class' => 'form-text text-muted'],
+                'mapped' => false
             ])
             ->add('csrf_token', HiddenType::class, [
                 'mapped' => false,

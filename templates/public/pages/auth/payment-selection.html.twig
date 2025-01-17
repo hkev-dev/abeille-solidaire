@@ -21,7 +21,7 @@
 			background-color: rgba(var(--thm-base-rgb), 0.05);
 		}
 		#stripe-payment-form {
-			min-width: 500px;
+			min-width: 100%;
 			margin: 0 auto;
 		}
 		#card-element {
@@ -73,6 +73,79 @@
 						{{ form_start(form, {'attr': {'id': 'payment-selection-form'}}) }}
 						{{ form_errors(form) }}
 
+						{# Payment Summary Card #}
+						<div class="payment-summary mb-4">
+							<div class="d-flex align-items-center mb-3">
+								<h4 class="mb-0">Récapitulatif du Paiement</h4>
+								<div class="ms-auto">
+									<span class="badge bg-primary">Étape 2/2</span>
+								</div>
+							</div>
+
+							<div class="card bg-light">
+								<div class="card-body">
+									<div class="table-responsive">
+										<table class="table table-borderless mb-0">
+											<tbody>
+												<tr>
+													<td>
+														<div class="d-flex align-items-center">
+															<i class="fas fa-user-plus me-2 text-primary"></i>
+															Frais d'inscription
+															<i class="fas fa-info-circle ms-2 text-muted" data-bs-toggle="tooltip" title="Frais uniques d'inscription à la plateforme"></i>
+														</div>
+													</td>
+													<td class="text-end">25,00 €</td>
+												</tr>
+												<tr id="membership-row" style="display: none;">
+													<td>
+														<div class="d-flex align-items-center">
+															<i class="fas fa-star me-2 text-warning"></i>
+															Adhésion annuelle
+															<i class="fas fa-info-circle ms-2 text-muted" data-bs-toggle="tooltip" title="Permet d'accéder aux fonctionnalités premium pendant 1 an"></i>
+														</div>
+													</td>
+													<td class="text-end">25,00 €</td>
+												</tr>
+												<tr class="fw-bold border-top">
+													<td class="pt-3">Total à payer</td>
+													<td class="text-end pt-3" id="total-amount">25,00 €</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{# Annual Membership Toggle #}
+						<div class="membership-toggle mb-4">
+							<div class="card border-warning">
+								<div class="card-body">
+									<div class="form-check form-switch d-flex align-items-center">
+										{{ form_widget(form.include_annual_membership, {
+												'attr': {
+													'class': 'form-check-input me-3',
+													'role': 'switch',
+													'style': 'transform: scale(1.4); margin-left: 0;'
+												}
+											}) }}
+										<div>
+											<label class="form-check-label fw-bold" for="include_annual_membership">
+												<i class="fas fa-star text-warning me-2"></i>
+												Ajouter l'adhésion annuelle (25€)
+											</label>
+											<p class="text-muted mb-0 small">
+												<i class="fas fa-info-circle me-1"></i>
+												Obligatoire pour les retraits et l'accès aux fonctionnalités premium
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+
 						<div
 							class="payment-options">
 							{# Credit Card Option #}
@@ -115,7 +188,7 @@
 						{{ form_end(form) }}
 
 						{# Stripe Payment Form #}
-						<form id="stripe-payment-form" class="mt-4" style="display: none;">
+						<form id="stripe-payment-form" style="display: none;">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('stripe_payment') }}">
 							<div class="mb-4">
 								<div id="card-element" class="form-control"></div>
@@ -129,7 +202,7 @@
 						</form>
 
 						{# Crypto Payment Form - Updated for CoinPayments #}
-						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" class="mt-4" style="display: none;">
+						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" style="display: none;">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
 
 							<div class="mb-4">

@@ -45,6 +45,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
         $metadata = $paymentIntent['metadata'];
         $paymentType = $metadata['payment_type'] ?? null;
         $userId = $metadata['user_id'] ?? null;
+        $includeMembership = filter_var($metadata['include_membership'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (!$userId) {
             throw new WebhookException('Missing user ID in payment metadata');
@@ -60,17 +61,19 @@ final class StripeWebhookConsumer implements ConsumerInterface
         }
 
         $this->paymentService->handlePaymentSuccess(
-            $user,
-            'stripe',
-            $paymentType,
-            $paymentIntent['id']
+            user: $user,
+            paymentMethod: 'stripe',
+            paymentType: $paymentType,
+            transactionId: $paymentIntent['id'],
+            includeAnnualMembership: $includeMembership
         );
 
         return [
             'status' => 'success',
             'type' => 'payment_intent.succeeded',
             'payment_intent' => $paymentIntent['id'],
-            'payment_type' => $paymentType
+            'payment_type' => $paymentType,
+            'include_membership' => $includeMembership
         ];
     }
 

@@ -127,14 +127,23 @@ class AuthController extends AbstractController
         // Handle AJAX requests for Stripe payment intent creation
         if ($request->isXmlHttpRequest() && $request->getContent()) {
             $data = json_decode($request->getContent(), true);
+            $includeAnnualMembership = $data['include_annual_membership'] ?? false;
 
             if ($data['payment_method'] === 'stripe') {
                 try {
-                    $stripeData = $this->registrationPaymentService->createStripePaymentIntent($user);
-                    // Store payment method in session
+                    $stripeData = $this->registrationPaymentService->createStripePaymentIntent(
+                        user: $user,
+                        paymentType: 'registration',
+                        includeAnnualMembership: $includeAnnualMembership
+                    );
+
+                    // Store payment preferences in session
                     $request->getSession()->set('payment_method', 'stripe');
+                    $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
+
                     return $this->json([
-                        'clientSecret' => $stripeData['clientSecret']
+                        'clientSecret' => $stripeData['clientSecret'],
+                        'amount' => $stripeData['amount']
                     ]);
                 } catch (\Exception $e) {
                     return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
@@ -142,17 +151,11 @@ class AuthController extends AbstractController
             }
         }
 
-        // Regular form handling
         $form = $this->createForm(PaymentSelectionType::class, null, [
             'action' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
         ]);
 
         $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            // This branch will handle non-AJAX form submissions if needed
-            // Currently not used as both payment methods use AJAX
-        }
 
         return $this->render('public/pages/auth/payment-selection.html.twig', [
             'form' => $form->createView(),
@@ -169,21 +172,31 @@ class AuthController extends AbstractController
         }
 
         $this->validateCsrfToken($request, 'crypto_payment');
+        $includeAnnualMembership = filter_var(
+            $request->request->get('include_annual_membership', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
 
         try {
-            $transaction = $this->registrationPaymentService->createCoinPaymentsTransaction($user);
+            $transaction = $this->registrationPaymentService->createCoinPaymentsTransaction(
+                user: $user,
+                paymentType: 'registration',
+                currency: $request->request->get('currency'),
+                includeAnnualMembership: $includeAnnualMembership
+            );
 
-            // Store payment method in session before redirect
+            // Store payment preferences in session
             $request->getSession()->set('payment_method', 'crypto');
+            $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
             $request->getSession()->set('txn_id', $transaction['txn_id']);
 
             return $this->json($transaction);
         } catch (\Exception $e) {
             $this->logger->error('CoinPayments transaction creation failed', [
                 'user_id' => $user->getId(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'include_membership' => $includeAnnualMembership
             ]);
-
 
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
@@ -294,12 +307,17 @@ class AuthController extends AbstractController
                         throw new \Exception("User not found for item_number: {$ipnData['item_number']}");
                     }
 
+                    // Parse custom field to get membership inclusion
+                    $custom = json_decode($ipnData['custom'] ?? '{}', true);
+                    $includeAnnualMembership = filter_var($custom['include_membership'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
                     $paymentStatus = (int) $ipnData['status'];
                     $this->logger->info('Processing payment status', [
                         'webhook_id' => $webhookId,
                         'user_id' => $user->getId(),
                         'status' => $paymentStatus,
-                        'status_text' => $ipnData['status_text'] ?? null
+                        'status_text' => $ipnData['status_text'] ?? null,
+                        'include_membership' => $includeAnnualMembership
                     ]);
 
                     match ($paymentStatus) {
@@ -307,7 +325,9 @@ class AuthController extends AbstractController
                         100 => $this->registrationPaymentService->handlePaymentSuccess(
                             user: $user,
                             paymentMethod: 'coinpayments',
-                            transactionId: $ipnData['txn_id']
+                            paymentType: 'registration',
+                            transactionId: $ipnData['txn_id'],
+                            includeAnnualMembership: $includeAnnualMembership
                         ),
                         // Cancelled/Timeout
                         -1 => $this->registrationPaymentService->handlePaymentFailure(
@@ -351,8 +371,8 @@ class AuthController extends AbstractController
             ]);
 
             // Return 202 to avoid webhook retries for business logic errors
-            $statusCode = $e instanceof WebhookException 
-                ? Response::HTTP_ACCEPTED 
+            $statusCode = $e instanceof WebhookException
+                ? Response::HTTP_ACCEPTED
                 : Response::HTTP_INTERNAL_SERVER_ERROR;
 
             return new Response('IPN Error: ' . $e->getMessage(), $statusCode);
@@ -378,11 +398,13 @@ class AuthController extends AbstractController
     {
         try {
             $currencies = $this->registrationPaymentService->getAcceptedCryptoCurrencies();
-            
+
             // For testing environments, ensure LTCT is available
-            if (empty($currencies) && 
-                ($this->getParameter('kernel.environment') === 'dev' || 
-                 $this->getParameter('kernel.environment') === 'test')) {
+            if (
+                empty($currencies) &&
+                ($this->getParameter('kernel.environment') === 'dev' ||
+                    $this->getParameter('kernel.environment') === 'test')
+            ) {
                 $currencies['LTCT'] = [
                     'name' => 'Litecoin Testnet',
                     'rate_btc' => '0.00000000',
@@ -391,7 +413,7 @@ class AuthController extends AbstractController
                     'is_fiat' => 0
                 ];
             }
-            
+
             return $this->json(['currencies' => $currencies]);
         } catch (\Exception $e) {
             return $this->json([

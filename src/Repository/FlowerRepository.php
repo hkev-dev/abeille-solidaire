@@ -125,20 +125,30 @@ class FlowerRepository extends ServiceEntityRepository
 
     public function findNextRecipientInFlower(Flower $flower): ?User
     {
-        return $this->createQueryBuilder('u')
-            ->where('u.currentFlower = :flower')
-            ->andWhere('u.isVerified = true')
-            ->andWhere('u.registrationPaymentStatus = :status')
-            ->andSelect(
-                '(SELECT COUNT(d) FROM App\Entity\Donation d 
-                WHERE d.recipient = u AND d.flower = :flower) as donation_count'
-            )
-            ->having('donation_count < 4')
-            ->setParameter('flower', $flower)
-            ->setParameter('status', 'completed')
-            ->orderBy('u.waitingSince', 'ASC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        try {
+            $qb = $this->getEntityManager()->createQueryBuilder();
+            return $qb->select('u')
+                ->from(User::class, 'u')
+                ->where('u.currentFlower = :flower')
+                ->andWhere('u.isVerified = :verified')
+                ->andWhere('u.registrationPaymentStatus = :status')
+                ->andWhere(
+                    '(SELECT COUNT(d) FROM App\Entity\Donation d 
+                      WHERE d.recipient = u 
+                      AND d.flower = :flower 
+                      AND d.donationType IN (:types)) < 4'
+                )
+                // Remove the PostgreSQL-specific JSON query
+                ->setParameter('flower', $flower)
+                ->setParameter('verified', true)
+                ->setParameter('status', 'completed')
+                ->setParameter('types', ['direct', 'registration'])
+                ->orderBy('u.waitingSince', 'ASC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

@@ -25,17 +25,21 @@ class MembershipService
         ?array $cryptoDetails = null
     ): Membership {
         $membership = new Membership();
-        $membership->setUser($user);
+        $membership->setUser($user)
+            ->setAmount(Membership::ANNUAL_FEE)
+            ->setStartDate(new \DateTimeImmutable());
 
         if ($paymentMethod === 'stripe') {
             $membership->setStripePaymentIntentId($transactionId);
         } elseif ($paymentMethod === 'coinpayments') {
             $membership->setCoinpaymentsTxnId($transactionId);
             if ($cryptoDetails) {
-                $membership->setCryptoCurrency($cryptoDetails['crypto_currency']);
-                $membership->setCryptoAmount($cryptoDetails['crypto_amount']);
+                $membership->setCryptoCurrency($cryptoDetails['crypto_currency'])
+                    ->setCryptoAmount($cryptoDetails['crypto_amount']);
             }
         }
+
+        $user->setHasPaidAnnualFee(true);
 
         $this->entityManager->persist($membership);
         $this->entityManager->flush();

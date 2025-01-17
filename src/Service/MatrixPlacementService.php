@@ -25,23 +25,41 @@ class MatrixPlacementService
 
     public function findNextAvailablePosition(Flower $flower): ?User
     {
-        if ($this->isMatrixFull($flower)) {
-            return null;
-        }
+        try {
+            if ($this->isMatrixFull($flower)) {
+                return null;
+            }
 
-        $matrixState = $this->getMatrixState($flower);
-        
-        for ($position = 1; $position <= self::MATRIX_SIZE; $position++) {
-            if (!isset($matrixState[$position])) {
-                try {
-                    $this->lockPosition($position, $flower);
-                    if ($this->validatePlacement(null, $position)) {
-                        return $this->findUserForPosition($flower);
+            $matrixState = $this->getMatrixState($flower);
+            $lock = null;
+            
+            for ($position = 1; $position <= self::MATRIX_SIZE; $position++) {
+                if (!isset($matrixState[$position])) {
+                    try {
+                        $lock = $this->lockFactory->createLock(
+                            sprintf('matrix_position_%d_%d', $flower->getId(), $position),
+                            30
+                        );
+                        
+                        if ($lock->acquire()) {
+                            if ($this->validatePlacement(null, $position)) {
+                                $recipient = $this->findUserForPosition($flower);
+                                if ($recipient) {
+                                    return $recipient;
+                                }
+                            }
+                        }
+                    } catch (LockConflictedException) {
+                        continue;
+                    } finally {
+                        if ($lock && $lock->isAcquired()) {
+                            $lock->release();
+                        }
                     }
-                } catch (LockConflictedException) {
-                    continue;
                 }
             }
+        } catch (\Exception $e) {
+            // Log error if you have a logger service
         }
 
         return null;
@@ -151,25 +169,36 @@ class MatrixPlacementService
 
     private function findUserForPosition(Flower $flower): ?User
     {
-        $qb = $this->entityManager->createQueryBuilder();
-        return $qb->select('u')
-            ->from(User::class, 'u')
-            ->where('u.currentFlower = :flower')
-            ->andWhere(
-                $qb->expr()->lt(
-                    '(SELECT COUNT(d) FROM App\Entity\Donation d 
-                      WHERE d.recipient = u 
-                      AND d.flower = :flower 
-                      AND d.donationType IN (:types))',
-                    4
+        try {
+            $qb = $this->entityManager->createQueryBuilder();
+            $result = $qb->select('u')
+                ->from(User::class, 'u')
+                ->where('u.currentFlower = :flower')
+                ->andWhere('u.registrationPaymentStatus = :status')
+                ->andWhere('u.isVerified = :verified')
+                ->andWhere(
+                    $qb->expr()->lt(
+                        '(SELECT COUNT(d) FROM App\Entity\Donation d 
+                          WHERE d.recipient = u 
+                          AND d.flower = :flower 
+                          AND d.donationType IN (:types))',
+                        4
+                    )
                 )
-            )
-            ->setParameter('flower', $flower)
-            ->setParameter('types', ['direct', 'registration'])
-            ->orderBy('u.waitingSince', 'ASC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+                ->setParameter('flower', $flower)
+                ->setParameter('status', 'completed')
+                ->setParameter('verified', true)
+                ->setParameter('types', ['direct', 'registration'])
+                ->orderBy('u.waitingSince', 'ASC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $result;
+        } catch (\Exception $e) {
+            // Log error if you have a logger service
+            return null;
+        }
     }
 
     public function findNextReferralPosition(User $referrer, Flower $flower): ?int

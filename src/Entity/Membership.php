@@ -14,6 +14,10 @@ class Membership
 
     public const ANNUAL_FEE = 25.00;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_EXPIRED = 'expired';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -43,6 +47,9 @@ class Membership
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount = self::ANNUAL_FEE;
+
+    #[ORM\Column(length: 20)]
+    private string $status = self::STATUS_PENDING;
 
     public function __construct()
     {
@@ -141,6 +148,32 @@ class Membership
     public function setAmount(float $amount): self
     {
         $this->amount = $amount;
+        return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_ACTIVE, self::STATUS_EXPIRED])) {
+            throw new \InvalidArgumentException('Invalid membership status');
+        }
+        $this->status = $status;
+        return $this;
+    }
+
+    public function activate(): self
+    {
+        $this->status = self::STATUS_ACTIVE;
+        return $this;
+    }
+
+    public function expire(): self
+    {
+        $this->status = self::STATUS_EXPIRED;
         return $this;
     }
 }

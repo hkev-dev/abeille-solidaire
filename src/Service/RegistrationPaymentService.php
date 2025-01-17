@@ -19,9 +19,9 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class RegistrationPaymentService
 {
-    private const PAYMENT_TYPES = [
+    private const PAYMENT_AMOUNTS = [
         'registration' => 25.00,
-        'membership_renewal' => 25.00
+        'membership' => 25.00
     ];
     private CoinpaymentsAPI $coinPayments;
 
@@ -44,13 +44,19 @@ class RegistrationPaymentService
         );
     }
 
-    public function createStripePaymentIntent(User $user, string $paymentType = 'registration'): array
-    {
-        if (!isset(self::PAYMENT_TYPES[$paymentType])) {
+    public function createStripePaymentIntent(
+        User $user, 
+        string $paymentType = 'registration',
+        bool $includeAnnualMembership = false
+    ): array {
+        if (!isset(self::PAYMENT_AMOUNTS[$paymentType])) {
             throw new \InvalidArgumentException('Invalid payment type');
         }
 
-        $amount = self::PAYMENT_TYPES[$paymentType];
+        $amount = self::PAYMENT_AMOUNTS[$paymentType];
+        if ($includeAnnualMembership) {
+            $amount += self::PAYMENT_AMOUNTS['membership'];
+        }
 
         try {
             $paymentIntent = PaymentIntent::create([
@@ -58,7 +64,8 @@ class RegistrationPaymentService
                 'currency' => 'eur',
                 'metadata' => [
                     'user_id' => $user->getId(),
-                    'payment_type' => $paymentType
+                    'payment_type' => $paymentType,
+                    'include_membership' => $includeAnnualMembership ? 'true' : 'false'
                 ]
             ]);
 
@@ -71,7 +78,8 @@ class RegistrationPaymentService
             $this->logger->error('Stripe payment intent creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->getId(),
-                'payment_type' => $paymentType
+                'payment_type' => $paymentType,
+                'include_membership' => $includeAnnualMembership
             ]);
             throw $e;
         }
@@ -80,13 +88,17 @@ class RegistrationPaymentService
     public function createCoinPaymentsTransaction(
         User $user, 
         string $paymentType = 'registration',
-        string $currency = 'BTC'
+        string $currency = 'BTC',
+        bool $includeAnnualMembership = false
     ): array {
-        if (!isset(self::PAYMENT_TYPES[$paymentType])) {
+        if (!isset(self::PAYMENT_AMOUNTS[$paymentType])) {
             throw new \InvalidArgumentException('Invalid payment type');
         }
 
-        $amount = self::PAYMENT_TYPES[$paymentType];
+        $amount = self::PAYMENT_AMOUNTS[$paymentType];
+        if ($includeAnnualMembership) {
+            $amount += self::PAYMENT_AMOUNTS['membership'];
+        }
 
         try {
             $result = $this->coinPayments->CreateComplexTransaction(
@@ -96,10 +108,13 @@ class RegistrationPaymentService
                 buyer_email: $user->getEmail(),
                 address: "",
                 buyer_name: $user->getFirstname() . ' ' . $user->getLastname(),
-                item_name: ucfirst(str_replace('_', ' ', $paymentType)),
+                item_name: $includeAnnualMembership ? 'Registration + Annual Membership' : 'Registration',
                 item_number: "{$user->getId()}_{$paymentType}",
                 invoice: strtoupper(substr($paymentType, 0, 3)) . '-' . $user->getId(),
-                custom: "type={$paymentType}",
+                custom: json_encode([
+                    'type' => $paymentType,
+                    'include_membership' => $includeAnnualMembership
+                ]),
                 ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
@@ -168,52 +183,80 @@ class RegistrationPaymentService
         User $user, 
         string $paymentMethod, 
         string $paymentType,
-        ?string $transactionId = null
+        ?string $transactionId = null,
+        bool $includeAnnualMembership = false
     ): void {
-        if (!isset(self::PAYMENT_TYPES[$paymentType])) {
-            $this->logger->error('Invalid payment type received', [
-                'payment_type' => $paymentType,
-                'user_id' => $user->getId(),
-                'transaction_id' => $transactionId
-            ]);
-            throw new \InvalidArgumentException("Invalid payment type: {$paymentType}");
-        }
-
         $this->entityManager->beginTransaction();
         
         try {
             $cryptoDetails = null;
             if ($paymentMethod === 'coinpayments' && $transactionId) {
-                try {
-                    $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
-                } catch (\Exception $e) {
-                    $this->logger->warning('Failed to fetch crypto details', [
-                        'error' => $e->getMessage(),
-                        'user_id' => $user->getId(),
-                        'txn_id' => $transactionId
-                    ]);
-                }
+                $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
             }
 
-            // Handle different payment types
-            match ($paymentType) {
-                'registration' => $this->handleRegistrationSuccess($user, $paymentMethod, $transactionId, $cryptoDetails),
-                'membership_renewal' => $this->handleMembershipRenewalSuccess($user, $paymentMethod, $transactionId, $cryptoDetails),
-                default => throw new \InvalidArgumentException("Unhandled payment type: {$paymentType}")
-            };
+            // Handle registration payment
+            $user->setRegistrationPaymentStatus('completed')
+                ->setWaitingSince(null)
+                ->setIsVerified(true);
+
+            // Create registration donation
+            $registrationDonation = $this->donationService->createRegistrationDonation(
+                $user, 
+                $paymentMethod, 
+                $transactionId,
+                $cryptoDetails
+            );
+
+            // Handle membership if included
+            $membership = null;
+            if ($includeAnnualMembership) {
+                $user->setHasPaidAnnualFee(true);
+                $membership = $this->membershipService->createInitialMembership(
+                    $user,
+                    $paymentMethod,
+                    $transactionId,
+                    $cryptoDetails
+                );
+            }
 
             $this->entityManager->flush();
             $this->entityManager->commit();
 
-            $this->logger->info('Payment processed successfully', [
-                'user_id' => $user->getId(),
-                'payment_type' => $paymentType,
-                'payment_method' => $paymentMethod,
-                'transaction_id' => $transactionId
-            ]);
+            // Dispatch events
+            $event = new UserRegistrationEvent(
+                $user, 
+                $registrationDonation, 
+                $paymentMethod,
+                $membership
+            );
+            $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_COMPLETED);
 
         } catch (\Exception $e) {
             $this->entityManager->rollback();
+            throw $e;
+        }
+    }
+
+    public function handlePaymentFailure(User $user, string $paymentMethod, string $errorMessage = null): void
+    {
+        try {
+            $user->setRegistrationPaymentStatus('failed');
+            $this->entityManager->flush();
+
+            $event = new UserRegistrationEvent($user, errorMessage: $errorMessage);
+            $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_FAILED);
+
+            $this->logger->warning('Registration payment failed', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'error' => $errorMessage
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to process payment failure', [
+                'user_id' => $user->getId(),
+                'payment_method' => $paymentMethod,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }
@@ -262,30 +305,6 @@ class RegistrationPaymentService
 
         $event = new MembershipRenewalEvent($user, $membership);
         $this->eventDispatcher->dispatch($event, MembershipRenewalEvent::PAYMENT_COMPLETED);
-    }
-
-    public function handlePaymentFailure(User $user, string $paymentMethod, string $errorMessage = null): void
-    {
-        try {
-            $user->setRegistrationPaymentStatus('failed');
-            $this->entityManager->flush();
-
-            $event = new UserRegistrationEvent($user, errorMessage: $errorMessage);
-            $this->eventDispatcher->dispatch($event, UserRegistrationEvent::PAYMENT_FAILED);
-
-            $this->logger->warning('Registration payment failed', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'error' => $errorMessage
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to process payment failure', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
     }
 
     private function getCoinPaymentsTransactionDetails(string $txnId): ?array

@@ -6,6 +6,9 @@ export class PaymentProcessor {
         this.form = null;
         this.config = config;
         this.processing = false;
+        this.baseAmount = 25; // Registration fee
+        this.membershipAmount = 25; // Annual membership fee
+        this.currentAmount = this.baseAmount;
     }
 
     initialize() {
@@ -15,6 +18,7 @@ export class PaymentProcessor {
         this.setupFormSubmission();
         // Add this line to load cryptocurrencies on initialization
         this.loadCryptoCurrencies();
+        this.setupMembershipToggle();
     }
 
     setupStripeElement() {
@@ -124,7 +128,8 @@ export class PaymentProcessor {
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
-                    payment_method: 'stripe'
+                    payment_method: 'stripe',
+                    include_annual_membership: document.querySelector('[name="payment_selection[include_annual_membership]"]').checked
                 })
             });
 
@@ -187,6 +192,7 @@ export class PaymentProcessor {
 
             const formData = new FormData();
             formData.append('currency', selectedCurrency);
+            formData.append('include_annual_membership', document.querySelector('[name="payment_selection[include_annual_membership]"]').checked);
             formData.append('_csrf_token', this.config.csrf.cryptoToken);
 
             const response = await fetch(form.action, {
@@ -387,6 +393,61 @@ export class PaymentProcessor {
 
         // Redirect to waiting room
         window.location.href = this.config.waitingRoomUrl;
+    }
+
+    setupMembershipToggle() {
+        const membershipCheckbox = document.querySelector('[name="payment_selection[include_annual_membership]"]');
+        const membershipRow = document.getElementById('membership-row');
+        const totalAmount = document.getElementById('total-amount');
+        const stripeButton = document.querySelector('#stripe-payment-form button');
+        const cryptoButton = document.querySelector('#crypto-payment button');
+
+        if (!membershipCheckbox) return; // Exit if checkbox not found
+
+        membershipCheckbox.addEventListener('change', (e) => {
+            this.currentAmount = e.target.checked ? 
+                this.baseAmount + this.membershipAmount : 
+                this.baseAmount;
+
+            // Update UI elements with null checks
+            if (membershipRow) {
+                membershipRow.style.display = e.target.checked ? 'table-row' : 'none';
+            }
+            if (totalAmount) {
+                totalAmount.textContent = `${this.currentAmount.toFixed(2)} €`;
+            }
+            
+            // Update button texts with null checks
+            if (stripeButton) {
+                stripeButton.textContent = `Payer ${this.currentAmount.toFixed(2)}€ par Carte`;
+            }
+            if (cryptoButton) {
+                cryptoButton.textContent = `Continuer avec le Paiement en Cryptomonnaie (${this.currentAmount.toFixed(2)}€)`;
+            }
+
+            // Update crypto currency conversion if active
+            if (this.lastSelectedCurrency) {
+                this.updateCryptoAmount(this.lastSelectedCurrency);
+            }
+        });
+    }
+
+    updateCryptoAmount(currencyDetails) {
+        // Store the last selected currency for recalculation when membership toggle changes
+        this.lastSelectedCurrency = currencyDetails;
+        
+        const amount = this.currentAmount;
+        const rate = parseFloat(currencyDetails.dataset.rate);
+        const fee = parseFloat(currencyDetails.dataset.fee);
+        
+        const totalCrypto = (amount * rate) + fee;
+        
+        const detailsContainer = document.querySelector('.currency-details');
+        if (detailsContainer) {
+            detailsContainer.querySelector('.total-display').textContent = 
+                `${totalCrypto.toFixed(8)} ${currencyDetails.value}`;
+            // ...update other currency details...
+        }
     }
 }
 

@@ -135,6 +135,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $defaultPaymentMethodId = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasPaidAnnualFee = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $annualFeePaidAt = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -145,6 +151,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->withdrawals = new ArrayCollection();
         $this->flowerCycleCompletions = new ArrayCollection();
         $this->memberships = new ArrayCollection();
+        $this->hasPaidAnnualFee = false;
     }
 
     public function getId(): ?int
@@ -539,6 +546,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->defaultPaymentMethodId = $defaultPaymentMethodId;
         return $this;
+    }
+
+    public function hasPaidAnnualFee(): bool
+    {
+        return $this->hasPaidAnnualFee;
+    }
+
+    public function setHasPaidAnnualFee(bool $hasPaidAnnualFee): self
+    {
+        $this->hasPaidAnnualFee = $hasPaidAnnualFee;
+        if ($hasPaidAnnualFee) {
+            $this->annualFeePaidAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getAnnualFeePaidAt(): ?\DateTimeInterface
+    {
+        return $this->annualFeePaidAt;
     }
 
     public function getFlowerProgress(): array
