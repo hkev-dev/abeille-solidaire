@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\File\File;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: '`user`')]
+#[ORM\Index(columns: ['referral_code'], name: 'idx_user_referral_code')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableTrait;
@@ -95,8 +96,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean')]
     private bool $isKycVerified = false;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $kycVerifiedAt = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $kycVerifiedAt = null;
 
     #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
     private Collection $memberships;
@@ -140,6 +141,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $annualFeePaidAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $annualFeeExpiresAt = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isAnnualFeePending = false;
 
     public function __construct()
     {
@@ -445,6 +452,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->kycVerifiedAt;
     }
 
+    public function setKycVerifiedAt(?\DateTimeImmutable $kycVerifiedAt): self
+    {
+        $this->kycVerifiedAt = $kycVerifiedAt;
+        return $this;
+    }
+
     public function getMemberships(): Collection
     {
         return $this->memberships;
@@ -550,14 +563,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasPaidAnnualFee(): bool
     {
-        return $this->hasPaidAnnualFee;
+        if (!$this->hasPaidAnnualFee) {
+            return false;
+        }
+
+        // Check if the annual fee has expired
+        if ($this->annualFeeExpiresAt && $this->annualFeeExpiresAt < new \DateTime()) {
+            return false;
+        }
+
+        return true;
     }
 
     public function setHasPaidAnnualFee(bool $hasPaidAnnualFee): self
     {
         $this->hasPaidAnnualFee = $hasPaidAnnualFee;
         if ($hasPaidAnnualFee) {
-            $this->annualFeePaidAt = new \DateTimeImmutable();
+            $this->annualFeePaidAt = new \DateTime();
+            $this->annualFeeExpiresAt = (new \DateTime())->modify('+1 year');
+            $this->isAnnualFeePending = false;
         }
         return $this;
     }
@@ -565,6 +589,63 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getAnnualFeePaidAt(): ?\DateTimeInterface
     {
         return $this->annualFeePaidAt;
+    }
+
+    public function getAnnualFeeExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->annualFeeExpiresAt;
+    }
+
+    public function isAnnualFeePending(): bool
+    {
+        return $this->isAnnualFeePending;
+    }
+
+    public function setIsAnnualFeePending(bool $isAnnualFeePending): self
+    {
+        $this->isAnnualFeePending = $isAnnualFeePending;
+        return $this;
+    }
+
+    public function getDaysUntilAnnualFeeExpiration(): ?int
+    {
+        if (!$this->annualFeeExpiresAt) {
+            return null;
+        }
+
+        $now = new \DateTime();
+        $interval = $this->annualFeeExpiresAt->diff($now);
+        
+        if ($interval->invert === 0) {
+            return 0; // Already expired
+        }
+
+        return $interval->days;
+    }
+
+    public function isEligibleForWithdrawal(): bool
+    {
+        return $this->isVerified() && 
+               $this->isKycVerified() && 
+               $this->hasPaidAnnualFee() && 
+               $this->getProjectDescription() !== null;
+    }
+
+    public function canProgressInFlowers(): bool
+    {
+        // Users can progress in flowers only if they've paid their annual fee
+        // or are within the grace period
+        if ($this->hasPaidAnnualFee()) {
+            return true;
+        }
+
+        // Check if user is within grace period (e.g., 30 days after expiration)
+        if ($this->annualFeeExpiresAt) {
+            $gracePeriodEnd = (clone $this->annualFeeExpiresAt)->modify('+30 days');
+            return new \DateTime() < $gracePeriodEnd;
+        }
+
+        return false;
     }
 
     public function getFlowerProgress(): array

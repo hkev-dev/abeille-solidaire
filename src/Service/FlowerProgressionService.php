@@ -5,9 +5,10 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Flower;
 use App\Entity\Donation;
-use App\Event\FlowerCycleCompletedEvent;
-use App\Repository\DonationRepository;
 use App\Repository\FlowerRepository;
+use App\Entity\FlowerCycleCompletion;
+use App\Repository\DonationRepository;
+use App\Event\FlowerCycleCompletedEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -33,39 +34,55 @@ class FlowerProgressionService
 
     private function isFlowerCompleted(User $user, Flower $flower): bool
     {
-        $directDonations = $this->donationRepository->countDirectDonationsInFlower($user, $flower);
-        return $directDonations >= 4;
+        // Get current cycle position and count for the user
+        $currentCycle = $this->getCurrentCycleInfo($user, $flower);
+        
+        // Check cycle limit (10 iterations per flower)
+        if ($currentCycle['totalCompletedCycles'] >= 10) {
+            return false;
+        }
+
+        // Check if current matrix positions are filled (4 positions per cycle)
+        return $currentCycle['donationsInCurrentCycle'] >= 4;
+    }
+
+    private function getCurrentCycleInfo(User $user, Flower $flower): array
+    {
+        return $this->donationRepository->getCurrentCycleInfo($user, $flower);
     }
 
     private function processFlowerCompletion(User $user, Flower $flower): void
     {
-        $donations = $this->donationRepository->findFlowerDonations($user, $flower);
-
-        // Calculate total received amount
-        $totalAmount = array_reduce($donations, fn($sum, $donation) => $sum + $donation->getAmount(), 0);
-
-        // Split amount (50% to wallet, 50% to solidarity)
-        $walletAmount = $totalAmount * 0.5;
-
-        // Begin transaction
         $this->entityManager->beginTransaction();
 
         try {
+            // Get current cycle information
+            $cycleInfo = $this->getCurrentCycleInfo($user, $flower);
+            
+            if ($cycleInfo['totalCompletedCycles'] >= 10) {
+                throw new \RuntimeException('Maximum cycle limit reached for this flower');
+            }
+
+            // Process donations for the current cycle only
+            $cycleDonations = $this->donationRepository->findCurrentCycleDonations($user, $flower);
+            $totalAmount = array_reduce($cycleDonations, fn($sum, $donation) => $sum + $donation->getAmount(), 0);
+            
+            // Split amount (50% to wallet, 50% to solidarity)
+            $walletAmount = $totalAmount * 0.5;
+            $solidarityAmount = $totalAmount * 0.5;
+
             // Update user's wallet
             $user->addToWalletBalance($walletAmount);
 
             // Process solidarity donation
-            $this->processSolidarityDonation($user, $walletAmount);
+            $this->processSolidarityDonation($user, $solidarityAmount);
 
-            // Progress to next flower
-            $nextFlower = $this->flowerRepository->findNextFlower($flower);
-            if ($nextFlower && !$this->hasReachedCycleLimit($user, $nextFlower)) {
-                $user->setCurrentFlower($nextFlower);
+            // Record cycle completion
+            $this->recordCycleCompletion($user, $flower, $cycleInfo['currentCycleNumber']);
 
-                // Place in referrer's structure if applicable
-                if ($user->getReferrer()) {
-                    $this->placeInReferrerStructure($user, $nextFlower);
-                }
+            // Progress to next flower if all cycles are completed
+            if ($cycleInfo['totalCompletedCycles'] + 1 >= 10) {
+                $this->progressToNextFlower($user, $flower);
             }
 
             $this->entityManager->flush();
@@ -73,7 +90,7 @@ class FlowerProgressionService
 
             // Dispatch completion event
             $this->eventDispatcher->dispatch(
-                new FlowerCycleCompletedEvent($user, $flower, $nextFlower, $walletAmount)
+                new FlowerCycleCompletedEvent($user, $flower, $cycleInfo['currentCycleNumber'], $walletAmount)
             );
 
         } catch (\Exception $e) {
@@ -82,10 +99,73 @@ class FlowerProgressionService
         }
     }
 
-    private function hasReachedCycleLimit(User $user, Flower $flower): bool
+    private function recordCycleCompletion(User $user, Flower $flower, int $cycleNumber): void
     {
-        $completedCycles = $this->donationRepository->countCompletedCycles($user, $flower);
-        return $completedCycles >= 10;
+        // Get current cycle donations to calculate amounts
+        $cycleDonations = $this->donationRepository->findCurrentCycleDonations($user, $flower);
+        $totalAmount = array_reduce(
+            $cycleDonations, 
+            fn($sum, $donation) => $sum + $donation->getAmount(), 
+            0
+        );
+
+        // Create completion record
+        $completion = new FlowerCycleCompletion();
+        $completion
+            ->setUser($user)
+            ->setFlower($flower)
+            ->setCycleNumber($cycleNumber)
+            ->setCompletedAt(new \DateTimeImmutable())
+            ->setTotalAmount($totalAmount)
+            ->setCyclePositions(
+                array_map(
+                    fn($donation) => [
+                        'position' => $donation->getCyclePosition(),
+                        'donor_id' => $donation->getDonor()->getId(),
+                        'amount' => $donation->getAmount()
+                    ],
+                    $cycleDonations
+                )
+            );
+
+        $this->entityManager->persist($completion);
+    }
+
+    private function progressToNextFlower(User $user, Flower $flower): void
+    {
+        $nextFlower = $this->flowerRepository->findNextFlower($flower);
+        if (!$nextFlower) {
+            return;
+        }
+
+        $user->setCurrentFlower($nextFlower);
+
+        // Place in referrer's structure if applicable
+        if ($user->getReferrer()) {
+            $position = $this->matrixPlacementService->findNextReferralPosition(
+                $user->getReferrer(), 
+                $nextFlower
+            );
+            
+            if ($position) {
+                $this->createReferralPlacementDonation($user, $nextFlower, $position);
+            }
+        }
+    }
+
+    private function createReferralPlacementDonation(User $user, Flower $flower, int $position): void
+    {
+        $donation = new Donation();
+        $donation
+            ->setDonationType('referral_placement')
+            ->setDonor($user->getReferrer())
+            ->setRecipient($user)
+            ->setFlower($flower)
+            ->setCyclePosition($position)
+            ->setAmount($flower->getDonationAmount())
+            ->setTransactionDate(new \DateTimeImmutable());
+
+        $this->entityManager->persist($donation);
     }
 
     private function placeInReferrerStructure(User $user, Flower $flower): void

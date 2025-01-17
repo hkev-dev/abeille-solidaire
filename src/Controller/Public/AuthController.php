@@ -79,7 +79,7 @@ class AuthController extends AbstractController
             // In test/dev environment, use default referral code if none provided
             $rootUser = $this->userRepository->findOneBy(['email' => 'root@example.com']);
             if ($rootUser) {
-                $dto->referralCode = 'ROOT_USER_REF';
+                $dto->referralCode = 'ABEILLESOLIDAIRE';
             }
         }
 

@@ -93,6 +93,11 @@ class SecurityService
      */
     public function validateUserStatus(User $user): void
     {
+        // Skip validation for super admin
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+            return;
+        }
+
         $this->validateRegistrationPayment($user);
         $this->validateEmailVerification($user);
         $this->validateMembership($user);
@@ -136,6 +141,11 @@ class SecurityService
 
     public function validateMembership(User $user): void
     {
+        // Skip membership check for super admin
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+            return;
+        }
+
         if ($this->membershipService->isExpired($user)) {
             throw new UserAccessException(
                 'membership_expired',

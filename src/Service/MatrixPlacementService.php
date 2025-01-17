@@ -15,51 +15,61 @@ class MatrixPlacementService
     private const MATRIX_SIZE = 16;
     private const MATRIX_ROWS = 4;
     private const MATRIX_COLS = 4;
+    private const MATRIX_POSITIONS = [
+        [1, 2, 3, 4],
+        [5, 6, 7, 8],
+        [9, 10, 11, 12],
+        [13, 14, 15, 16]
+    ];
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly DonationRepository $donationRepository,
         private readonly CacheInterface $cache,
         private readonly LockFactory $lockFactory
-    ) {}
+    ) {
+    }
 
     public function findNextAvailablePosition(Flower $flower): ?User
     {
         try {
-            if ($this->isMatrixFull($flower)) {
-                return null;
+            $lock = $this->lockFactory->createLock("matrix_{$flower->getId()}", 30);
+            if (!$lock->acquire()) {
+                throw new LockConflictedException('Matrix is being processed');
             }
 
-            $matrixState = $this->getMatrixState($flower);
-            $lock = null;
-            
-            for ($position = 1; $position <= self::MATRIX_SIZE; $position++) {
-                if (!isset($matrixState[$position])) {
-                    try {
-                        $lock = $this->lockFactory->createLock(
-                            sprintf('matrix_position_%d_%d', $flower->getId(), $position),
-                            30
-                        );
-                        
-                        if ($lock->acquire()) {
-                            if ($this->validatePlacement(null, $position)) {
-                                $recipient = $this->findUserForPosition($flower);
-                                if ($recipient) {
-                                    return $recipient;
-                                }
-                            }
-                        }
-                    } catch (LockConflictedException) {
-                        continue;
-                    } finally {
-                        if ($lock && $lock->isAcquired()) {
-                            $lock->release();
-                        }
-                    }
+            try {
+                if ($this->isMatrixFull($flower)) {
+                    return null;
                 }
+
+                $matrixState = $this->getMatrixState($flower);
+                $position = $this->calculateNextPosition($matrixState);
+
+                if (!$position) {
+                    return null;
+                }
+
+                // Find suitable user for this position
+                return $this->findUserForPosition($flower);
+            } finally {
+                $lock->release();
             }
         } catch (\Exception $e) {
-            // Log error if you have a logger service
+            // Log error if logger service is available
+            return null;
+        }
+    }
+
+    private function calculateNextPosition(array $matrixState): ?int
+    {
+        // Traverse matrix left-to-right, top-to-bottom
+        foreach (self::MATRIX_POSITIONS as $row) {
+            foreach ($row as $position) {
+                if (!isset($matrixState[$position])) {
+                    return $position;
+                }
+            }
         }
 
         return null;
@@ -67,38 +77,61 @@ class MatrixPlacementService
 
     public function isMatrixFull(Flower $flower): bool
     {
-        return $this->cache->get(
-            sprintf('matrix_state_%d', $flower->getId()),
-            function () use ($flower) {
-                $positions = $this->donationRepository->findByFlowerMatrix($flower);
-                return count($positions) >= self::MATRIX_SIZE;
-            }
-        );
+        try {
+            $result = $this->cache->get(
+                sprintf('matrix_state_%d', $flower->getId()),
+                function () use ($flower) {
+                    $positions = $this->donationRepository->findByFlowerMatrix($flower);
+                    return count($positions) >= self::MATRIX_SIZE;
+                }
+            );
+            
+            return $result === true;
+        } catch (\Exception $e) {
+            // Log error if logger service is available
+            return false;
+        }
     }
 
     public function getMatrixState(Flower $flower): array
     {
+        $cacheKey = sprintf('matrix_state_%d', $flower->getId());
+        
         try {
-            return $this->cache->get(
-                sprintf('matrix_state_%d', $flower->getId()),
+            $result = $this->cache->get(
+                $cacheKey,
                 function () use ($flower) {
                     $positions = $this->donationRepository->findByFlowerMatrix($flower);
+                    if (!is_array($positions)) {
+                        return [];
+                    }
+
                     $matrix = [];
                     foreach ($positions as $position) {
-                        $matrix[$position['cyclePosition']] = $position['recipient_id'];
+                        if (!isset($position['cyclePosition'], $position['recipient_id'])) {
+                            continue;
+                        }
+                        
+                        $matrix[$position['cyclePosition']] = [
+                            'user_id' => $position['recipient_id'],
+                            'joined_at' => $position['joined_at'] ?? new \DateTimeImmutable()
+                        ];
                     }
+
                     return $matrix;
                 }
-            ) ?? [];
-        } catch (\Throwable $e) {
-            // Log the error if you have a logger service
-            // Fallback to direct database query without caching
-            $positions = $this->donationRepository->findByFlowerMatrix($flower);
-            $matrix = [];
-            foreach ($positions as $position) {
-                $matrix[$position['cyclePosition']] = $position['recipient_id'];
+            );
+
+            if (!is_array($result)) {
+                $this->cache->delete($cacheKey);
+                return [];
             }
-            return $matrix;
+
+            return $result;
+            
+        } catch (\Exception $e) {
+            // Log the error if you have a logger service
+            return [];
         }
     }
 
@@ -114,39 +147,31 @@ class MatrixPlacementService
         }
     }
 
-    public function validatePlacement(?User $user, int $position): bool
-    {
-        if ($position < 1 || $position > self::MATRIX_SIZE) {
-            return false;
-        }
-
-        // Additional validation logic can be added here
-        // For example, checking user eligibility, position availability, etc.
-        return true;
-    }
-
     public function visualizeMatrix(Flower $flower): array
     {
-        $matrixPositions = $this->donationRepository->findByFlowerWithMatrix($flower);
-        $userRepository = $this->entityManager->getRepository(User::class);
+        $matrixState = $this->getMatrixState($flower);
         $visualization = [];
 
-        for ($row = 0; $row < self::MATRIX_ROWS; $row++) {
-            $visualization[$row] = [];
-            for ($col = 0; $col < self::MATRIX_COLS; $col++) {
-                $position = ($row * self::MATRIX_COLS) + $col + 1;
-                $cellData = [
+        foreach (self::MATRIX_POSITIONS as $rowIndex => $row) {
+            $visualization[$rowIndex] = [];
+            foreach ($row as $position) {
+                $cell = [
                     'position' => $position,
                     'user' => null,
-                    'joinedAt' => null
+                    'joined_at' => null,
+                    'is_occupied' => isset($matrixState[$position])
                 ];
-                
-                if (isset($matrixPositions[$position])) {
-                    $cellData['user'] = $userRepository->find($matrixPositions[$position]['user_id']);
-                    $cellData['joinedAt'] = $matrixPositions[$position]['joined_at'];
+
+                if (isset($matrixState[$position])) {
+                    $user = $this->entityManager
+                        ->getRepository(User::class)
+                        ->find($matrixState[$position]['user_id']);
+
+                    $cell['user'] = $user;
+                    $cell['joined_at'] = $matrixState[$position]['joined_at'];
                 }
-                
-                $visualization[$row][$col] = $cellData;
+
+                $visualization[$rowIndex][] = $cell;
             }
         }
 
@@ -156,7 +181,7 @@ class MatrixPlacementService
     public function findNextPositionInReferrerMatrix(User $referrer, Flower $flower): ?int
     {
         $positions = $this->donationRepository->findByReferrerMatrix($referrer, $flower);
-        
+
         // Find first available position from 1 to 16
         for ($position = 1; $position <= 16; $position++) {
             if (!isset($positions[$position])) {
@@ -203,7 +228,6 @@ class MatrixPlacementService
 
     public function findNextReferralPosition(User $referrer, Flower $flower): ?int
     {
-        // Try to get a lock for atomic operation
         $lock = $this->lockFactory->createLock(
             sprintf('referral_matrix_%d_%d', $referrer->getId(), $flower->getId()),
             30
@@ -214,17 +238,22 @@ class MatrixPlacementService
         }
 
         try {
-            // Get current positions in referrer's matrix
             $matrixState = $this->getMatrixState($flower);
+            if (empty($matrixState)) {
+                return 1; // Return first position if matrix is empty
+            }
+
             $referrerPositions = array_filter(
                 $matrixState,
-                fn($userId) => $userId === $referrer->getId()
+                fn($position) => ($position['user_id'] ?? null) === $referrer->getId()
             );
 
             // Find first available position after referrer's positions
             for ($position = 1; $position <= self::MATRIX_SIZE; $position++) {
-                if (!isset($matrixState[$position]) && 
-                    $this->validateReferralPlacement($referrer, $position, $flower)) {
+                if (
+                    !isset($matrixState[$position]) &&
+                    $this->validateReferralPlacement($referrer, $position, $flower)
+                ) {
                     return $position;
                 }
             }

@@ -104,7 +104,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $faker = Factory::create();
 
         // Create root user first
-        $this->rootUser = $this->createUser($manager, self::ROOT_USER, 'ROOT_USER_REF');
+        $this->rootUser = $this->createUser($manager, self::ROOT_USER, 'ABEILLESOLIDAIRE');
 
         // Load remaining static users
         foreach (self::STATIC_USERS as $userData) {

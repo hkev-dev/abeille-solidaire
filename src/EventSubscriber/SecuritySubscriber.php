@@ -102,9 +102,19 @@ class SecuritySubscriber implements EventSubscriberInterface
 
     public function onAuthenticationSuccess(AuthenticationSuccessEvent $event): void
     {
+        /** @var User $user */
         $user = $event->getAuthenticationToken()->getUser();
 
         if (!$user instanceof User) {
+            return;
+        }
+
+        // Skip all redirects for super admin
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+            $this->logger->info('Super admin authenticated successfully', [
+                'user_id' => $user->getId(),
+                'email' => $user->getEmail()
+            ]);
             return;
         }
 

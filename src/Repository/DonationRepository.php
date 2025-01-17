@@ -515,4 +515,59 @@ class DonationRepository extends ServiceEntityRepository
 
         return $positions;
     }
+
+    public function getCurrentCycleInfo(User $user, Flower $flower): array
+    {
+        $qb = $this->createQueryBuilder('d');
+        
+        // Get total completed cycles
+        $completedCycles = $this->createQueryBuilder('d1')
+            ->select('COUNT(DISTINCT d1.cyclePosition) / 4')
+            ->where('d1.recipient = :user')
+            ->andWhere('d1.flower = :flower')
+            ->andWhere('d1.donationType IN (:types)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Get current cycle donations
+        $currentCycleDonations = $qb
+            ->select('COUNT(d.id)')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->andWhere('d.cyclePosition > :lastCompletedPosition')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration'])
+            ->setParameter('lastCompletedPosition', $completedCycles * 4)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'totalCompletedCycles' => (int)$completedCycles,
+            'currentCycleNumber' => (int)$completedCycles + 1,
+            'donationsInCurrentCycle' => (int)$currentCycleDonations,
+            'lastCompletedPosition' => $completedCycles * 4
+        ];
+    }
+
+    public function findCurrentCycleDonations(User $user, Flower $flower): array
+    {
+        $cycleInfo = $this->getCurrentCycleInfo($user, $flower);
+        
+        return $this->createQueryBuilder('d')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType IN (:types)')
+            ->andWhere('d.cyclePosition > :lastCompleted')
+            ->andWhere('d.cyclePosition <= :currentMax')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('types', ['direct', 'registration'])
+            ->setParameter('lastCompleted', $cycleInfo['lastCompletedPosition'])
+            ->setParameter('currentMax', $cycleInfo['lastCompletedPosition'] + 4)
+            ->orderBy('d.cyclePosition', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
