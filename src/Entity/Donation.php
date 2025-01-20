@@ -14,9 +14,10 @@ class Donation
 
     public const TYPE_DIRECT = 'direct';
     public const TYPE_SOLIDARITY = 'solidarity';
-    public const TYPE_REFERRAL_PLACEMENT = 'referral_placement';
+    public const TYPE_MATRIX_PROPAGATION = 'matrix_propagation';
     public const TYPE_REGISTRATION = 'registration';
     public const TYPE_SUPPLEMENTARY = 'supplementary';
+    public const TYPE_MEMBERSHIP = 'membership';
 
     public const SOLIDARITY_STATUS_PENDING = 'pending';
     public const SOLIDARITY_STATUS_DISTRIBUTED = 'distributed';
@@ -294,5 +295,42 @@ class Donation
         }
         $this->solidarityDistributionStatus = $status;
         return $this;
+    }
+
+    public function validateMatrixDonation(): bool
+    {
+        // Validate cycle position for matrix-based donations
+        if (in_array($this->donationType, ['direct', 'matrix_propagation', 'registration'])) {
+            if ($this->cyclePosition < 1 || $this->cyclePosition > 4) {
+                return false;
+            }
+
+            // For matrix propagation, ensure donor is parent of recipient
+            if ($this->donationType === 'matrix_propagation' && $this->recipient->getParent() !== $this->donor) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isMatrixRelated(): bool
+    {
+        return in_array($this->donationType, [
+            self::TYPE_DIRECT,
+            self::TYPE_MATRIX_PROPAGATION,
+            self::TYPE_REGISTRATION
+        ]);
+    }
+
+    public function getCycleType(): string
+    {
+        if ($this->isMatrixRelated()) {
+            return 'matrix';
+        } elseif ($this->donationType === self::TYPE_SOLIDARITY) {
+            return 'solidarity';
+        } else {
+            return 'other';
+        }
     }
 }

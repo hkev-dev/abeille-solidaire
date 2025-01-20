@@ -186,6 +186,54 @@ class Withdrawal
         return $this->feeAmount;
     }
 
+    public function validateMatrixRequirements(): bool
+    {
+        // Check if user meets matrix requirements
+        if (!$this->user->getCurrentMembership()?->allowsWithdrawal()) {
+            $this->failureReason = 'Active membership required for withdrawals';
+            return false;
+        }
+
+        // Check matrix depth requirement (minimum 4 levels)
+        if ($this->user->getMatrixDepth() < 3) {
+            $this->failureReason = 'Matrix depth requirement not met (minimum 4 levels needed)';
+            return false;
+        }
+
+        // Check if user has a project description
+        if (!$this->user->getProjectDescription()) {
+            $this->failureReason = 'Project description required for withdrawals';
+            return false;
+        }
+
+        return true;
+    }
+
+    public function validate(): bool
+    {
+        if (!$this->validateMatrixRequirements()) {
+            return false;
+        }
+
+        // Validate amount limits
+        if ($this->amount < self::MIN_AMOUNT || $this->amount > self::MAX_AMOUNT) {
+            $this->failureReason = sprintf(
+                'Amount must be between %.2f€ and %.2f€',
+                self::MIN_AMOUNT,
+                self::MAX_AMOUNT
+            );
+            return false;
+        }
+
+        // Validate user has sufficient balance
+        if ($this->user->getWalletBalance() < $this->amount) {
+            $this->failureReason = 'Insufficient wallet balance';
+            return false;
+        }
+
+        return true;
+    }
+
     public function calculateFee(): void
     {
         $this->feeAmount = round($this->amount * self::FEE_PERCENTAGE, 2);

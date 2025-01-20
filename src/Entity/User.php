@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\File\File;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: '`user`')]
-#[ORM\Index(columns: ['referral_code'], name: 'idx_user_referral_code')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableTrait;
@@ -56,12 +55,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: true)]
     private ?Flower $currentFlower = null;
 
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'referrals')]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
     #[ORM\JoinColumn(nullable: true)]
-    private ?self $referrer = null;
+    private ?self $parent = null;
 
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'referrer')]
-    private Collection $referrals;
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    private Collection $children;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $projectDescription = null;
@@ -81,8 +80,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
-    #[ORM\Column(length: 32, unique: true)]
-    private ?string $referralCode = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $matrixPosition = null;
+
+    #[ORM\Column(type: 'integer')]
+    private int $matrixDepth = 0;
 
     #[ORM\Column(length: 20)]
     private string $registrationPaymentStatus = 'pending';
@@ -152,7 +154,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->projects = new ArrayCollection();
         $this->backedProjects = new ArrayCollection();
-        $this->referrals = new ArrayCollection();
+        $this->children = new ArrayCollection();
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
@@ -314,20 +316,58 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getReferrer(): ?self
+    public function getParent(): ?self
     {
-        return $this->referrer;
+        return $this->parent;
     }
 
-    public function setReferrer(?self $referrer): self
+    public function setParent(?self $parent): self
     {
-        $this->referrer = $referrer;
+        $this->parent = $parent;
         return $this;
     }
 
-    public function getReferrals(): Collection
+    public function getChildren(): Collection
     {
-        return $this->referrals;
+        return $this->children;
+    }
+
+    public function getMatrixPosition(): ?int
+    {
+        return $this->matrixPosition;
+    }
+
+    public function setMatrixPosition(?int $position): self
+    {
+        if ($position !== null && ($position < 1 || $position > 4)) {
+            throw new \InvalidArgumentException('Matrix position must be between 1 and 4');
+        }
+        $this->matrixPosition = $position;
+        return $this;
+    }
+
+    public function getMatrixDepth(): int
+    {
+        return $this->matrixDepth;
+    }
+
+    public function setMatrixDepth(int $depth): self
+    {
+        if ($depth < 0) {
+            throw new \InvalidArgumentException('Matrix depth cannot be negative');
+        }
+        $this->matrixDepth = $depth;
+        return $this;
+    }
+
+    public function hasAvailableMatrixSlot(): bool
+    {
+        return $this->children->count() < 4;
+    }
+
+    public function getMatrixLevel(): int
+    {
+        return $this->matrixDepth + 1;
     }
 
     public function getProjectDescription(): ?string

@@ -154,7 +154,7 @@ class Flower
         foreach ($this->donations as $donation) {
             if (
                 $donation->getRecipient() === $user &&
-                in_array($donation->getDonationType(), ['direct', 'registration', 'referral_placement'])
+                in_array($donation->getDonationType(), ['direct', 'registration', 'matrix_propagation'])
             ) {
                 return $donation->getCyclePosition();
             }

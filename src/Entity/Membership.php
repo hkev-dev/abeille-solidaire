@@ -176,4 +176,47 @@ class Membership
         $this->status = self::STATUS_EXPIRED;
         return $this;
     }
+
+    public function getRemainingDays(): int
+    {
+        if (!$this->isActive()) {
+            return 0;
+        }
+
+        $now = new \DateTimeImmutable();
+        return max(0, $this->endDate->getTimestamp() - $now->getTimestamp()) / (24 * 3600);
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        if ($this->isActive()) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
+        $gracePeriodEnd = (clone $this->endDate)->modify('+30 days');
+        return $now <= $gracePeriodEnd;
+    }
+
+    public function allowsMatrixProgression(): bool
+    {
+        return $this->isActive() || $this->isInGracePeriod();
+    }
+
+    public function allowsWithdrawal(): bool
+    {
+        // Must be active (not in grace period) for withdrawals
+        return $this->isActive();
+    }
+
+    public function getDaysUntilGracePeriodEnds(): ?int
+    {
+        if (!$this->isInGracePeriod()) {
+            return null;
+        }
+
+        $now = new \DateTimeImmutable();
+        $gracePeriodEnd = (clone $this->endDate)->modify('+30 days');
+        return max(0, $gracePeriodEnd->getTimestamp() - $now->getTimestamp()) / (24 * 3600);
+    }
 }

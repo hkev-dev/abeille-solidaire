@@ -33,6 +33,9 @@ class SystemConfiguration
     public const KEY_MEMBERSHIP_FEE = 'annual_membership_fee';
     public const KEY_REGISTRATION_FEE = 'registration_fee';
     public const KEY_WAITING_ROOM_EXPIRY_DAYS = 'waiting_room_expiry_days';
+    public const KEY_MATRIX_GRACE_PERIOD_DAYS = 'matrix_grace_period_days';
+    public const KEY_MAX_MATRIX_DEPTH = 'max_matrix_depth';
+    public const KEY_MIN_MATRIX_DEPTH_FOR_WITHDRAWAL = 'min_matrix_depth_for_withdrawal';
 
     public function getKey(): string
     {

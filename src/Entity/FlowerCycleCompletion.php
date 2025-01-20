@@ -131,4 +131,42 @@ class FlowerCycleCompletion
         $this->walletAmount = $this->totalAmount * 0.5;
         $this->solidarityAmount = $this->totalAmount * 0.5;
     }
+
+    public function validateMatrixPositions(array $positions): bool
+    {
+        // Ensure we have exactly 4 positions for 4x4 matrix
+        if (count($positions) !== 4) {
+            return false;
+        }
+
+        // Validate each position is between 1-4
+        foreach ($positions as $position) {
+            if (!is_int($position) || $position < 1 || $position > 4) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isMatrixComplete(): bool
+    {
+        return count($this->cyclePositions) === 4;
+    }
+
+    public function getNextAvailablePosition(): ?int
+    {
+        if ($this->isMatrixComplete()) {
+            return null;
+        }
+
+        $usedPositions = $this->cyclePositions;
+        for ($i = 1; $i <= 4; $i++) {
+            if (!in_array($i, $usedPositions)) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
 }
