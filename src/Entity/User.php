@@ -92,8 +92,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $waitingSince = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $flowerCompletions = [];
+    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'user')]
+    private Collection $flowerCycleCompletions;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isKycVerified = false;
@@ -160,6 +160,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->withdrawals = new ArrayCollection();
         $this->memberships = new ArrayCollection();
         $this->hasPaidAnnualFee = false;
+        $this->flowerCycleCompletions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -448,28 +449,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->flowerCycleCompletions;
     }
 
-    public function getFlowerCompletions(): ?array
-    {
-        return $this->flowerCompletions;
-    }
-
-    public function setFlowerCompletions(?array $completions): self
-    {
-        $this->flowerCompletions = $completions;
-        return $this;
-    }
-
     public function getFlowerCompletionCount(Flower $flower): int
     {
-        if (!$this->flowerCompletions) {
-            return 0;
-        }
-        return $this->flowerCompletions[$flower->getId()] ?? 0;
-    }
+        $completion = $this->flowerCycleCompletions
+            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
+            ->first();
 
-    public function incrementFlowerCompletion(Flower $flower): void
-    {
-        $this->flowerCompletions[$flower->getId()] = $this->getFlowerCompletionCount($flower) + 1;
+        return $completion ? $completion->getCompletionCount() : 0;
     }
 
     public function hasReachedFlowerLimit(Flower $flower): bool
