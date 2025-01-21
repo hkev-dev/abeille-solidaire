@@ -160,24 +160,6 @@ class RegistrationType extends AbstractType
                 ],
                 'row_attr' => ['class' => 'login-register__checkbox']
             ])
-            ->add('referralCode', TextType::class, [
-                'attr' => [
-                    'placeholder' => 'Code de parrainage*'
-                ],
-                'label' => false,
-                'row_attr' => ['class' => 'contact-form__input-box'],
-                'disabled' => !empty($options['referral_code'])
-            ])
-            ->add('projectDescription', TextareaType::class, [
-                'attr' => [
-                    'placeholder' => 'Décrivez votre projet ou initiative (minimum 100 caractères)*',
-                    'rows' => 13,
-                    'class' => 'h-auto'
-                ],
-                'label' => false,
-                'help' => 'Parlez-nous de votre projet, de ses objectifs et de la façon dont vous prévoyez d\'utiliser les fonds.',
-                'row_attr' => ['class' => 'contact-form__input-box']
-            ])
             ->add('recaptcha', HiddenType::class, [
                 'attr' => [
                     'class' => 'g-recaptcha-response'

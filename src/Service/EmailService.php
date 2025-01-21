@@ -39,7 +39,30 @@ class EmailService
                     'app.registration.payment',
                     ['id' => $user->getId()],
                     UrlGeneratorInterface::ABSOLUTE_URL
-                )
+                ),
+                'matrixInfo' => [
+                    'description' => 'Your position in our 4x4 matrix system will be assigned after payment',
+                    'benefits' => [
+                        'Automatic placement in matrix system',
+                        'Progress through 10 flower levels',
+                        'Potential for donations and growth'
+                    ]
+                ]
+            ]
+        );
+    }
+
+    public function sendMatrixPlacementConfirmation(User $user, int $position, int $depth): void
+    {
+        $this->queueEmail(
+            'emails/registration/matrix_placement.html.twig',
+            $user->getEmail(),
+            'Your Matrix Position Confirmed - Abeilles Solidaires',
+            [
+                'user' => $user,
+                'matrixPosition' => $position,
+                'matrixDepth' => $depth,
+                'dashboardUrl' => $this->router->generate('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL)
             ]
         );
     }

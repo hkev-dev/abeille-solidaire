@@ -92,8 +92,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $waitingSince = null;
 
-    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'user')]
-    private Collection $flowerCycleCompletions;
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $flowerCompletions = [];
 
     #[ORM\Column(type: 'boolean')]
     private bool $isKycVerified = false;
@@ -158,7 +158,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
-        $this->flowerCycleCompletions = new ArrayCollection();
         $this->memberships = new ArrayCollection();
         $this->hasPaidAnnualFee = false;
     }
@@ -339,8 +338,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setMatrixPosition(?int $position): self
     {
-        if ($position !== null && ($position < 1 || $position > 4)) {
-            throw new \InvalidArgumentException('Matrix position must be between 1 and 4');
+        // Allow null or zero for users in waiting room
+        if ($position !== null && $position < 0) {
+            throw new \InvalidArgumentException('Matrix position cannot be negative');
         }
         $this->matrixPosition = $position;
         return $this;
@@ -418,17 +418,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getReferralCode(): ?string
-    {
-        return $this->referralCode;
-    }
-
-    public function setReferralCode(string $referralCode): self
-    {
-        $this->referralCode = $referralCode;
-        return $this;
-    }
-
     public function getRegistrationPaymentStatus(): string
     {
         return $this->registrationPaymentStatus;
@@ -459,13 +448,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->flowerCycleCompletions;
     }
 
+    public function getFlowerCompletions(): ?array
+    {
+        return $this->flowerCompletions;
+    }
+
+    public function setFlowerCompletions(?array $completions): self
+    {
+        $this->flowerCompletions = $completions;
+        return $this;
+    }
+
     public function getFlowerCompletionCount(Flower $flower): int
     {
-        $completion = $this->flowerCycleCompletions
-            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
-            ->first();
+        if (!$this->flowerCompletions) {
+            return 0;
+        }
+        return $this->flowerCompletions[$flower->getId()] ?? 0;
+    }
 
-        return $completion ? $completion->getCompletionCount() : 0;
+    public function incrementFlowerCompletion(Flower $flower): void
+    {
+        $this->flowerCompletions[$flower->getId()] = $this->getFlowerCompletionCount($flower) + 1;
     }
 
     public function hasReachedFlowerLimit(Flower $flower): bool
@@ -566,6 +570,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->organizationName = $organizationName;
         return $this;
+        return $this;
     }
 
     public function getOrganizationNumber(): ?string
@@ -655,7 +660,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         $now = new \DateTime();
         $interval = $this->annualFeeExpiresAt->diff($now);
-        
+
         if ($interval->invert === 0) {
             return 0; // Already expired
         }
@@ -665,10 +670,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isEligibleForWithdrawal(): bool
     {
-        return $this->isVerified() && 
-               $this->isKycVerified() && 
-               $this->hasPaidAnnualFee() && 
-               $this->getProjectDescription() !== null;
+        return $this->isVerified() &&
+            $this->isKycVerified() &&
+            $this->hasPaidAnnualFee() &&
+            $this->getProjectDescription() !== null;
     }
 
     public function canProgressInFlowers(): bool
@@ -691,8 +696,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFlowerProgress(): array
     {
         $receivedCount = $this->donationsReceived
-            ->filter(fn($donation) => 
-                $donation->getFlower() === $this->currentFlower && 
+            ->filter(
+                fn($donation) =>
+                $donation->getFlower() === $this->currentFlower &&
                 $donation->getDonationType() === 'direct'
             )
             ->count();
@@ -702,5 +708,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'total' => 4,
             'percentage' => ($receivedCount / 4) * 100
         ];
+    }
+
+    public function getMatrixInfo(): array
+    {
+        return [
+            'position' => $this->matrixPosition,
+            'depth' => $this->matrixDepth,
+            'level' => $this->matrixDepth + 1,
+            'hasParent' => $this->parent !== null,
+            'childrenCount' => $this->children->count(),
+            'availableSlots' => 4 - $this->children->count()
+        ];
+    }
+
+    public function canAcceptChildren(): bool
+    {
+        return $this->children->count() < 4 &&
+            $this->isVerified() &&
+            $this->registrationPaymentStatus === 'completed';
     }
 }

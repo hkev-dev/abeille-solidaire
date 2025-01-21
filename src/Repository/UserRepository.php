@@ -31,34 +31,25 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    public function findByReferralCode(string $referralCode): ?User
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.referralCode = :code')
-            ->setParameter('code', $referralCode)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
     public function findUsersInFlowerWithSpace(Flower $flower): array
     {
         return $this->createQueryBuilder('u')
+            ->select('u, COUNT(d.id) as donationCount')
             ->leftJoin('u.donationsReceived', 'd')
             ->where('u.currentFlower = :flower')
             ->andWhere('u.isVerified = :verified')
-            ->groupBy('u.id')
-            ->having('COUNT(d.id) < 4')
+            ->groupBy('u.id', 'u.email', 'u.roles', 'u.password', 'u.isVerified', 'u.avatar', 
+                     'u.walletBalance', 'u.projectDescription', 'u.firstName', 'u.lastName', 
+                     'u.matrixPosition', 'u.matrixDepth', 'u.registrationPaymentStatus', 
+                     'u.waitingSince', 'u.isKycVerified', 'u.kycVerifiedAt', 'u.username', 
+                     'u.phone', 'u.country', 'u.accountType', 'u.organizationName', 
+                     'u.organizationNumber', 'u.stripeCustomerId', 'u.defaultPaymentMethodId', 
+                     'u.hasPaidAnnualFee', 'u.annualFeePaidAt', 'u.annualFeeExpiresAt', 
+                     'u.isAnnualFeePending', 'u.created_at', 'u.updated_at', 'u.currentFlower', 
+                     'u.parent')
+            ->having('donationCount < 4')
             ->setParameter('flower', $flower)
             ->setParameter('verified', true)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findDirectReferrals(User $referrer): array
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.referrer = :referrer')
-            ->setParameter('referrer', $referrer)
             ->getQuery()
             ->getResult();
     }
@@ -175,11 +166,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $qb = $this->createQueryBuilder('u');
 
-        return $qb->select('u', 'COUNT(d.id) as donation_count')
+        return $qb->select('u, COUNT(d.id) as donation_count')
             ->leftJoin('u.donationsReceived', 'd', 'WITH', 'd.flower = :flower')
             ->where('u.currentFlower = :flower')
             ->andWhere('u.isVerified = true')
-            ->groupBy('u.id')
+            ->groupBy('u.id', 'u.email', 'u.roles', 'u.password', 'u.isVerified', 'u.avatar', 
+                     'u.walletBalance', 'u.projectDescription', 'u.firstName', 'u.lastName', 
+                     'u.matrixPosition', 'u.matrixDepth', 'u.registrationPaymentStatus', 
+                     'u.waitingSince', 'u.isKycVerified', 'u.kycVerifiedAt', 'u.username', 
+                     'u.phone', 'u.country', 'u.accountType', 'u.organizationName', 
+                     'u.organizationNumber', 'u.stripeCustomerId', 'u.defaultPaymentMethodId', 
+                     'u.hasPaidAnnualFee', 'u.annualFeePaidAt', 'u.annualFeeExpiresAt', 
+                     'u.isAnnualFeePending', 'u.created_at', 'u.updated_at', 'u.currentFlower', 
+                     'u.parent')
             ->having('donation_count < 4')
             ->setParameter('flower', $flower)
             ->orderBy('u.waitingSince', 'ASC')
@@ -199,59 +198,54 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return (int) $result ?? 0;
     }
 
-    public function findByReferrerAndFlower(User $referrer, Flower $flower): array
+    public function getMatrixPositionsForFlower(Flower $flower): array
     {
         return $this->createQueryBuilder('u')
-            ->where('u.referrer = :referrer')
+            ->select([
+                'u.id as user_id',
+                'u.firstName as first_name',
+                'u.lastName as last_name',
+                'u.matrixPosition as matrix_position',
+                'u.matrixDepth as matrix_depth',
+                'IDENTITY(u.parent) as parent_id'  // Fixed: Use IDENTITY() function to get parent's ID
+            ])
+            ->where('u.currentFlower = :flower')
+            ->andWhere('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->setParameter('flower', $flower)
+            ->setParameter('status', 'completed')
+            ->orderBy('u.matrixDepth', 'ASC')
+            ->addOrderBy('u.matrixPosition', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getMatrixChildren(User $user, Flower $flower): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.parent = :parent')
             ->andWhere('u.currentFlower = :flower')
             ->andWhere('u.isVerified = true')
             ->andWhere('u.registrationPaymentStatus = :status')
-            ->setParameter('referrer', $referrer)
+            ->setParameter('parent', $user)
             ->setParameter('flower', $flower)
             ->setParameter('status', 'completed')
+            ->orderBy('u.matrixPosition', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
-    public function findReferralStatsByFlower(User $referrer): array
+    public function findUserByMatrixPosition(Flower $flower, int $position): ?User
     {
-        $conn = $this->getEntityManager()->getConnection();
-        
-        $sql = '
-            WITH flower_stats AS (
-                SELECT f.id, f.name, f.donation_amount,
-                       COUNT(DISTINCT r.id) as total_referrals,
-                       COUNT(DISTINCT fc.id) as completed_cycles,
-                       COALESCE(SUM(d.amount), 0) as earnings
-                FROM flower f
-                LEFT JOIN "user" r ON r.referrer_id = :referrerId
-                LEFT JOIN flower_cycle_completion fc ON fc.user_id = r.id AND fc.flower_id = f.id
-                LEFT JOIN donation d ON d.recipient_id = r.id AND d.flower_id = f.id
-                WHERE r.is_verified = true
-                GROUP BY f.id, f.name, f.donation_amount
-                ORDER BY f.donation_amount ASC
-            )
-            SELECT *
-            FROM flower_stats
-        ';
-
-        $stmt = $conn->executeQuery(
-            $sql,
-            ['referrerId' => $referrer->getId()]
-        );
-
-        $results = $stmt->fetchAllAssociative();
-
-        return array_map(function($result) {
-            return [
-                'flower' => [
-                    'name' => $result['name'],
-                    'donationAmount' => $result['donation_amount']
-                ],
-                'totalReferrals' => (int)$result['total_referrals'],
-                'completedCycles' => (int)$result['completed_cycles'],
-                'earnings' => (float)$result['earnings']
-            ];
-        }, $results);
+        return $this->createQueryBuilder('u')
+            ->where('u.currentFlower = :flower')
+            ->andWhere('u.matrixPosition = :position')
+            ->andWhere('u.isVerified = true')
+            ->andWhere('u.registrationPaymentStatus = :status')
+            ->setParameter('flower', $flower)
+            ->setParameter('position', $position)
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

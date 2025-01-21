@@ -41,6 +41,11 @@ class KycService
     public function submitVerification(User $user, array $data, array $files): bool
     {
         try {
+            // Verify user is in valid matrix position
+            if (!$user->getMatrixPosition() || !$user->getMatrixDepth()) {
+                throw new \RuntimeException('User must be placed in matrix before KYC verification');
+            }
+
             // Store files securely
             $documentPaths = $this->storeKycDocuments($user, $files);
 
@@ -50,7 +55,11 @@ class KycService
                 ->setReferenceId('KYC_' . uniqid())
                 ->setStatus(self::STATUS_PENDING)
                 ->setDocumentPaths($documentPaths)
-                ->setSubmittedData($data)
+                ->setSubmittedData(array_merge($data, [
+                    'matrix_position' => $user->getMatrixPosition(),
+                    'matrix_depth' => $user->getMatrixDepth(),
+                    'current_flower' => $user->getCurrentFlower()->getName()
+                ]))
                 ->setSubmittedAt(new \DateTime());
 
             $this->entityManager->persist($verification);
@@ -65,6 +74,8 @@ class KycService
         } catch (\Exception $e) {
             $this->logger->error('KYC submission failed', [
                 'user_id' => $user->getId(),
+                'matrix_position' => $user->getMatrixPosition(),
+                'matrix_depth' => $user->getMatrixDepth(),
                 'error' => $e->getMessage()
             ]);
             throw $e;

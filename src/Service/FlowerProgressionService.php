@@ -19,6 +19,7 @@ class FlowerProgressionService
         private readonly FlowerRepository $flowerRepository,
         private readonly DonationRepository $donationRepository,
         private readonly MatrixPlacementService $matrixPlacementService,
+        private readonly SolidarityDonationService $solidarityDonationService, // Replace DonationService
         private readonly EventDispatcherInterface $eventDispatcher
     ) {
     }
@@ -74,24 +75,46 @@ class FlowerProgressionService
             // Update user's wallet
             $user->addToWalletBalance($walletAmount);
 
-            // Process solidarity donation
-            $this->processSolidarityDonation($user, $solidarityAmount);
+            // Process solidarity donation using the new service
+            $recipient = $this->matrixPlacementService->findSolidarityRecipient($flower);
+            if ($recipient) {
+                $this->solidarityDonationService->processSolidarityDonation(
+                    $user,
+                    $solidarityAmount,
+                    $flower
+                );
+            }
 
             // Record cycle completion
             $this->recordCycleCompletion($user, $flower, $cycleInfo['currentCycleNumber']);
 
             // Progress to next flower if all cycles are completed
             if ($cycleInfo['totalCompletedCycles'] + 1 >= 10) {
-                $this->progressToNextFlower($user, $flower);
+                $nextFlower = $this->progressToNextFlower($user, $flower);
+                
+                // Find new matrix position in next flower
+                if ($nextFlower) {
+                    $newPosition = $this->matrixPlacementService->findNextAvailablePosition($nextFlower);
+                    if ($newPosition) {
+                        $matrixDetails = $this->matrixPlacementService->calculateMatrixPosition($newPosition);
+                        $user->setMatrixDepth($matrixDetails['depth'])
+                            ->setMatrixPosition($matrixDetails['position'])
+                            ->setCurrentFlower($nextFlower);
+                    }
+                }
             }
 
             $this->entityManager->flush();
             $this->entityManager->commit();
 
-            // Dispatch completion event
-            $this->eventDispatcher->dispatch(
-                new FlowerCycleCompletedEvent($user, $flower, $cycleInfo['currentCycleNumber'], $walletAmount)
+            // Dispatch completion event with matrix details
+            $event = new FlowerCycleCompletedEvent(
+                $user,
+                $flower,
+                $user->getCurrentFlower(),
+                $walletAmount
             );
+            $this->eventDispatcher->dispatch($event, FlowerCycleCompletedEvent::NAME);
 
         } catch (\Exception $e) {
             $this->entityManager->rollback();
@@ -131,99 +154,64 @@ class FlowerProgressionService
         $this->entityManager->persist($completion);
     }
 
-    private function progressToNextFlower(User $user, Flower $flower): void
+    private function progressToNextFlower(User $user, Flower $flower): ?Flower
     {
         $nextFlower = $this->flowerRepository->findNextFlower($flower);
         if (!$nextFlower) {
-            return;
+            return null;
         }
 
-        $user->setCurrentFlower($nextFlower);
-
-        // Place in referrer's structure if applicable
-        if ($user->getReferrer()) {
-            $position = $this->matrixPlacementService->findNextReferralPosition(
-                $user->getReferrer(), 
-                $nextFlower
-            );
-            
-            if ($position) {
-                $this->createReferralPlacementDonation($user, $nextFlower, $position);
-            }
+        // Find available matrix position in new flower
+        $position = $this->matrixPlacementService->findNextAvailablePosition($nextFlower);
+        if (!$position) {
+            throw new \RuntimeException('No available positions in next flower matrix');
         }
-    }
 
-    private function createReferralPlacementDonation(User $user, Flower $flower, int $position): void
-    {
-        $donation = new Donation();
-        $donation
-            ->setDonationType('referral_placement')
-            ->setDonor($user->getReferrer())
-            ->setRecipient($user)
-            ->setFlower($flower)
-            ->setCyclePosition($position)
-            ->setAmount($flower->getDonationAmount())
-            ->setTransactionDate(new \DateTimeImmutable());
+        // Calculate matrix details for new position
+        $matrixDetails = $this->matrixPlacementService->calculateMatrixPosition($position);
+        $parent = $this->matrixPlacementService->findParentUser($matrixDetails['depth'], $matrixDetails['position']);
 
-        $this->entityManager->persist($donation);
-    }
+        // Update user's matrix information
+        $user->setCurrentFlower($nextFlower)
+            ->setMatrixDepth($matrixDetails['depth'])
+            ->setMatrixPosition($matrixDetails['position'])
+            ->setParent($parent);
 
-    private function placeInReferrerStructure(User $user, Flower $flower): void
-    {
-        $referrer = $user->getReferrer();
-        $position = $this->matrixPlacementService->findNextReferralPosition($referrer, $flower);
-
-        if ($position) {
+        // Create matrix progression donation if there's a parent
+        if ($parent) {
             $donation = new Donation();
-            $donation->setDonationType('referral_placement')
-                ->setDonor($referrer)
-                ->setRecipient($user)
-                ->setFlower($flower)
-                ->setCyclePosition($position);
+            $donation->setDonationType('matrix_progression')
+                ->setDonor($user)
+                ->setRecipient($parent)
+                ->setFlower($nextFlower)
+                ->setCyclePosition($position)
+                ->setAmount($nextFlower->getDonationAmount())
+                ->setTransactionDate(new \DateTimeImmutable());
 
             $this->entityManager->persist($donation);
         }
+
+        // Lock the position in new flower's matrix
+        $this->matrixPlacementService->lockPosition($position, $nextFlower);
+
+        return $nextFlower;
     }
 
-    private function processSolidarityDonation(User $donor, float $amount): void
-    {
-        $recipient = $this->findSolidarityRecipient();
-        if (!$recipient) {
-            return;
-        }
-
-        $donation = new Donation();
-        $donation->setDonationType('solidarity')
-            ->setDonor($donor)
-            ->setRecipient($recipient)
-            ->setAmount($amount)
-            ->setTransactionDate(new \DateTimeImmutable());
-
-        $this->entityManager->persist($donation);
-    }
-
-    private function findSolidarityRecipient(): ?User
-    {
-        // Implement logic to find the most suitable recipient
-        // Could be random, oldest waiting, or based on specific criteria
-        return $this->entityManager->getRepository(User::class)
-            ->findOneBy(['currentFlower' => $this->flowerRepository->findOneBy(['name' => 'Violette'])]);
-    }
-
-    public function getCurrentPosition(User $user): ?int
+    public function getCurrentMatrixInfo(User $user): array
     {
         $currentFlower = $user->getCurrentFlower();
         if (!$currentFlower) {
-            return null;
+            return [];
         }
 
-        $result = $this->donationRepository->findUserPositionInFlower($user, $currentFlower);
-        
-        if (!$result || !isset($result['cycle_position'])) {
-            return null;
-        }
-
-        return (int) $result['cycle_position'];
+        return [
+            'flower' => $currentFlower,
+            'depth' => $user->getMatrixDepth(),
+            'position' => $user->getMatrixPosition(),
+            'parent' => $user->getParent(),
+            'children' => $this->matrixPlacementService->getChildrenInMatrix($user),
+            'donationsReceived' => $this->donationRepository->countReceivedDonationsInPosition($user, $currentFlower)
+        ];
     }
 
     public function getTotalReceivedInCurrentFlower(User $user): float
@@ -246,7 +234,8 @@ class FlowerProgressionService
                     'completedAt' => $cycle['completed_at'],
                     'earned' => $cycle['earned_amount'],
                     'solidarityAmount' => $cycle['solidarity_amount'],
-                    'solidarityRecipient' => $cycle['solidarity_recipient']
+                    'matrixDepth' => $cycle['matrix_depth'],
+                    'matrixPosition' => $cycle['matrix_position']
                 ];
             },
             $this->donationRepository->findAllCompletedCycles($user)
@@ -265,63 +254,96 @@ class FlowerProgressionService
             return [];
         }
 
-        $progress = $user->getFlowerProgress();
+        $matrixInfo = $this->getCurrentMatrixInfo($user);
         $requirements = [];
 
-        // Requirement 1: Complete current flower cycle
+        // Requirement 1: Matrix Position Completion
         $requirements[] = [
-            'label' => 'Compléter le cycle actuel',
-            'description' => sprintf('Recevoir %d dons supplémentaires dans %s', 
-                4 - $progress['received'], 
-                $currentFlower->getName()
+            'label' => 'Complete Current Matrix Position',
+            'description' => sprintf('Receive %d more donations in position %d',
+                4 - $matrixInfo['donationsReceived'],
+                $matrixInfo['position']
             ),
-            'fulfilled' => $progress['received'] >= 4
+            'fulfilled' => $matrixInfo['donationsReceived'] >= 4
         ];
 
-        // Requirement 2: Have active referrals
-        $activeReferrals = count($user->getReferrals());
+        // Requirement 2: Matrix Depth
         $requirements[] = [
-            'label' => 'Avoir des filleuls actifs',
-            'description' => sprintf('Vous avez %d/4 filleuls actifs', $activeReferrals),
-            'fulfilled' => $activeReferrals >= 1
+            'label' => 'Matrix Depth Requirement',
+            'description' => sprintf('Current matrix depth: %d (minimum 4 required)',
+                $matrixInfo['depth']
+            ),
+            'fulfilled' => $matrixInfo['depth'] >= 4
         ];
 
-        // Requirement 3: Valid KYC
+        // Requirement 3: KYC Verification
         $requirements[] = [
-            'label' => 'Vérification KYC valide',
-            'description' => $user->isKycVerified() ? 
-                'KYC validé le ' . $user->getKycVerifiedAt()?->format('d/m/Y') : 
-                'La vérification KYC est requise',
+            'label' => 'KYC Verification',
+            'description' => $user->isKycVerified() ?
+                'KYC verified on ' . $user->getKycVerifiedAt()?->format('d/m/Y') :
+                'KYC verification required',
             'fulfilled' => $user->isKycVerified()
         ];
 
-        // Requirement 4: Project description
+        // Requirement 4: Annual Membership
         $requirements[] = [
-            'label' => 'Description du projet',
-            'description' => $user->getProjectDescription() ? 
-                'Description du projet complétée' : 
-                'Une description de projet est requise',
-            'fulfilled' => !empty($user->getProjectDescription())
+            'label' => 'Annual Membership',
+            'description' => $user->hasPaidAnnualFee() ?
+                'Annual membership active' :
+                'Annual membership required',
+            'fulfilled' => $user->hasPaidAnnualFee()
         ];
 
         return $requirements;
     }
 
-    public function getReferralsInNextFlower(User $user, ?Flower $nextFlower): array
+    public function getMatrixVisualization(User $user): array
     {
-        if (!$nextFlower) {
+        return $this->matrixPlacementService->visualizeMatrix($user->getCurrentFlower());
+    }
+
+    /**
+     * Calculates next matrix position for user progression
+     */
+    private function calculateNextMatrixPosition(User $user, Flower $nextFlower): ?array
+    {
+        $position = $this->matrixPlacementService->findNextAvailablePosition($nextFlower);
+        if (!$position) {
+            return null;
+        }
+
+        return $this->matrixPlacementService->calculateMatrixPosition($position);
+    }
+
+    /**
+     * Validates matrix requirements for progression
+     */
+    private function validateMatrixRequirements(User $user): bool
+    {
+        $matrixInfo = $this->getCurrentMatrixInfo($user);
+        
+        return $user->hasPaidAnnualFee() && 
+               $matrixInfo['depth'] >= 3 && 
+               $matrixInfo['donationsReceived'] >= 4;
+    }
+
+    /**
+     * Gets matrix statistics for a user
+     */
+    public function getMatrixStats(User $user): array
+    {
+        $currentFlower = $user->getCurrentFlower();
+        if (!$currentFlower) {
             return [];
         }
 
-        return array_map(
-            function ($referral) use ($nextFlower) {
-                return [
-                    'user' => $referral['user'],
-                    'position' => $referral['position'],
-                    'joinedAt' => $referral['joined_at']
-                ];
-            },
-            $this->donationRepository->findReferralsInFlower($user, $nextFlower)
-        );
+        return [
+            'matrix_depth' => $user->getMatrixDepth(),
+            'matrix_position' => $user->getMatrixPosition(),
+            'total_children' => count($this->matrixPlacementService->getChildrenInMatrix($user)),
+            'donations_received' => $this->donationRepository->countReceivedDonationsInPosition($user, $currentFlower),
+            'total_earned' => $this->getTotalEarned($user),
+            'can_progress' => $this->validateMatrixRequirements($user)
+        ];
     }
 }

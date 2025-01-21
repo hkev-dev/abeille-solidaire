@@ -2,8 +2,9 @@
 namespace App\Twig\Components\User;
 
 use App\Repository\UserRepository;
-use App\Repository\DonationRepository;
 use App\Repository\FlowerRepository;
+use App\Entity\FlowerCycleCompletion;
+use App\Repository\DonationRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -36,12 +37,6 @@ class UserMenuComponent
     }
 
     #[ExposeInTemplate]
-    public function getReferralCount(): int
-    {
-        return $this->security->getUser()->getReferrals()->count();
-    }
-
-    #[ExposeInTemplate]
     public function getUnreadDonationsCount(): int
     {
         $user = $this->security->getUser();
@@ -65,6 +60,16 @@ class UserMenuComponent
     {
         $user = $this->security->getUser();
         $currentFlower = $user->getCurrentFlower();
-        return $currentFlower ? $user->getFlowerCompletionCount($currentFlower) : 0;
+        
+        if (!$currentFlower) {
+            return 0;
+        }
+
+        $completions = $user->getFlowerCycleCompletions()
+            ->filter(fn(FlowerCycleCompletion $completion) => 
+                $completion->getFlower() === $currentFlower
+            );
+
+        return $completions->isEmpty() ? 0 : $completions->first()->getTotalCompletedCycles();
     }
 }

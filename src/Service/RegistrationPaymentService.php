@@ -9,6 +9,7 @@ use Stripe\PaymentIntent;
 use Psr\Log\LoggerInterface;
 use App\Exception\WebhookException;
 use App\Event\UserRegistrationEvent;
+use App\Repository\FlowerRepository;
 use App\Event\MembershipRenewalEvent;
 use Stripe\Exception\ApiErrorException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,7 +33,9 @@ class RegistrationPaymentService
         private readonly UrlGeneratorInterface $router,
         private readonly EntityManagerInterface $entityManager,
         private readonly DonationService $donationService,
-        private readonly MembershipService $membershipService
+        private readonly MembershipService $membershipService,
+        private readonly MatrixPlacementService $matrixPlacementService,
+        private readonly FlowerRepository $flowerRepository // Add this
     ) {
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
 
@@ -45,7 +48,7 @@ class RegistrationPaymentService
     }
 
     public function createStripePaymentIntent(
-        User $user, 
+        User $user,
         string $paymentType = 'registration',
         bool $includeAnnualMembership = false
     ): array {
@@ -86,7 +89,7 @@ class RegistrationPaymentService
     }
 
     public function createCoinPaymentsTransaction(
-        User $user, 
+        User $user,
         string $paymentType = 'registration',
         string $currency = 'BTC',
         bool $includeAnnualMembership = false
@@ -123,7 +126,7 @@ class RegistrationPaymentService
             }
 
             $transaction = $result['result'];
-            
+
             return [
                 'txn_id' => $transaction['txn_id'],
                 'status_url' => $transaction['status_url'],
@@ -171,8 +174,8 @@ class RegistrationPaymentService
         }
 
         $calculatedHmac = hash_hmac(
-            'sha512', 
-            $rawPostData, 
+            'sha512',
+            $rawPostData,
             $this->params->get('coinpayments.ipn_secret')
         );
 
@@ -180,15 +183,39 @@ class RegistrationPaymentService
     }
 
     public function handlePaymentSuccess(
-        User $user, 
-        string $paymentMethod, 
+        User $user,
+        string $paymentMethod,
         string $paymentType,
         ?string $transactionId = null,
         bool $includeAnnualMembership = false
     ): void {
         $this->entityManager->beginTransaction();
-        
+
         try {
+            // Find matrix position first
+            $violette = $this->flowerRepository->findOneBy(['name' => 'Violette']);
+            if (!$violette) {
+                throw new \RuntimeException('Violette flower not found');
+            }
+
+            try {
+                $position = $this->matrixPlacementService->findNextAvailablePosition($violette);
+                if (!$position['parent'] && $position['position'] !== 1) {
+                    throw new \RuntimeException('Could not determine parent position');
+                }
+            } catch (\RuntimeException $e) {
+                $this->logger->error('Matrix placement failed', [
+                    'user_id' => $user->getId(),
+                    'error' => $e->getMessage()
+                ]);
+                throw new \RuntimeException('Could not find available matrix position: ' . $e->getMessage());
+            }
+
+            // Update user's matrix information
+            $user->setMatrixDepth($position['depth'])
+                ->setMatrixPosition($position['position'])
+                ->setParent($position['parent']);
+
             $cryptoDetails = null;
             if ($paymentMethod === 'coinpayments' && $transactionId) {
                 $cryptoDetails = $this->getCoinPaymentsTransactionDetails($transactionId);
@@ -197,12 +224,13 @@ class RegistrationPaymentService
             // Handle registration payment
             $user->setRegistrationPaymentStatus('completed')
                 ->setWaitingSince(null)
-                ->setIsVerified(true);
+                ->setIsVerified(true)
+                ->setCurrentFlower($violette);
 
             // Create registration donation
             $registrationDonation = $this->donationService->createRegistrationDonation(
-                $user, 
-                $paymentMethod, 
+                $user,
+                $paymentMethod,
                 $transactionId,
                 $cryptoDetails
             );
@@ -224,8 +252,8 @@ class RegistrationPaymentService
 
             // Dispatch events
             $event = new UserRegistrationEvent(
-                $user, 
-                $registrationDonation, 
+                $user,
+                $registrationDonation,
                 $paymentMethod,
                 $membership
             );
@@ -273,8 +301,8 @@ class RegistrationPaymentService
             ->setIsVerified(true);
 
         $donation = $this->donationService->createRegistrationDonation(
-            $user, 
-            $paymentMethod, 
+            $user,
+            $paymentMethod,
             $transactionId,
             $cryptoDetails
         );

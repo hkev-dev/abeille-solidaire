@@ -28,19 +28,6 @@ class RegistrationDTO
     #[Assert\EqualTo(propertyPath: 'password', message: 'The password fields must match.')]
     public ?string $confirmPassword = null;
 
-    #[Assert\NotBlank(message: 'Referral code is required')]
-    #[Assert\Length(min: 6)]
-    public ?string $referralCode = null;
-
-    #[Assert\NotBlank(message: 'Project description is required')]
-    #[Assert\Length(
-        min: 100,
-        max: 2000,
-        minMessage: 'Your project description must be at least {{ limit }} characters long',
-        maxMessage: 'Your project description cannot be longer than {{ limit }} characters'
-    )]
-    public ?string $projectDescription = null;
-
     #[Assert\IsTrue(message: 'You must agree to our terms.')]
     public bool $agreeTerms = false;
 

@@ -45,6 +45,9 @@ class Membership
     #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
     private ?float $cryptoAmount = null;  // Add crypto amount
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $metadata = null;
+
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount = self::ANNUAL_FEE;
 
@@ -138,6 +141,31 @@ class Membership
     {
         $this->cryptoAmount = $amount;
         return $this;
+    }
+
+    public function getMetadata(): ?array
+    {
+        return $this->metadata;
+    }
+
+    public function setMetadata(?array $metadata): self
+    {
+        $this->metadata = $metadata;
+        return $this;
+    }
+
+    public function addMetadata(string $key, mixed $value): self
+    {
+        if ($this->metadata === null) {
+            $this->metadata = [];
+        }
+        $this->metadata[$key] = $value;
+        return $this;
+    }
+
+    public function getMetadataValue(string $key, mixed $default = null): mixed
+    {
+        return $this->metadata[$key] ?? $default;
     }
 
     public function getAmount(): float

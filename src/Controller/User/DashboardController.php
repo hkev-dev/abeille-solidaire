@@ -21,22 +21,35 @@ class DashboardController extends AbstractController
     #[Route('/user/dashboard', name: 'app.user.dashboard')]
     public function index(): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         
+        if (!$user) {
+            return $this->redirectToRoute('app.login');
+        }
+
         $data = [
+            'user' => $user,
             'currentFlower' => $user->getCurrentFlower(),
             'walletBalance' => $user->getWalletBalance(),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
-            'referralCount' => $user->getReferrals()->count(),
+            'matrixChildren' => $user->getChildren(),
+            'matrixChildrenCount' => $user->getChildren()->count(),
             'currentMembership' => $user->getCurrentMembership(),
-            'flowerProgress' => $this->donationRepository->getCurrentFlowerProgress($user),
+            'flowerProgress' => $user->getFlowerProgress(),
             'recentDonations' => $this->donationRepository->findRecentByUser($user, 5),
-            'directReferrals' => $user->getReferrals()->slice(0, 4),
+            'matrixPosition' => [
+                'depth' => $user->getMatrixDepth(),
+                'position' => $user->getMatrixPosition(),
+                'parent' => $user->getParent()
+            ],
             'isKycVerified' => $user->isKycVerified(),
             'totalMembers' => $this->userRepository->countActiveMembers(),
+
         ];
 
         return $this->render('user/pages/dashboard/index.html.twig', $data);
     }
 }
+

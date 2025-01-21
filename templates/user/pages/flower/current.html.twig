@@ -4,117 +4,132 @@
 
 {% block content %}
     <div class="container-fixed">
-        {# Flower Navigation Path #}
-        <div class="mb-8">
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
-                </div>
-                <div class="relative flex justify-between">
-                    {% for f in allFlowers %}
-                        <div class="flex flex-col items-center">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-full 
-                                      {{ f.id == flower.id ? 'bg-primary text-white' : 
-                                         f.id < flower.id ? 'bg-success-light text-success' : 
-                                         'bg-gray-100 text-gray-400' }}">
-                                <span class="ki-duotone ki-flower2 text-xl"></span>
+        {# Enhanced Flower Timeline Navigation #}
+        <div class="relative mb-12 py-8">
+            {# Background Line #}
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full h-1 bg-gray-100 rounded-full"></div>
+            </div>
+
+            {# Flowers Timeline #}
+            <div class="relative flex justify-between px-2">
+                {% for f in allFlowers %}
+                    {% set isActive = f.id == flower.id %}
+                    {% set isCompleted = f.id < flower.id %}
+                    {% set isNext = f.id == flower.id + 1 %}
+                    
+                    <div class="group relative">
+                        {# Connection Lines #}
+                        {% if not loop.last %}
+                            <div class="absolute top-1/2 left-[4.5rem] w-full h-1 
+                                {{ isCompleted ? 'bg-success' : 'bg-gray-200' }}">
                             </div>
-                            <span class="mt-2 text-xs font-medium {{ f.id == flower.id ? 'text-primary' : 'text-gray-500' }}">
-                                {{ f.name }}
-                            </span>
-                            <span class="text-2xs text-gray-400">€{{ f.donationAmount|number_format(2) }}</span>
+                        {% endif %}
+
+                        {# Flower Badge #}
+                        <div class="relative flex flex-col items-center">
+                            {# Main Circle #}
+                            <div class="w-20 h-20 rounded-full flex items-center justify-center
+                                {{ isActive ? 'bg-primary ring-4 ring-primary/20' :
+                                   isCompleted ? 'bg-success' :
+                                   isNext ? 'bg-warning' :
+                                   'bg-gray-100' }}
+                                transform transition-all duration-500 group-hover:scale-105 z-10">
+
+                                {# Inner Circle #}
+                                <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center
+                                    transform transition-transform duration-500 group-hover:rotate-45">
+                                    <span class="ki-duotone ki-abstract-36 text-2xl transform transition-transform duration-500 group-hover:-rotate-45
+                                        {{ isActive ? 'text-primary' :
+                                           isCompleted ? 'text-success' :
+                                           isNext ? 'text-warning' : 'text-gray-400' }}">
+                                    </span>
+                                </div>
+
+                                {# Status Badge #}
+                                <div class="absolute right-0 top-1 z-20
+                                    {{ isActive ? 'animate-bounce' : 'transform transition-transform group-hover:scale-110' }}">
+                                    {% if isActive %}
+                                        <div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center ring-2 ring-white">
+                                            <span class="ki-solid ki-star text-white text-xs"></span>
+                                        </div>
+                                    {% elseif isCompleted %}
+                                        <div class="w-6 h-6 rounded-full bg-success flex items-center justify-center">
+                                            <span class="ki-solid ki-check text-white text-xs"></span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# Flower Info #}
+                            <div class="mt-4 text-center transform transition-all duration-300 
+                                {{ isActive ? 'translate-y-0 opacity-100' : 'group-hover:-translate-y-1' }}">
+                                <span class="block text-sm font-semibold mb-1
+                                    {{ isActive ? 'text-primary' :
+                                       isCompleted ? 'text-success' :
+                                       isNext ? 'text-warning' : 'text-gray-400' }}">
+                                    {{ f.name }}
+                                </span>
+                                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {{ isActive ? 'bg-primary/10 text-primary' :
+                                       isCompleted ? 'bg-success/10 text-success' :
+                                       isNext ? 'bg-warning/10 text-warning' : 'bg-gray-100 text-gray-400' }}">
+                                    {{ f.donationAmount|number_format(2) }} €
+                                </div>
+                            </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {# Left Column - Current Status & Matrix #}
-            <div class="lg:col-span-2 space-y-6">
-                {# Current Status Cards #}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="card bg-primary hover:bg-primary-active transition-colors text-white">
-                        <div class="card-body">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-primary-inverse/70">Position Actuelle</p>
-                                    <h3 class="text-2xl font-bold">{{ userPosition|default('--') }}</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {# Left Column - Children Slots #}
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+                    {# Header with Stats #}
+                    <div class="p-6 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Mes Filleuls Directs</h3>
+                                <p class="text-sm text-gray-500 mt-1">{{ flower.name }} - Niveau {{ userDepth + 1 }}</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="px-4 py-2 bg-primary/10 rounded-lg">
+                                    <span class="text-sm font-medium text-primary">{{ matrixPositions|length }}/4</span>
+                                    <span class="text-xs text-gray-500 ml-1">Places occupées</span>
                                 </div>
-                                <span class="ki-duotone ki-flower2 text-3xl text-primary-inverse/30"></span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-success-inverse/70">Dons Reçus</p>
-                                    <h3 class="text-2xl font-bold">{{ progress.received }}/4</h3>
-                                </div>
-                                <span class="ki-duotone ki-gift text-3xl text-success-inverse/30"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-warning-inverse/70">Total Reçu</p>
-                                    <h3 class="text-2xl font-bold">€{{ totalReceivedInFlower|number_format(2) }}</h3>
-                                </div>
-                                <span class="ki-duotone ki-euro text-3xl text-warning-inverse/30"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {# Matrix with Referrals #}
-                <div class="card hover:shadow-lg transition-shadow">
-                    <div class="card-header border-b border-gray-200">
-                        <h3 class="card-title flex items-center gap-2">
-                            <span class="ki-duotone ki-abstract-26 text-primary"></span>
-                            Matrice de {{ flower.name }}
-                        </h3>
-                    </div>
-                    <div class="card-body p-6">
-                        <div class="grid grid-cols-4 gap-4">
-                            {% for i in 1..16 %}
+                        {# Children Slots Grid - Flex-grow to take remaining space #}
+                        <div class="grid grid-cols-4 gap-6 flex-grow">
+                            {% for i in 1..4 %}
                                 {% set position = matrixPositions[i-1]|default(null) %}
-                                {% set isCurrentUser = position and position.recipient_id == app.user.id %}
-                                {% set isReferral = position and position.recipient_id in referralsInFlower|map(r => r.id) %}
-                                
-                                <div class="relative aspect-square rounded-xl border-2 
-                                    {{ isCurrentUser ? 'border-primary bg-primary-light' :
-                                       isReferral ? 'border-success bg-success-light' :
-                                       position ? 'border-gray-300 bg-gray-50' : 'border-gray-200' }}
-                                    flex flex-col items-center justify-center p-2">
+                                <div class="relative bg-white rounded-xl border-2 
+                                    {{ position ? 'border-success shadow-sm' : 'border-dashed border-gray-300' }}
+                                    p-4 flex flex-col items-center justify-center transition-all duration-300
+                                    {{ position ? 'hover:shadow-md hover:scale-105' : '' }}">
+                                    
                                     {% if position %}
-                                        <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full 
-                                            {{ isCurrentUser ? 'bg-primary' : 
-                                               isReferral ? 'bg-success' : 'bg-gray-500' }} 
-                                            text-white flex items-center justify-center text-xs font-semibold">
+                                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-success text-white rounded-full 
+                                            flex items-center justify-center text-xs font-semibold shadow-sm">
                                             {{ i }}
                                         </div>
-                                        <div class="text-center">
-                                            {% if isCurrentUser %}
-                                                <span class="ki-duotone ki-star text-primary text-xl mb-1"></span>
-                                                <div class="text-sm font-semibold text-primary">Vous</div>
-                                            {% elseif isReferral %}
-                                                <span class="ki-duotone ki-profile-user text-success text-xl mb-1"></span>
-                                                <div class="text-sm font-semibold text-success">Filleul</div>
-                                            {% else %}
-                                                <span class="ki-duotone ki-user text-gray-400 text-xl mb-1"></span>
-                                                <div class="text-sm text-gray-500">Occupé</div>
-                                            {% endif %}
+                                        <div class="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-3
+                                            transform transition-all duration-300 group-hover:rotate-12">
+                                            <span class="ki-duotone ki-profile-circle text-success text-3xl"></span>
                                         </div>
+                                        <span class="text-sm font-medium text-gray-900">
+                                            {{ position.firstName }} {{ position.lastName }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 mt-1">Niveau {{ position.depth + 1 }}</span>
                                     {% else %}
-                                        <div class="text-center text-gray-400">
-                                            <span class="ki-duotone ki-plus-square text-xl mb-1"></span>
-                                            <div class="text-sm">Disponible</div>
+                                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3 
+                                            border-2 border-dashed border-gray-300">
+                                            <span class="ki-duotone ki-plus text-gray-400 text-3xl"></span>
                                         </div>
+                                        <span class="text-sm text-gray-400">Position Disponible</span>
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -123,79 +138,48 @@
                 </div>
             </div>
 
-            {# Right Column - Progress & Activity #}
-            <div class="space-y-6">
-                {# Progress Card #}
-                <div class="card hover:shadow-lg transition-shadow">
-                    <div class="card-header border-b border-gray-200">
-                        <h3 class="card-title flex items-center gap-2">
-                            <span class="ki-duotone ki-chart-line text-primary"></span>
-                            Progression
-                        </h3>
-                    </div>
-                    <div class="card-body p-6">
-                        <div class="mb-6">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm font-medium">Cycle Actuel</span>
-                                <span class="text-sm text-primary font-semibold">{{ progress.received }}/4</span>
-                            </div>
-                            <div class="h-3 rounded-full bg-primary-light overflow-hidden">
-                                <div class="h-full bg-primary transition-all duration-500" 
-                                     style="width: {{ progress.percentage }}%"></div>
+            {# Right Column - Progress Stats #}
+            <div class="h-full">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 h-full flex flex-col">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Progression {{ flower.name }}</h3>
+                    
+                    {# Main Progress Circle - With flex-grow to center vertically #}
+                    <div class="flex-grow flex flex-col justify-center">
+                        <div class="relative w-full aspect-square max-w-[200px] mx-auto mb-6">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <svg class="transform -rotate-90 w-full h-full">
+                                    <circle cx="50%" cy="50%" r="45%" stroke-width="8%" 
+                                            stroke="currentColor" fill="none" 
+                                            class="text-primary/10">
+                                    </circle>
+                                    <circle cx="50%" cy="50%" r="45%" stroke-width="8%" 
+                                            stroke="currentColor" fill="none" 
+                                            stroke-dasharray="283"
+                                            stroke-dashoffset="{{ 283 - (283 * progress.percentage / 100) }}"
+                                            class="text-primary transition-all duration-1000">
+                                    </circle>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-3xl font-bold text-primary">{{ progress.received }}/4</span>
+                                    <span class="text-sm text-gray-500">Dons reçus</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="text-sm font-medium">Cycles Complétés</p>
-                                <p class="text-xs text-gray-500">Sur un maximum de 10</p>
+                        {# Stats Grid #}
+                        <div class="grid grid-cols-2 gap-4 mt-auto">
+                            <div class="p-4 rounded-xl bg-success/10">
+                                <div class="text-sm text-gray-600">Total Reçu</div>
+                                <div class="text-lg font-semibold text-success">
+                                    €{{ totalReceivedInFlower|number_format(2) }}
+                                </div>
                             </div>
-                            <div class="text-2xl font-bold text-primary">{{ completedCycles }}/10</div>
-                        </div>
-                    </div>
-                </div>
-
-                {# Recent Activity Timeline #}
-                <div class="card hover:shadow-lg transition-shadow">
-                    <div class="card-header border-b border-gray-200">
-                        <h3 class="card-title flex items-center gap-2">
-                            <span class="ki-duotone ki-calendar-tick text-primary"></span>
-                            Activité Récente
-                        </h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="timeline">
-                            {% for activity in recentActivity %}
-                                <div class="timeline-item">
-                                    <div class="timeline-badge hover:border-{{ activity.type }} group">
-                                        <i class="ki-duotone ki-{{ activity.icon }} text-{{ activity.type }} group-hover:scale-110"></i>
-                                    </div>
-                                    <div class="timeline-content">
-                                        <div class="timeline-header">
-                                            <span class="timeline-title">{{ activity.description|split(' a ')|first }}</span>
-                                            <span class="timeline-time" title="{{ activity.date|date('d/m/Y H:i') }}">
-                                                {{ activity.date|ago }}
-                                            </span>
-                                        </div>
-                                        <p class="timeline-description">
-                                            {{ activity.description }}
-                                        </p>
-                                        {% if activity.amount %}
-                                            <div class="timeline-amount">
-                                                <i class="ki-duotone ki-euro"></i>
-                                                {{ activity.amount|number_format(2, ',', ' ') }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
+                            <div class="p-4 rounded-xl bg-primary/10">
+                                <div class="text-sm text-gray-600">Cycles Complétés</div>
+                                <div class="text-lg font-semibold text-primary">
+                                    {{ completedCycles }}/10
                                 </div>
-                            {% else %}
-                                <div class="p-8 text-center">
-                                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
-                                        <i class="ki-duotone ki-notification text-2xl text-gray-400"></i>
-                                    </div>
-                                    <h3 class="text-gray-500 text-sm">Aucune activité récente</h3>
-                                </div>
-                            {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -6,11 +6,12 @@ use App\Entity\User;
 use App\DTO\RegistrationDTO;
 use Psr\Log\LoggerInterface;
 use App\Form\RegistrationType;
-use App\Service\ReferralService;
 use App\Form\PaymentSelectionType;
 use App\Repository\UserRepository;
 use App\Exception\WebhookException;
+use App\Repository\FlowerRepository;
 use App\Service\StripeWebhookService;
+use App\Service\MatrixPlacementService;
 use App\Service\UserRegistrationService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\RegistrationPaymentService;
@@ -25,17 +26,15 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 class AuthController extends AbstractController
 {
-    private UserRepository $userRepository;
-
     public function __construct(
         private readonly UserRegistrationService $userRegistrationService,
-        private readonly ReferralService $referralService,
         private readonly RegistrationPaymentService $registrationPaymentService,
         private readonly SecurityService $securityService,
         private readonly LoggerInterface $logger,
-        UserRepository $userRepository,
+        private readonly UserRepository $userRepository,
+        private readonly MatrixPlacementService $matrixPlacementService,
+        private readonly FlowerRepository $flowerRepository, // Add FlowerRepository
     ) {
-        $this->userRepository = $userRepository;
     }
 
     #[Route('/login', name: 'app.login')]
@@ -72,17 +71,6 @@ class AuthController extends AbstractController
 
         $dto = new RegistrationDTO();
 
-        // Handle referral code
-        if ($request->query->has('ref')) {
-            $dto->referralCode = $request->query->get('ref');
-        } elseif (in_array($this->getParameter('kernel.environment'), ['dev', 'test'])) {
-            // In test/dev environment, use default referral code if none provided
-            $rootUser = $this->userRepository->findOneBy(['email' => 'root@example.com']);
-            if ($rootUser) {
-                $dto->referralCode = 'ABEILLESOLIDAIRE';
-            }
-        }
-
         $form = $this->createForm(RegistrationType::class, $dto);
         $form->handleRequest($request);
 
@@ -94,20 +82,17 @@ class AuthController extends AbstractController
             }
 
             try {
-                // Validate referral code
-                $referrer = $this->referralService->validateReferralCode($dto->referralCode);
-                if (!$referrer) {
-                    throw new \InvalidArgumentException('Invalid referral code.');
-                }
+                // Create new user in waiting room
+                $user = $this->userRegistrationService->registerUser($dto);
 
-                // Register user
-                $user = $this->userRegistrationService->registerUser($dto, $referrer);
-
-                $this->addFlash('success', 'Registration successful! Please complete your registration by making the initial donation.');
+                $this->addFlash('success', 'Registration successful! Please complete your payment to be placed in the matrix system.');
                 return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
-
             } catch (\Exception $e) {
-                $this->addFlash('error', $e->getMessage());
+                $this->logger->error('Registration failed', [
+                    'error' => $e->getMessage(),
+                    'email' => $dto->email
+                ]);
+                $this->addFlash('error', 'Registration failed. Please try again.');
                 return $this->redirectToRoute('app.register');
             }
         }
@@ -216,11 +201,22 @@ class AuthController extends AbstractController
         // Get payment method from session
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
 
+        // Add matrix position info
+        $matrixInfo = null;
+        if ($user->getRegistrationPaymentStatus() === 'pending') {
+            $violette = $this->flowerRepository->findOneBy(['name' => 'Violette']);
+            if (!$violette) {
+                throw new \RuntimeException('Violette flower not found');
+            }
+            $matrixInfo = $this->matrixPlacementService->findNextAvailablePosition($violette);
+        }
+
         return $this->render('public/pages/auth/waiting-room.html.twig', [
             'user' => $user,
             'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
-            'txn_id' => $request->getSession()->get('txn_id') // For crypto payments
+            'txn_id' => $request->getSession()->get('txn_id'), // For crypto payments
+            'matrix_info' => $matrixInfo
         ]);
     }
 
@@ -312,23 +308,10 @@ class AuthController extends AbstractController
                     $includeAnnualMembership = filter_var($custom['include_membership'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
                     $paymentStatus = (int) $ipnData['status'];
-                    $this->logger->info('Processing payment status', [
-                        'webhook_id' => $webhookId,
-                        'user_id' => $user->getId(),
-                        'status' => $paymentStatus,
-                        'status_text' => $ipnData['status_text'] ?? null,
-                        'include_membership' => $includeAnnualMembership
-                    ]);
 
                     match ($paymentStatus) {
                         // Complete
-                        100 => $this->registrationPaymentService->handlePaymentSuccess(
-                            user: $user,
-                            paymentMethod: 'coinpayments',
-                            paymentType: 'registration',
-                            transactionId: $ipnData['txn_id'],
-                            includeAnnualMembership: $includeAnnualMembership
-                        ),
+                        100 => $this->handleSuccessfulPayment($user, $ipnData, $webhookId, $includeAnnualMembership),
                         // Cancelled/Timeout
                         -1 => $this->registrationPaymentService->handlePaymentFailure(
                             user: $user,
@@ -376,6 +359,55 @@ class AuthController extends AbstractController
                 : Response::HTTP_INTERNAL_SERVER_ERROR;
 
             return new Response('IPN Error: ' . $e->getMessage(), $statusCode);
+        }
+    }
+
+    private function handleSuccessfulPayment(User $user, array $ipnData, string $webhookId, bool $includeAnnualMembership): void
+    {
+        try {
+            // Find matrix position before processing payment
+            $violette = $this->flowerRepository->findOneBy(['name' => 'Violette']);
+            if (!$violette) {
+                throw new \RuntimeException('Violette flower not found');
+            }
+
+            $matrixPosition = $this->matrixPlacementService->findNextAvailablePosition($violette);
+            if (!$matrixPosition) {
+                throw new \Exception('No available matrix position found');
+            }
+
+            // Begin transaction
+            $this->entityManager->beginTransaction();
+
+            try {
+                // Update user's matrix information first
+                $user->setMatrixDepth($matrixPosition['depth']);
+                $user->setMatrixPosition($matrixPosition['position']);
+                $user->setParent($matrixPosition['parent']);
+                
+                // Process the payment
+                $this->registrationPaymentService->handlePaymentSuccess(
+                    user: $user,
+                    paymentMethod: 'coinpayments',
+                    paymentType: 'registration',
+                    transactionId: $ipnData['txn_id'],
+                    includeAnnualMembership: $includeAnnualMembership
+                );
+
+                $this->entityManager->commit();
+                
+            } catch (\Exception $e) {
+                $this->entityManager->rollback();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to process successful payment', [
+                'webhook_id' => $webhookId,
+                'user_id' => $user->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
         }
     }
 

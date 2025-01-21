@@ -15,7 +15,11 @@ module.exports = {
     "ki-duotone",
     "ki-solid",
     { pattern: /^apexcharts-.*$/ },
-    { pattern: /^leaflet-.*$/ }
+    { pattern: /^leaflet-.*$/ },
+    { pattern: /^before:.*$/ },
+    { pattern: /^from-.*$/ },
+    { pattern: /^to-.*$/ },
+    { pattern: /^via-.*$/ }
   ],
   darkMode: "class",
   theme: {
@@ -200,6 +204,37 @@ module.exports = {
             warning: "none",
             dark: "none"
           }
+        },
+        animation: {
+          shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+          spin: 'spin 3s linear infinite',
+          bounce: 'bounce 1s infinite',
+          pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        },
+        keyframes: {
+          shake: {
+            '0%, 100%': { transform: 'translateX(0)' },
+            '25%': { transform: 'translateX(-5px)' },
+            '75%': { transform: 'translateX(5px)' }
+          },
+          spin: {
+            '0%': { transform: 'rotate(0deg)' },
+            '100%': { transform: 'rotate(360deg)' }
+          },
+          bounce: {
+            '0%, 100%': {
+              transform: 'translateY(-25%)',
+              animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
+            },
+            '50%': {
+              transform: 'translateY(0)',
+              animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
+            }
+          },
+          pulse: {
+            '0%, 100%': { opacity: '.5' },
+            '50%': { opacity: '.15' }
+          }
         }
       },
       fontFamily: {
@@ -377,16 +412,6 @@ module.exports = {
         lg: "1024px",
         xl: "1280px",
         "2xl": "1536px"
-      },
-      keyframes: {
-        shake: {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '25%': { transform: 'translateX(-5px)' },
-          '75%': { transform: 'translateX(5px)' }
-        }
-      },
-      animation: {
-        shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'
       }
     },
     custom: ({ theme }) => ({

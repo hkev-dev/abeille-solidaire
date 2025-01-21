@@ -23,6 +23,10 @@ class Donation
     public const SOLIDARITY_STATUS_DISTRIBUTED = 'distributed';
     public const SOLIDARITY_STATUS_NOT_APPLICABLE = 'not_applicable';
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_FAILED = 'failed';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -84,6 +88,9 @@ class Donation
 
     #[ORM\Column(length: 20)]
     private string $solidarityDistributionStatus = self::SOLIDARITY_STATUS_NOT_APPLICABLE;
+
+    #[ORM\Column(length: 20)]
+    private string $status = self::STATUS_PENDING;
 
     public function getId(): ?int
     {
@@ -295,6 +302,36 @@ class Donation
         }
         $this->solidarityDistributionStatus = $status;
         return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_COMPLETED, self::STATUS_FAILED])) {
+            throw new \InvalidArgumentException('Invalid donation status');
+        }
+        
+        $this->status = $status;
+        return $this;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isFailed(): bool
+    {
+        return $this->status === self::STATUS_FAILED;
     }
 
     public function validateMatrixDonation(): bool

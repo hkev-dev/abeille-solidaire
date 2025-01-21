@@ -108,38 +108,17 @@
                     label: 'Cycles Complétés',
                     route: 'app.user.progression.cycles',
                     badge: completedCycles > 0 ? {
-                        text: completedCycles,
-                        class: 'badge-success'
+                        text: completedCycles ~ '/10',
+                        class: completedCycles >= 10 ? 'badge-warning' : 'badge-success'
                     } : null
                 },
                 {
                     label: 'Prochaine Fleur',
-                    route: 'app.user.progression.next_flower'
-                }
-            ]
-        }) }}
-
-		{# Referral System Section #}
-		{{ menuItem.render({
-            label: 'Parrainage',
-            icon: 'ki-duotone ki-people',
-            routes: ['app.user.referral.referrals', 'app.user.referral.link', 'app.user.referral.stats'],
-            submenu: [
-                {
-                    label: 'Mes Filleuls',
-                    route: 'app.user.referral.referrals',
-                    badge: {
-                        text: referralCount ~ '/4',
-                        class: referralCount >= 4 ? 'badge-success' : (referralCount > 0 ? 'badge-primary' : 'badge-light')
-                    }
-                },
-                {
-                    label: 'Lien de Parrainage',
-                    route: 'app.user.referral.link'
-                },
-                {
-                    label: 'Statistiques',
-                    route: 'app.user.referral.stats'
+                    route: 'app.user.progression.next_flower',
+                    badge: completedCycles >= 10 ? {
+                        text: 'Disponible',
+                        class: 'badge-success'
+                    } : null
                 }
             ]
         }) }}

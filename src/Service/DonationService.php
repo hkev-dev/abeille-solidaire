@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Entity\Flower;
 use App\Repository\FlowerRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class DonationService
 {
@@ -14,7 +15,7 @@ class DonationService
         private readonly EntityManagerInterface $entityManager,
         private readonly MatrixPlacementService $matrixPlacementService,
         private readonly FlowerRepository $flowerRepository,
-        private readonly FlowerProgressionService $flowerProgressionService
+        private readonly EventDispatcherInterface $eventDispatcher // Add this
     ) {
     }
 
@@ -25,26 +26,44 @@ class DonationService
         ?array $cryptoDetails = null
     ): Donation {
         $violetteFlower = $this->flowerRepository->findOneBy(['name' => 'Violette']);
-        $recipient = $this->matrixPlacementService->findNextAvailablePosition($violetteFlower);
-
-        if (!$recipient) {
-            // Fallback to finding any eligible recipient in the Violette flower
-            $recipient = $this->flowerRepository->findNextRecipientInFlower($violetteFlower);
-            
-            if (!$recipient) {
-                // If still no recipient, use the donor as recipient for first position
-                $recipient = $donor;
-            }
+        if (!$violetteFlower) {
+            throw new \RuntimeException('Violette flower not found');
         }
 
+        // Find next available position in matrix
+        $matrixData = $this->matrixPlacementService->findNextAvailablePosition($violetteFlower);
+        if (!$matrixData) {
+            throw new \RuntimeException('No available positions in matrix');
+        }
+
+        // Create registration donation with proper recipient
         $donation = new Donation();
         $donation->setDonor($donor)
-            ->setRecipient($recipient)
             ->setAmount(25.00)
             ->setDonationType('registration')
             ->setFlower($violetteFlower)
-            ->setCyclePosition($this->determineInitialPosition($violetteFlower))
+            ->setCyclePosition($matrixData['position'])
             ->setTransactionDate(new \DateTimeImmutable());
+
+        // Handle recipient based on matrix position
+        if ($matrixData['position'] === 1) {
+            // Root user donates to themselves
+            $donation->setRecipient($donor);
+        } else {
+            // Non-root users donate to their parent
+            if (!$matrixData['parent']) {
+                throw new \RuntimeException('Parent user not found for non-root position');
+            }
+            $donation->setRecipient($matrixData['parent']);
+        }
+
+        // Update donor's matrix information
+        $donor->setMatrixDepth($matrixData['depth'])
+            ->setMatrixPosition($matrixData['position'])
+            ->setParent($matrixData['parent']);
+
+        // Lock the matrix position
+        $this->matrixPlacementService->lockPosition($matrixData['position'], $violetteFlower);
 
         switch ($paymentMethod) {
             case 'stripe':
@@ -87,9 +106,23 @@ class DonationService
             ->setDonationType($type)
             ->setTransactionDate(new \DateTimeImmutable());
 
-        if ($type === 'direct') {
-            $donation->setFlower($donor->getCurrentFlower())
-                ->setCyclePosition($this->calculateCyclePosition($recipient));
+        if ($type === 'direct' || $type === 'matrix_propagation') {
+            $flower = $donor->getCurrentFlower();
+            if (!$flower) {
+                throw new \RuntimeException('Donor does not have a current flower');
+            }
+
+            // For matrix-based donations, calculate next position
+            $position = $this->matrixPlacementService->findNextPositionForUser($recipient, $flower);
+            if (!$position) {
+                throw new \RuntimeException('No available matrix position for donation');
+            }
+
+            $donation->setFlower($flower)
+                ->setCyclePosition($position);
+
+            // Lock the position in matrix
+            $this->matrixPlacementService->lockPosition($position, $flower);
         }
 
         // Set payment-specific details
@@ -100,8 +133,6 @@ class DonationService
 
             case 'coinpayments':
                 $donation->setCoinpaymentsTransactionId($transactionId);
-
-                // Store crypto-specific details if available
                 if ($cryptoDetails) {
                     $donation->setCryptoAmount($cryptoDetails['crypto_amount'])
                         ->setCryptoCurrency($cryptoDetails['crypto_currency'])
@@ -115,9 +146,11 @@ class DonationService
         $this->entityManager->persist($donation);
         $this->entityManager->flush();
 
-        // Check for flower progression after donation
-        if ($type === 'direct') {
-            $this->flowerProgressionService->checkAndProcessProgression($recipient);
+        // Check for flower progression after matrix-based donations
+        if ($type === 'direct' || $type === 'matrix_propagation') {
+            // Instead of directly calling FlowerProgressionService, dispatch an event
+            $event = new DonationProcessedEvent($recipient, $donor, $type);
+            $this->eventDispatcher->dispatch($event, DonationProcessedEvent::NAME);
         }
 
         return $donation;
@@ -165,7 +198,7 @@ class DonationService
 
             case 'coinpayments':
                 $donation->setCoinpaymentsTransactionId($transactionId);
-                
+
                 if ($cryptoDetails) {
                     $donation->setCryptoAmount($cryptoDetails['crypto_amount'])
                         ->setCryptoCurrency($cryptoDetails['crypto_currency'])
@@ -185,78 +218,72 @@ class DonationService
         return $donation;
     }
 
-    private function calculateCyclePosition(User $recipient): int
-    {
-        // Get count of existing donations for this recipient in current flower
-        $existingDonations = $this->entityManager->getRepository(Donation::class)
-            ->count([
-                'recipient' => $recipient,
-                'flower' => $recipient->getCurrentFlower(),
-                'donation_type' => 'direct'
-            ]);
-
-        return $existingDonations + 1;
-    }
-
-    private function determineInitialPosition(Flower $flower): int
-    {
-        $existingPositions = $this->entityManager->getRepository(Donation::class)
-            ->createQueryBuilder('d')
-            ->select('d.cyclePosition')
-            ->where('d.flower = :flower')
-            ->andWhere('d.donationType IN (:types)')
-            ->setParameter('flower', $flower)
-            ->setParameter('types', ['registration', 'direct'])
-            ->getQuery()
-            ->getArrayResult();
-
-        $usedPositions = array_column($existingPositions, 'cyclePosition');
-        
-        // Find first available position from 1 to 16
-        for ($i = 1; $i <= 16; $i++) {
-            if (!in_array($i, $usedPositions)) {
-                return $i;
-            }
-        }
-
-        // If all positions are taken (shouldn't happen due to matrix checks)
-        return 1;
-    }
-
     public function processDonation(User $donor, Flower $flower, string $donationType): ?Donation
     {
+        // Check if matrix can accept new donations
         if ($this->matrixPlacementService->isMatrixFull($flower)) {
-            // Handle matrix overflow - could create new matrix or waitlist
-            return null;
+            throw new \RuntimeException('Matrix is full for this flower');
         }
 
-        $recipient = $this->matrixPlacementService->findNextAvailablePosition($flower);
+        // Find next position and recipient
+        $position = $this->matrixPlacementService->findNextAvailablePosition($flower);
+        if (!$position) {
+            throw new \RuntimeException('No available position found in matrix');
+        }
+
+        // Calculate matrix position details
+        $matrixDetails = $this->matrixPlacementService->calculateMatrixPosition($position);
+
+        // Fix: Use findParentUser instead of findPositionRecipient
+        $recipient = $this->matrixPlacementService->findParentUser($matrixDetails['depth'], $matrixDetails['position']);
+
         if (!$recipient) {
-            return null;
+            throw new \RuntimeException('Could not find valid recipient in matrix');
         }
 
         try {
-            $position = array_search(
-                null,
-                $this->matrixPlacementService->getMatrixState($flower)
-            );
+            // Start transaction
+            $this->entityManager->beginTransaction();
 
+            // Lock position
             $this->matrixPlacementService->lockPosition($position, $flower);
 
+            // Create donation
             $donation = new Donation();
             $donation->setDonor($donor)
                 ->setRecipient($recipient)
                 ->setFlower($flower)
                 ->setDonationType($donationType)
-                ->setCyclePosition($position);
+                ->setCyclePosition($position)
+                ->setTransactionDate(new \DateTimeImmutable());
 
             $this->entityManager->persist($donation);
+
+            // Update recipient's matrix info
+            $recipient->setMatrixDepth($matrixDetails['depth'])
+                ->setMatrixPosition($matrixDetails['position']);
+
             $this->entityManager->flush();
+            $this->entityManager->commit();
 
             return $donation;
+
         } catch (\Exception $e) {
-            // Handle error and possibly retry
-            return null;
+            $this->entityManager->rollback();
+            throw $e;
         }
+    }
+
+    /**
+     * Helper method to validate matrix position for a donation
+     */
+    private function validateMatrixPosition(int $position, Flower $flower): bool
+    {
+        if ($position < 1 || $position > 16) {
+            return false;
+        }
+
+        $matrixState = $this->matrixPlacementService->getMatrixState($flower);
+        return !isset($matrixState[$position]);
     }
 }

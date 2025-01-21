@@ -45,14 +45,10 @@ class Flower
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'flower')]
     private Collection $donations;
 
-    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'flower')]
-    private Collection $cycleCompletions;
-
     public function __construct()
     {
         $this->currentUsers = new ArrayCollection();
         $this->donations = new ArrayCollection();
-        $this->cycleCompletions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -103,17 +99,6 @@ class Flower
         return $this->donations;
     }
 
-    public function getCycleCompletions(): Collection
-    {
-        return $this->cycleCompletions;
-    }
-
-    public function getCycleCompletionsForUser(User $user): ?FlowerCycleCompletion
-    {
-        return $this->cycleCompletions
-            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getUser() === $user)
-            ->first() ?: null;
-    }
 
     public function getMatrixPosition(): int
     {
