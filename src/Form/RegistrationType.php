@@ -86,7 +86,7 @@ class RegistrationType extends AbstractType
                 'required' => false
             ])
             ->add('organizationNumber', TextType::class, [
-                'attr' => ['placeholder' => 'Numéro SIRET*'],
+                'attr' => ['placeholder' => 'Numéro d\'Identification*'],
                 'label' => false,
                 'row_attr' => ['class' => 'contact-form__input-box organization-field'],
                 'required' => false
