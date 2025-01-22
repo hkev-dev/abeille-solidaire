@@ -166,52 +166,47 @@ class DonationRepository extends ServiceEntityRepository
 
     public function getCurrentCycleInfo(User $user, Flower $flower): array
     {
-        $qb = $this->createQueryBuilder('d');
-        
-        // Get total completed cycles
-        $completedCycles = $this->createQueryBuilder('d1')
-            ->select('COUNT(DISTINCT d1.cyclePosition) / 4')
-            ->where('d1.recipient = :user')
-            ->andWhere('d1.flower = :flower')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Get current cycle donations
-        $currentCycleDonations = $qb
+        // Get total completed direct donations for this flower
+        $totalDonations = $this->createQueryBuilder('d')
             ->select('COUNT(d.id)')
             ->where('d.recipient = :user')
             ->andWhere('d.flower = :flower')
-            ->andWhere('d.donationType IN (:types)')
-            ->andWhere('d.cyclePosition > :lastCompletedPosition')
+            ->andWhere('d.donationType = :type')
             ->setParameter('user', $user)
             ->setParameter('flower', $flower)
-            ->setParameter('lastCompletedPosition', $completedCycles * 4)
+            ->setParameter('type', 'direct')
             ->getQuery()
             ->getSingleScalarResult();
 
+        // Calculate cycles (every 4 donations completes a cycle)
+        $completedCycles = (int)($totalDonations / 4);
+        $donationsInCurrentCycle = $totalDonations % 4;
+
         return [
-            'totalCompletedCycles' => (int)$completedCycles,
-            'currentCycleNumber' => (int)$completedCycles + 1,
-            'donationsInCurrentCycle' => (int)$currentCycleDonations,
+            'totalCompletedCycles' => $completedCycles,
+            'currentCycleNumber' => $completedCycles + 1,
+            'donationsInCurrentCycle' => $donationsInCurrentCycle,
             'lastCompletedPosition' => $completedCycles * 4
         ];
     }
 
-    public function findCurrentCycleDonations(User $user, Flower $flower): array
+    public function countByRecipientAndFlower(User $user, ?Flower $flower): int
     {
-        $cycleInfo = $this->getCurrentCycleInfo($user, $flower);
-        
-        return $this->createQueryBuilder('d')
+        if (!$flower) {
+            return 0;
+        }
+
+        $result = $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
             ->where('d.recipient = :user')
             ->andWhere('d.flower = :flower')
-            ->andWhere('d.cyclePosition > :lastCompleted')
-            ->andWhere('d.cyclePosition <= :currentMax')
+            ->andWhere('d.donationType = :type')
             ->setParameter('user', $user)
             ->setParameter('flower', $flower)
-            ->setParameter('lastCompleted', $cycleInfo['lastCompletedPosition'])
-            ->setParameter('currentMax', $cycleInfo['lastCompletedPosition'] + 4)
-            ->orderBy('d.cyclePosition', 'ASC')
+            ->setParameter('type', 'direct')
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
+
+        return (int) $result;
     }
 }

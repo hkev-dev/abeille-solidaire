@@ -1,17 +1,21 @@
 {% import "user/components/menu-item.html.twig" as menuItem %}
 
 <div {{ attributes }}>
-	<div
-		class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
-		{# Dashboard #}
-		{{ menuItem.render({
+    <div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+        {# Dashboard #}
+        {{ menuItem.render({
             label: 'Tableau de bord',
             icon: 'ki-duotone ki-element-11',
             route: 'app.user.dashboard'
         }) }}
 
-		{# Current Flower Section with donation progress #}
-		{{ menuItem.render({
+        {# Current Flower Section - Updated to use component data directly #}
+        {% set flowerData = {
+            name: currentFlower ? currentFlower.name : 'Aucune',
+            amount: currentFlower ? currentFlower.donationAmount : 0,
+            level: currentFlower ? currentFlower.level : 0
+        } %}
+        {{ menuItem.render({
             label: 'Ma Fleur Actuelle',
             icon: 'ki-duotone ki-abstract-26',
             route: 'app.user.flower.current',
@@ -21,8 +25,8 @@
             }
         }) }}
 
-		{# Donations Management #}
-		{{ menuItem.render({
+        {# Donations Management #}
+        {{ menuItem.render({
             label: 'Dons',
             icon: 'ki-duotone ki-heart',
             routes: ['app.user.donations.received', 'app.user.donations.sent', 'app.user.donations.solidarity'],
@@ -46,8 +50,8 @@
             ]
         }) }}
 
-		{# Wallet & Withdrawals #}
-		{{ menuItem.render({
+        {# Wallet & Withdrawals #}
+        {{ menuItem.render({
             label: 'Portefeuille',
             icon: 'ki-duotone ki-wallet',
             routes: ['app.user.wallet.index', 'app.user.wallet.withdraw', 'app.user.wallet.history'],
@@ -71,8 +75,8 @@
             ]
         }) }}
 
-		{# Project Management #}
-		{{ menuItem.render({
+        {# Project Management #}
+        {{ menuItem.render({
             label: 'Mon Projet',
             icon: 'ki-duotone ki-rocket',
             submenu: [
@@ -94,8 +98,8 @@
             ]
         }) }}
 
-		{# Flower Progress #}
-		{{ menuItem.render({
+        {# Flower Progress - Using directly exposed template variables #}
+        {{ menuItem.render({
             label: 'Progression',
             icon: 'ki-duotone ki-chart-line',
             routes: ['app.user.progression.matrix', 'app.user.progression.cycles', 'app.user.progression.next_flower'],
@@ -107,15 +111,15 @@
                 {
                     label: 'Cycles Complétés',
                     route: 'app.user.progression.cycles',
-                    badge: completedCycles > 0 ? {
-                        text: completedCycles ~ '/10',
-                        class: completedCycles >= 10 ? 'badge-warning' : 'badge-success'
+                    badge: flowerProgress.received > 0 ? {
+                        text: (flowerProgress.received / 4)|round ~ '/10',
+                        class: (flowerProgress.received / 4) >= 10 ? 'badge-warning' : 'badge-success'
                     } : null
                 },
                 {
                     label: 'Prochaine Fleur',
                     route: 'app.user.progression.next_flower',
-                    badge: completedCycles >= 10 ? {
+                    badge: (flowerProgress.received / 4) >= 10 ? {
                         text: 'Disponible',
                         class: 'badge-success'
                     } : null
@@ -123,8 +127,8 @@
             ]
         }) }}
 
-		{# Settings & Profile #}
-		{{ menuItem.render({
+        {# Settings & Profile - Updated to use membershipInfo directly #}
+        {{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
             routes: ['app.user.settings.kyc', 'app.user.settings.payment_methods', 'app.user.settings.membership'],
@@ -144,12 +148,12 @@
                 {
                     label: 'Adhésion Annuelle',
                     route: 'app.user.settings.membership',
-                    badge: not currentMembership ? {
+                    badge: not membershipInfo.isActive ? {
                         text: 'À renouveler',
                         class: 'badge-danger'
                     } : null
                 }
             ]
         }) }}
-	</div>
+    </div>
 </div>

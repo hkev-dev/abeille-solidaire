@@ -1,9 +1,10 @@
 <?php
 namespace App\Twig\Components\User;
 
+use App\Entity\User;
+use App\Entity\Flower;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
-use App\Entity\FlowerCycleCompletion;
 use App\Repository\DonationRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
@@ -24,40 +25,102 @@ class UserMenuComponent
     }
 
     #[ExposeInTemplate]
+    public function getCurrentFlower(): ?Flower
+    {
+        /** @var User $user */
+        $user = $this->security->getUser();
+        return $user->getCurrentFlower();
+    }
+
+    #[ExposeInTemplate]
     public function getFlowerProgress(): array
     {
+        /** @var User $user */
         $user = $this->security->getUser();
-        return $this->donationRepository->getCurrentFlowerProgress($user);
+        $currentFlower = $user->getCurrentFlower();
+        
+        $received = $this->donationRepository->countByRecipientAndFlower($user, $currentFlower);
+        return [
+            'received' => $received,
+            'total' => 4,
+            'percentage' => $currentFlower ? ($received / 4 * 100) : 0
+        ];
     }
 
     #[ExposeInTemplate]
     public function getWalletBalance(): float
     {
-        return $this->security->getUser()->getWalletBalance();
+        /** @var User $user */
+        $user = $this->security->getUser();
+        return $user->getWalletBalance();
     }
 
     #[ExposeInTemplate]
     public function getUnreadDonationsCount(): int
     {
+        /** @var User $user */
         $user = $this->security->getUser();
         return count($this->donationRepository->findRecentByUser($user, 10));
     }
 
     #[ExposeInTemplate]
-    public function getCurrentMembership(): ?object
+    public function getMembershipInfo(): array
     {
-        return $this->security->getUser()->getCurrentMembership();
+        /** @var User $user */
+        $user = $this->security->getUser();
+        return [
+            'isActive' => $user->hasPaidAnnualFee(),
+            'expiresAt' => $user->getAnnualFeeExpiresAt(),
+            'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
+        ];
     }
 
     #[ExposeInTemplate]
     public function getKycStatus(): bool
     {
-        return $this->security->getUser()->isKycVerified();
+        /** @var User $user */
+        $user = $this->security->getUser();
+        return $user->isKycVerified();
+    }
+
+    #[ExposeInTemplate]
+    public function getCurrentFlowerData(): array
+    {
+        /** @var User $user */
+        $user = $this->security->getUser();
+        $currentFlower = $user->getCurrentFlower();
+        
+        if (!$currentFlower) {
+            return [
+                'name' => 'Aucune',
+                'amount' => 0,
+                'level' => 0
+            ];
+        }
+
+        return [
+            'name' => $currentFlower->getName(),
+            'amount' => $currentFlower->getDonationAmount(),
+            'level' => $currentFlower->getLevel()
+        ];
+    }
+
+    #[ExposeInTemplate]
+    public function getMatrixInfo(): array
+    {
+        /** @var User $user */
+        $user = $this->security->getUser();
+        return [
+            'depth' => $user->getMatrixDepth(),
+            'position' => $user->getMatrixPosition(),
+            'children' => $user->getChildren()->count()
+        ];
     }
 
     #[ExposeInTemplate]
     public function getCompletedCycles(): int
     {
+        /** @var User $user */
         $user = $this->security->getUser();
         $currentFlower = $user->getCurrentFlower();
         
@@ -65,11 +128,7 @@ class UserMenuComponent
             return 0;
         }
 
-        $completions = $user->getFlowerCycleCompletions()
-            ->filter(fn(FlowerCycleCompletion $completion) => 
-                $completion->getFlower() === $currentFlower
-            );
-
-        return $completions->isEmpty() ? 0 : $completions->first()->getTotalCompletedCycles();
+        $cycleInfo = $this->donationRepository->getCurrentCycleInfo($user, $currentFlower);
+        return $cycleInfo['totalCompletedCycles'];
     }
 }

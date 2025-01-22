@@ -35,7 +35,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $result = $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
-            ->where('u.isVerified = true')
             ->andWhere('u.registrationPaymentStatus = :status')
             ->setParameter('status', 'completed')
             ->getQuery()
@@ -55,7 +54,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 'IDENTITY(u.parent) as parent_id'
             ])
             ->where('u.currentFlower = :flower')
-            ->andWhere('u.isVerified = true')
             ->andWhere('u.registrationPaymentStatus = :status')
             ->setParameter('flower', $flower)
             ->setParameter('status', 'completed')
