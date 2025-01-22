@@ -2,11 +2,10 @@
 
 namespace App\RemoteEvent;
 
+use App\Service\Payment\StripePaymentService;
 use Psr\Log\LoggerInterface;
-use App\Service\DonationService;
 use App\Repository\UserRepository;
 use App\Exception\WebhookException;
-use App\Service\RegistrationPaymentService;
 use Symfony\Component\RemoteEvent\RemoteEvent;
 use Symfony\Component\RemoteEvent\Consumer\ConsumerInterface;
 use Symfony\Component\RemoteEvent\Attribute\AsRemoteEventConsumer;
@@ -16,8 +15,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly RegistrationPaymentService $paymentService,
-        private readonly DonationService $donationService,
+        private readonly StripePaymentService $paymentService,
         private readonly UserRepository $userRepository
     ) {
     }
@@ -27,7 +25,6 @@ final class StripeWebhookConsumer implements ConsumerInterface
         $payload = $event->getPayload();
         $eventType = $event->getName();
 
-        // Log the payload
         $this->logger->info('Received Stripe webhook', [
             'type' => $eventType,
             'payload' => $payload
@@ -43,55 +40,52 @@ final class StripeWebhookConsumer implements ConsumerInterface
     private function handlePaymentSuccess(array $paymentIntent): array
     {
         $metadata = $paymentIntent['metadata'];
-        $paymentType = $metadata['payment_type'] ?? null;
-        $userId = $metadata['user_id'] ?? null;
-        $includeMembership = filter_var($metadata['include_membership'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        if (!$userId) {
+        
+        if (!isset($metadata['user_id'])) {
             throw new WebhookException('Missing user ID in payment metadata');
         }
 
-        if (!$paymentType) {
-            throw new WebhookException('Missing payment type in metadata');
-        }
-
-        $user = $this->userRepository->find($userId);
+        $user = $this->userRepository->find($metadata['user_id']);
         if (!$user) {
             throw new WebhookException('User not found');
         }
 
-        $this->paymentService->handlePaymentSuccess(
-            user: $user,
-            paymentMethod: 'stripe',
-            paymentType: $paymentType,
-            transactionId: $paymentIntent['id'],
-            includeAnnualMembership: $includeMembership
-        );
+        // Use the new payment service structure
+        $this->paymentService->handlePaymentSuccess([
+            'payment_intent_id' => $paymentIntent['id'],
+            'metadata' => $metadata,
+            'amount' => $paymentIntent['amount'],
+            'currency' => $paymentIntent['currency'],
+            'payment_type' => $metadata['payment_type'] ?? 'registration'
+        ]);
 
         return [
             'status' => 'success',
             'type' => 'payment_intent.succeeded',
             'payment_intent' => $paymentIntent['id'],
-            'payment_type' => $paymentType,
-            'include_membership' => $includeMembership
         ];
     }
 
     private function handlePaymentFailure(array $paymentIntent): array
     {
         $metadata = $paymentIntent['metadata'];
-        $userId = $metadata['user_id'] ?? null;
 
-        if ($userId) {
-            $user = $this->userRepository->find($userId);
-            if ($user) {
-                $this->paymentService->handlePaymentFailure(
-                    $user,
-                    'stripe',
-                    $paymentIntent['last_payment_error'] ? $paymentIntent['last_payment_error']['message'] : 'Payment failed'
-                );
-            }
+        if (!isset($metadata['user_id'])) {
+            $this->logger->warning('Missing user ID in failed payment metadata', [
+                'payment_intent' => $paymentIntent['id']
+            ]);
+            return [
+                'status' => 'ignored',
+                'reason' => 'missing_user_id'
+            ];
         }
+
+        // Use the new payment service structure
+        $this->paymentService->handlePaymentFailure([
+            'payment_intent_id' => $paymentIntent['id'],
+            'metadata' => $metadata,
+            'error' => $paymentIntent['last_payment_error']['message'] ?? 'Payment failed'
+        ]);
 
         return [
             'status' => 'failed',

@@ -19,91 +19,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableTrait;
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 255, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
-    private Collection $projects;
-
-    #[ORM\Column]
-    private array $roles = [];
-
-    #[ORM\Column]
-    private ?string $password = null;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $isVerified = false;
-
-    #[Vich\UploadableField(mapping: 'user_avatars', fileNameProperty: 'avatar')]
-    private ?File $avatarFile = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $avatar = null;
-
-    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
-    private Collection $backedProjects;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $walletBalance = 0.0;
-
-    #[ORM\ManyToOne(targetEntity: Flower::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Flower $currentFlower = null;
-
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?self $parent = null;
-
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $children;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $projectDescription = null;
-
-    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
-    private Collection $donationsMade;
-
-    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'recipient')]
-    private Collection $donationsReceived;
-
-    #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
-    private Collection $withdrawals;
-
-    #[ORM\Column(length: 255)]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $lastName = null;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $matrixPosition = null;
-
-    #[ORM\Column(type: 'integer')]
-    private int $matrixDepth = 0;
-
-    #[ORM\Column(length: 20)]
-    private string $registrationPaymentStatus = 'pending';
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $waitingSince = null;
-
-    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'user')]
-    private Collection $flowerCycleCompletions;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $isKycVerified = false;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $kycVerifiedAt = null;
-
-    #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
-    private Collection $memberships;
-
     public const ACCOUNT_TYPE_PRIVATE = 'PRIVATE';
     public const ACCOUNT_TYPE_ENTERPRISE = 'ENTERPRISE';
     public const ACCOUNT_TYPE_ASSOCIATION = 'ASSOCIATION';
@@ -113,6 +28,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         self::ACCOUNT_TYPE_ENTERPRISE,
         self::ACCOUNT_TYPE_ASSOCIATION,
     ];
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lastName = null;
+
+    #[ORM\Column]
+    private array $roles = [];
+
+    #[ORM\Column]
+    private ?string $password = null;
+
+    #[Vich\UploadableField(mapping: 'user_avatars', fileNameProperty: 'avatar')]
+    private ?File $avatarFile = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
 
     #[ORM\Column(length: 50, unique: true)]
     private ?string $username = null;
@@ -132,6 +73,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $organizationNumber = null;
 
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
+    private Collection $projects;
+
+    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
+    private Collection $backedProjects;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $walletBalance = 0.0;
+
+    #[ORM\ManyToOne(targetEntity: Flower::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Flower $currentFlower = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?self $parent = null;
+
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    private Collection $children;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
+    private Collection $donationsMade;
+
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'recipient')]
+    private Collection $donationsReceived;
+
+    #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
+    private Collection $withdrawals;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $matrixPosition = null;
+
+    #[ORM\Column(type: 'integer')]
+    private int $matrixDepth = 0;
+
+    #[ORM\Column(length: 20)]
+    private string $registrationPaymentStatus = 'pending';
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $waitingSince = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isKycVerified = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $kycVerifiedAt = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $stripeCustomerId = null;
 
@@ -147,9 +135,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $annualFeeExpiresAt = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isAnnualFeePending = false;
-
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -160,7 +145,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->withdrawals = new ArrayCollection();
         $this->memberships = new ArrayCollection();
         $this->hasPaidAnnualFee = false;
-        $this->flowerCycleCompletions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -248,15 +232,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isVerified(): bool
     {
-        // User is verified when registration payment is completed
-        return $this->registrationPaymentStatus === 'completed';
-    }
-
-    public function setIsVerified(bool $isVerified): self
-    {
-        // This method is maintained for compatibility but should not be used directly
-        // Verification status is controlled by registration payment status
-        return $this;
+        return $this->registrationPaymentStatus === 'completed' && $this->isKycVerified;
     }
 
     public function getFullName(): string
@@ -371,17 +347,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->matrixDepth + 1;
     }
 
-    public function getProjectDescription(): ?string
-    {
-        return $this->projectDescription;
-    }
-
-    public function setProjectDescription(?string $projectDescription): self
-    {
-        $this->projectDescription = $projectDescription;
-        return $this;
-    }
-
     public function getDonationsMade(): Collection
     {
         return $this->donationsMade;
@@ -444,25 +409,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getFlowerCycleCompletions(): Collection
-    {
-        return $this->flowerCycleCompletions;
-    }
-
-    public function getFlowerCompletionCount(Flower $flower): int
-    {
-        $completion = $this->flowerCycleCompletions
-            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getFlower() === $flower)
-            ->first();
-
-        return $completion ? $completion->getCompletionCount() : 0;
-    }
-
-    public function hasReachedFlowerLimit(Flower $flower): bool
-    {
-        return $this->getFlowerCompletionCount($flower) >= 10;
-    }
-
     public function isKycVerified(): bool
     {
         return $this->isKycVerified;
@@ -491,13 +437,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getMemberships(): Collection
     {
         return $this->memberships;
-    }
-
-    public function getCurrentMembership(): ?Membership
-    {
-        return $this->memberships
-            ->filter(fn(Membership $membership) => $membership->isActive())
-            ->first() ?: null;
     }
 
     public function getUsername(): ?string
@@ -556,7 +495,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->organizationName = $organizationName;
         return $this;
-        return $this;
     }
 
     public function getOrganizationNumber(): ?string
@@ -612,7 +550,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($hasPaidAnnualFee) {
             $this->annualFeePaidAt = new \DateTime();
             $this->annualFeeExpiresAt = (new \DateTime())->modify('+1 year');
-            $this->isAnnualFeePending = false;
         }
         return $this;
     }
@@ -627,17 +564,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->annualFeeExpiresAt;
     }
 
-    public function isAnnualFeePending(): bool
-    {
-        return $this->isAnnualFeePending;
-    }
-
-    public function setIsAnnualFeePending(bool $isAnnualFeePending): self
-    {
-        $this->isAnnualFeePending = $isAnnualFeePending;
-        return $this;
-    }
-
     public function getDaysUntilAnnualFeeExpiration(): ?int
     {
         if (!$this->annualFeeExpiresAt) {
@@ -647,71 +573,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $now = new \DateTime();
         $interval = $this->annualFeeExpiresAt->diff($now);
 
+
         if ($interval->invert === 0) {
             return 0; // Already expired
         }
 
         return $interval->days;
-    }
-
-    public function isEligibleForWithdrawal(): bool
-    {
-        return $this->isVerified() &&
-            $this->isKycVerified() &&
-            $this->hasPaidAnnualFee() &&
-            $this->getProjectDescription() !== null;
-    }
-
-    public function canProgressInFlowers(): bool
-    {
-        // Users can progress in flowers only if they've paid their annual fee
-        // or are within the grace period
-        if ($this->hasPaidAnnualFee()) {
-            return true;
-        }
-
-        // Check if user is within grace period (e.g., 30 days after expiration)
-        if ($this->annualFeeExpiresAt) {
-            $gracePeriodEnd = (clone $this->annualFeeExpiresAt)->modify('+30 days');
-            return new \DateTime() < $gracePeriodEnd;
-        }
-
-        return false;
-    }
-
-    public function getFlowerProgress(): array
-    {
-        $receivedCount = $this->donationsReceived
-            ->filter(
-                fn($donation) =>
-                $donation->getFlower() === $this->currentFlower &&
-                $donation->getDonationType() === 'direct'
-            )
-            ->count();
-
-        return [
-            'received' => $receivedCount,
-            'total' => 4,
-            'percentage' => ($receivedCount / 4) * 100
-        ];
-    }
-
-    public function getMatrixInfo(): array
-    {
-        return [
-            'position' => $this->matrixPosition,
-            'depth' => $this->matrixDepth,
-            'level' => $this->matrixDepth + 1,
-            'hasParent' => $this->parent !== null,
-            'childrenCount' => $this->children->count(),
-            'availableSlots' => 4 - $this->children->count()
-        ];
-    }
-
-    public function canAcceptChildren(): bool
-    {
-        return $this->children->count() < 4 &&
-            $this->isVerified() &&
-            $this->registrationPaymentStatus === 'completed';
     }
 }

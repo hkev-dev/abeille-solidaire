@@ -4,13 +4,9 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Entity\Flower;
-use App\Entity\Donation;
-use App\Entity\Membership;
-use App\Service\DonationService;
 use App\Repository\UserRepository;
 use App\Entity\SystemConfiguration;
 use App\Repository\FlowerRepository;
-use App\Entity\FlowerCycleCompletion;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -31,8 +27,7 @@ class InitializeSystemCommand extends Command
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly FlowerRepository $flowerRepository,
-        private readonly UserRepository $userRepository,
-        private readonly DonationService $donationService
+        private readonly UserRepository $userRepository
     ) {
         parent::__construct();
     }
@@ -58,7 +53,7 @@ class InitializeSystemCommand extends Command
 
         // 1. Check system requirements
         $io->section('Checking System Requirements');
-        
+
         if (!$this->checkSystemRequirements($io)) {
             return Command::FAILURE;
         }
@@ -110,40 +105,40 @@ class InitializeSystemCommand extends Command
 
             // Collect admin information
             $progressBar->setMessage('Creating admin user...');
-        $email = $io->ask('Admin email', null, function ($email) {
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new \RuntimeException('Invalid email address');
-            }
-            return $email;
-        });
+            $email = $io->ask('Admin email', null, function ($email) {
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    throw new \RuntimeException('Invalid email address');
+                }
+                return $email;
+            });
 
-        $username = $io->ask('Admin username', null, function ($username) {
-            if (strlen($username) < 3) {
-                throw new \RuntimeException('Username must be at least 3 characters long');
-            }
-            return $username;
-        });
+            $username = $io->ask('Admin username', null, function ($username) {
+                if (strlen($username) < 3) {
+                    throw new \RuntimeException('Username must be at least 3 characters long');
+                }
+                return $username;
+            });
 
-        $password = $io->askHidden('Admin password', function ($password) {
-            if (strlen($password) < 8) {
-                throw new \RuntimeException('Password must be at least 8 characters long');
-            }
-            return $password;
-        });
+            $password = $io->askHidden('Admin password', function ($password) {
+                if (strlen($password) < 8) {
+                    throw new \RuntimeException('Password must be at least 8 characters long');
+                }
+                return $password;
+            });
 
-        $firstName = $io->ask('First name');
-        $lastName = $io->ask('Last name');
+            $firstName = $io->ask('First name');
+            $lastName = $io->ask('Last name');
 
-        // Add phone number input
-        $phone = $io->ask('Phone number (e.g., +33612345678)', null, function ($phone) {
-            if (!preg_match('/^\+?[1-9]\d{1,14}$/', $phone)) {
-                throw new \RuntimeException('Invalid phone number format. Please use international format (e.g., +33612345678)');
-            }
-            return $phone;
-        });
+            // Add phone number input
+            $phone = $io->ask('Phone number (e.g., +33612345678)', null, function ($phone) {
+                if (!preg_match('/^\+?[1-9]\d{1,14}$/', $phone)) {
+                    throw new \RuntimeException('Invalid phone number format. Please use international format (e.g., +33612345678)');
+                }
+                return $phone;
+            });
 
             $progressBar->setMessage('Creating admin user...');
-            $admin = $this->createAdminUser(
+            $this->createAdminUser(
                 $email,
                 $username,
                 $password,
@@ -152,9 +147,6 @@ class InitializeSystemCommand extends Command
                 $violette,
                 $phone // Add phone number
             );
-
-            // 5. Create initial system donation
-            $this->createInitialDonation($admin, $violette);
 
             $this->entityManager->flush();
             $this->entityManager->commit();
@@ -225,8 +217,12 @@ class InitializeSystemCommand extends Command
                     ->setDonationAmount($config['amount'])
                     ->setLevel($config['level']);
                 $this->entityManager->persist($flower);
-                $output->text(sprintf('Created flower: %s (Level %d, Amount: %.2f€)',
-                    $name, $config['level'], $config['amount']));
+                $output->text(sprintf(
+                    'Created flower: %s (Level %d, Amount: %.2f€)',
+                    $name,
+                    $config['level'],
+                    $config['amount']
+                ));
             } else {
                 $output->text(sprintf('Flower already exists: %s', $name));
             }
@@ -253,9 +249,7 @@ class InitializeSystemCommand extends Command
             ->setLastName($lastName)
             ->setPhone($phone)
             ->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER'])
-            ->setProjectDescription('Platform Administrator')
             ->setRegistrationPaymentStatus('completed')
-            ->setIsVerified(true)
             ->setHasPaidAnnualFee(true)
             ->setIsKycVerified(true)
             ->setKycVerifiedAt(new \DateTimeImmutable())
@@ -292,41 +286,6 @@ class InitializeSystemCommand extends Command
                 ->setDescription($description);
             $this->entityManager->persist($config);
         }
-    }
-
-    private function createInitialDonation(User $admin, Flower $violette): void
-    {
-        // Create initial registration donation
-        $initialDonation = new Donation();
-        $initialDonation->setDonor($admin)
-            ->setRecipient($admin)
-            ->setAmount(25.00)
-            ->setDonationType(Donation::TYPE_REGISTRATION)
-            ->setFlower($violette)
-            ->setCyclePosition(1)  // First position in the matrix
-            ->setTransactionDate(new \DateTimeImmutable())
-            ->setSolidarityDistributionStatus(Donation::SOLIDARITY_STATUS_NOT_APPLICABLE);
-
-        $this->entityManager->persist($initialDonation);
-
-        // Create a FlowerCycleCompletion record to track matrix progression
-        $cycleCompletion = new FlowerCycleCompletion();
-        $cycleCompletion->setUser($admin)
-            ->setFlower($violette)
-            ->setCycleNumber(1)
-            ->setCompletedAt(new \DateTimeImmutable())
-            ->setTotalAmount(25.00)
-            ->setCyclePositions([1]); // First position occupied
-
-        $this->entityManager->persist($cycleCompletion);
-
-        // Create initial membership record
-        $membership = new Membership();
-        $membership->setUser($admin)
-            ->setAmount(Membership::ANNUAL_FEE)
-            ->setStatus(Membership::STATUS_ACTIVE);
-
-        $this->entityManager->persist($membership);
     }
 
     private function checkSystemRequirements(SymfonyStyle $io): bool

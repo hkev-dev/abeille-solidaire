@@ -17,7 +17,6 @@ class DonationReceiptService
             'donor' => $donation->getDonor()->getFullName(),
             'recipient' => $donation->getRecipient()->getFullName(),
             'amount' => $donation->getAmount(),
-            'donation_type' => $donation->getDonationType(),
             'flower_name' => $donation->getFlower()->getName(),
         ];
     }

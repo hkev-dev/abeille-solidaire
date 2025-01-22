@@ -6,7 +6,8 @@ use App\Service\SecurityService;
 use App\Form\PaymentSelectionType;
 use App\Service\MembershipService;
 use App\Exception\UserAccessException;
-use App\Service\RegistrationPaymentService;
+use App\Service\Payment\CoinPaymentsService;
+use App\Service\Payment\StripePaymentService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,7 +19,8 @@ class MembershipController extends AbstractController
 {
     public function __construct(
         private readonly MembershipService $membershipService,
-        private readonly RegistrationPaymentService $paymentService,
+        private readonly StripePaymentService $stripePaymentService,
+        private readonly CoinPaymentsService $coinPaymentsService,
         private readonly SecurityService $securityService
     ) {
     }
@@ -49,9 +51,9 @@ class MembershipController extends AbstractController
 
             if ($data['payment_method'] === 'stripe') {
                 try {
-                    $stripeData = $this->paymentService->createStripePaymentIntent(
+                    $stripeData = $this->stripePaymentService->createRegistrationPaymentIntent(
                         $this->getUser(),
-                        'membership_renewal'
+                        false
                     );
                     $request->getSession()->set('payment_method', 'stripe');
                     return $this->json(['clientSecret' => $stripeData['clientSecret']]);
@@ -77,9 +79,9 @@ class MembershipController extends AbstractController
         try {
             $user = $this->getUser();
 
-            $transaction = $this->paymentService->createCoinPaymentsTransaction(
+            $transaction = $this->coinPaymentsService->createCoinPaymentsTransaction(
                 $user,
-                'membership_renewal'
+                'BTC',
             );
 
             $request->getSession()->set('payment_method', 'crypto');

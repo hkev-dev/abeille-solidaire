@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Service\Payment;
+
+use App\Entity\User;
+use App\Entity\Donation;
+use App\Entity\Membership;
+use App\Service\MatrixService;
+use App\Service\DonationService;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
+abstract class AbstractPaymentService implements PaymentServiceInterface
+{
+    protected EntityManagerInterface $em;
+    protected MatrixService $matrixService;
+    protected DonationService $donationService;
+    protected LoggerInterface $logger;
+    protected ParameterBagInterface $params;
+
+    public function __construct(
+        EntityManagerInterface $em,
+        MatrixService $matrixService,
+        DonationService $donationService,
+        LoggerInterface $logger,
+        ParameterBagInterface $params
+    ) {
+        $this->em = $em;
+        $this->matrixService = $matrixService;
+        $this->donationService = $donationService;
+        $this->logger = $logger;
+        $this->params = $params;
+    }
+
+    protected function processRegistrationPayment(User $user, bool $includeMembership, string $paymentReference): void
+    {
+        try {
+            $this->em->beginTransaction();
+
+            // Place user in matrix
+            $this->matrixService->placeUserInMatrix($user);
+
+            // Handle membership if included
+            if ($includeMembership) {
+                $user->setHasPaidAnnualFee(true)
+                    ->setHasPaidAnnualFee(true);
+            }
+
+            // Update user status
+            $user->setRegistrationPaymentStatus('completed');
+
+            $this->em->flush();
+            $this->em->commit();
+        } catch (\Exception $e) {
+            $this->em->rollback();
+            throw $e;
+        }
+    }
+}

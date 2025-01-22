@@ -6,34 +6,29 @@ use App\Entity\User;
 use App\DTO\RegistrationDTO;
 use Psr\Log\LoggerInterface;
 use App\Form\RegistrationType;
+use App\Service\SecurityService;
 use App\Form\PaymentSelectionType;
 use App\Repository\UserRepository;
-use App\Exception\WebhookException;
 use App\Repository\FlowerRepository;
-use App\Service\StripeWebhookService;
-use App\Service\MatrixPlacementService;
+use App\Service\Payment\PaymentFactory;
 use App\Service\UserRegistrationService;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Service\RegistrationPaymentService;
+use App\Service\Payment\CoinPaymentsService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Service\SecurityService;  // Updated import
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 class AuthController extends AbstractController
 {
     public function __construct(
         private readonly UserRegistrationService $userRegistrationService,
-        private readonly RegistrationPaymentService $registrationPaymentService,
         private readonly SecurityService $securityService,
         private readonly LoggerInterface $logger,
         private readonly UserRepository $userRepository,
-        private readonly MatrixPlacementService $matrixPlacementService,
-        private readonly FlowerRepository $flowerRepository, // Add FlowerRepository
+        private readonly FlowerRepository $flowerRepository,
+        private readonly PaymentFactory $paymentFactory
     ) {
     }
 
@@ -53,38 +48,29 @@ class AuthController extends AbstractController
         ]);
     }
 
-    /**
-     * @throws \Exception
-     */
     #[Route('/logout', name: 'app.logout', methods: ['GET'])]
     public function logout(): void
     {
-        // controller can be blank: it will never be called!
         throw new \Exception('Don\'t forget to activate logout in security.yaml');
     }
 
     #[Route('/register', name: 'app.register')]
     public function register(Request $request): Response
     {
-        // Check rate limiting before processing
         $this->securityService->checkRegistrationThrottle();
 
         $dto = new RegistrationDTO();
-
         $form = $this->createForm(RegistrationType::class, $dto);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Verify reCAPTCHA
             if (!$this->securityService->verifyRecaptcha($dto->recaptcha)) {
                 $this->addFlash('error', 'Invalid reCAPTCHA. Please try again.');
                 return $this->redirectToRoute('app.register');
             }
 
             try {
-                // Create new user in waiting room
                 $user = $this->userRegistrationService->registerUser($dto);
-
                 $this->addFlash('success', 'Registration successful! Please complete your payment to be placed in the matrix system.');
                 return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
             } catch (\Exception $e) {
@@ -102,37 +88,34 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/register/payment/{id}', name: 'app.registration.payment', methods: ['GET', 'POST'])]
+    #[Route('/register/{id}/payment', name: 'app.registration.payment', methods: ['GET', 'POST'])]
     public function paymentSelection(User $user, Request $request): Response
     {
         if ($user->getRegistrationPaymentStatus() !== 'pending') {
             return $this->redirectToRoute('app.login');
         }
 
-        // Handle AJAX requests for Stripe payment intent creation
+        // Handle AJAX requests for payment creation
         if ($request->isXmlHttpRequest() && $request->getContent()) {
             $data = json_decode($request->getContent(), true);
             $includeAnnualMembership = $data['include_annual_membership'] ?? false;
+            $paymentMethod = $data['payment_method'] ?? 'stripe';
 
-            if ($data['payment_method'] === 'stripe') {
-                try {
-                    $stripeData = $this->registrationPaymentService->createStripePaymentIntent(
-                        user: $user,
-                        paymentType: 'registration',
-                        includeAnnualMembership: $includeAnnualMembership
-                    );
+            try {
+                $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+                $paymentData = $paymentService->createRegistrationPayment($user, $includeAnnualMembership);
 
-                    // Store payment preferences in session
-                    $request->getSession()->set('payment_method', 'stripe');
-                    $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
+                // Store payment preferences in session
+                $request->getSession()->set('payment_method', $paymentMethod);
+                $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
 
-                    return $this->json([
-                        'clientSecret' => $stripeData['clientSecret'],
-                        'amount' => $stripeData['amount']
-                    ]);
-                } catch (\Exception $e) {
-                    return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+                if (isset($paymentData['txn_id'])) {
+                    $request->getSession()->set('txn_id', $paymentData['txn_id']);
                 }
+
+                return $this->json($paymentData);
+            } catch (\Exception $e) {
+                return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -149,45 +132,7 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/register/payment/{id}/crypto', name: 'app.registration.payment.crypto', methods: ['POST'])]
-    public function cryptoPayment(User $user, Request $request): Response
-    {
-        if ($user->getRegistrationPaymentStatus() !== 'pending') {
-            return $this->redirectToRoute('app.login');
-        }
-
-        $this->validateCsrfToken($request, 'crypto_payment');
-        $includeAnnualMembership = filter_var(
-            $request->request->get('include_annual_membership', false),
-            FILTER_VALIDATE_BOOLEAN
-        );
-
-        try {
-            $transaction = $this->registrationPaymentService->createCoinPaymentsTransaction(
-                user: $user,
-                paymentType: 'registration',
-                currency: $request->request->get('currency'),
-                includeAnnualMembership: $includeAnnualMembership
-            );
-
-            // Store payment preferences in session
-            $request->getSession()->set('payment_method', 'crypto');
-            $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
-            $request->getSession()->set('txn_id', $transaction['txn_id']);
-
-            return $this->json($transaction);
-        } catch (\Exception $e) {
-            $this->logger->error('CoinPayments transaction creation failed', [
-                'user_id' => $user->getId(),
-                'error' => $e->getMessage(),
-                'include_membership' => $includeAnnualMembership
-            ]);
-
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
-    }
-
-    #[Route('/register/waiting-room/{id}', name: 'app.waiting_room')]
+    #[Route('/register/{id}/waiting-room', name: 'app.waiting_room')]
     public function waitingRoom(User $user, Request $request): Response
     {
         if ($user->getRegistrationPaymentStatus() === 'completed') {
@@ -198,29 +143,17 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
         }
 
-        // Get payment method from session
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
-
-        // Add matrix position info
-        $matrixInfo = null;
-        if ($user->getRegistrationPaymentStatus() === 'pending') {
-            $violette = $this->flowerRepository->findOneBy(['name' => 'Violette']);
-            if (!$violette) {
-                throw new \RuntimeException('Violette flower not found');
-            }
-            $matrixInfo = $this->matrixPlacementService->findNextAvailablePosition($violette);
-        }
 
         return $this->render('public/pages/auth/waiting-room.html.twig', [
             'user' => $user,
             'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
-            'txn_id' => $request->getSession()->get('txn_id'), // For crypto payments
-            'matrix_info' => $matrixInfo
+            'txn_id' => $request->getSession()->get('txn_id')
         ]);
     }
 
-    #[Route('/register/check-payment-status/{id}', name: 'app.check_payment_status')]
+    #[Route('/register/{id}/check-payment-status', name: 'app.check_payment_status')]
     public function checkPaymentStatus(User $user): Response
     {
         $status = $user->getRegistrationPaymentStatus();
@@ -237,206 +170,17 @@ class AuthController extends AbstractController
         ]);
     }
 
-    private function validateCsrfToken(Request $request, string $tokenId): void
-    {
-        $token = $request->request->get('_csrf_token') ?? $request->headers->get('X-CSRF-TOKEN');
-
-        if (!$token) {
-            $this->logger->error('Missing CSRF token', [
-                'token_id' => $tokenId,
-                'request_data' => $request->request->all()
-            ]);
-            throw $this->createAccessDeniedException('Missing CSRF token');
-        }
-
-        if (!$this->isCsrfTokenValid($tokenId, $token)) {
-            $this->logger->error('Invalid CSRF token', [
-                'token_id' => $tokenId,
-                'provided_token' => $token
-            ]);
-            throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
-    }
-
-    #[Route('/webhook/coinpayments', name: 'app.webhook.coinpayments', methods: ['POST'])]
-    public function coinPaymentsWebhook(Request $request): Response
-    {
-        try {
-            // Get webhook data
-            $ipnData = $request->request->all();
-            $hmac = $request->headers->get('HMAC');
-            $webhookId = uniqid('whk_', true);
-
-            $this->logger->info('Webhook received', [
-                'webhook_id' => $webhookId,
-                'ipn_type' => $ipnData['ipn_type'] ?? 'unknown',
-                'txn_id' => $ipnData['txn_id'] ?? null,
-                'timestamp' => time()
-            ]);
-
-            // Verify IPN signature
-            if (!$this->registrationPaymentService->verifyCoinPaymentsIpn($ipnData, $hmac)) {
-                $this->logger->warning('Invalid webhook signature', [
-                    'webhook_id' => $webhookId,
-                    'ipn_data' => $ipnData
-                ]);
-                return new Response('Invalid signature', Response::HTTP_UNAUTHORIZED);
-            }
-
-            // Check for duplicate webhook
-            $processingKey = "webhook_processing_{$ipnData['txn_id']}";
-            if (!$this->lockWebhook($processingKey)) {
-                $this->logger->info('Duplicate webhook detected', [
-                    'webhook_id' => $webhookId,
-                    'txn_id' => $ipnData['txn_id']
-                ]);
-                return new Response('Webhook already processing', Response::HTTP_TOO_MANY_REQUESTS);
-            }
-
-            $startTime = microtime(true);
-
-            try {
-                if (isset($ipnData['ipn_type']) && $ipnData['ipn_type'] === 'api') {
-                    $user = $this->userRepository->find($ipnData['item_number']);
-
-                    if (!$user) {
-                        throw new \Exception("User not found for item_number: {$ipnData['item_number']}");
-                    }
-
-                    // Parse custom field to get membership inclusion
-                    $custom = json_decode($ipnData['custom'] ?? '{}', true);
-                    $includeAnnualMembership = filter_var($custom['include_membership'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-                    $paymentStatus = (int) $ipnData['status'];
-
-                    match ($paymentStatus) {
-                        // Complete
-                        100 => $this->handleSuccessfulPayment($user, $ipnData, $webhookId, $includeAnnualMembership),
-                        // Cancelled/Timeout
-                        -1 => $this->registrationPaymentService->handlePaymentFailure(
-                            user: $user,
-                            paymentMethod: 'coinpayments',
-                            errorMessage: $ipnData['status_text'] ?? 'Payment cancelled or timed out'
-                        ),
-                        // Pending
-                        0 => $this->logger->info('Payment pending', [
-                            'webhook_id' => $webhookId,
-                            'user_id' => $user->getId()
-                        ]),
-                        // Other statuses
-                        default => $this->logger->warning('Unexpected payment status', [
-                            'webhook_id' => $webhookId,
-                            'status' => $paymentStatus,
-                            'user_id' => $user->getId()
-                        ])
-                    };
-
-                    $processingTime = microtime(true) - $startTime;
-                    $this->logger->info('Webhook processed', [
-                        'webhook_id' => $webhookId,
-                        'processing_time' => $processingTime,
-                        'user_id' => $user->getId()
-                    ]);
-                }
-            } finally {
-                // Always release the lock
-                $this->releaseWebhook($processingKey);
-            }
-
-            return new Response('IPN Processed', Response::HTTP_OK);
-
-        } catch (\Exception $e) {
-            $this->logger->error('Webhook processing error', [
-                'webhook_id' => $webhookId ?? null,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'ipn_data' => $ipnData ?? []
-            ]);
-
-            // Return 202 to avoid webhook retries for business logic errors
-            $statusCode = $e instanceof WebhookException
-                ? Response::HTTP_ACCEPTED
-                : Response::HTTP_INTERNAL_SERVER_ERROR;
-
-            return new Response('IPN Error: ' . $e->getMessage(), $statusCode);
-        }
-    }
-
-    private function handleSuccessfulPayment(User $user, array $ipnData, string $webhookId, bool $includeAnnualMembership): void
-    {
-        try {
-            // Find matrix position before processing payment
-            $violette = $this->flowerRepository->findOneBy(['name' => 'Violette']);
-            if (!$violette) {
-                throw new \RuntimeException('Violette flower not found');
-            }
-
-            $matrixPosition = $this->matrixPlacementService->findNextAvailablePosition($violette);
-            if (!$matrixPosition) {
-                throw new \Exception('No available matrix position found');
-            }
-
-            // Begin transaction
-            $this->entityManager->beginTransaction();
-
-            try {
-                // Update user's matrix information first
-                $user->setMatrixDepth($matrixPosition['depth']);
-                $user->setMatrixPosition($matrixPosition['position']);
-                $user->setParent($matrixPosition['parent']);
-                
-                // Process the payment
-                $this->registrationPaymentService->handlePaymentSuccess(
-                    user: $user,
-                    paymentMethod: 'coinpayments',
-                    paymentType: 'registration',
-                    transactionId: $ipnData['txn_id'],
-                    includeAnnualMembership: $includeAnnualMembership
-                );
-
-                $this->entityManager->commit();
-                
-            } catch (\Exception $e) {
-                $this->entityManager->rollback();
-                throw $e;
-            }
-
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to process successful payment', [
-                'webhook_id' => $webhookId,
-                'user_id' => $user->getId(),
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
-    }
-
-    private function lockWebhook(string $key): bool
-    {
-        // Using APCu for simplicity, but could use Redis or other distributed lock mechanism
-        if (apcu_exists($key)) {
-            return false;
-        }
-        return apcu_add($key, true, 300); // 5-minute lock
-    }
-
-    private function releaseWebhook(string $key): void
-    {
-        apcu_delete($key);
-    }
-
     #[Route('/registration/crypto/currencies', name: 'app.registration.crypto.currencies', methods: ['GET'])]
     public function getCryptoCurrencies(): JsonResponse
     {
         try {
-            $currencies = $this->registrationPaymentService->getAcceptedCryptoCurrencies();
+            /**
+             * @var CoinPaymentsService
+             */
+            $cryptoService = $this->paymentFactory->getPaymentService('coinpayments');
+            $currencies = $cryptoService->getAcceptedCryptoCurrencies();
 
-            // For testing environments, ensure LTCT is available
-            if (
-                empty($currencies) &&
-                ($this->getParameter('kernel.environment') === 'dev' ||
-                    $this->getParameter('kernel.environment') === 'test')
-            ) {
+            if (empty($currencies) && $this->getParameter('kernel.environment') !== 'prod') {
                 $currencies['LTCT'] = [
                     'name' => 'Litecoin Testnet',
                     'rate_btc' => '0.00000000',

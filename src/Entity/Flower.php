@@ -45,14 +45,10 @@ class Flower
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'flower')]
     private Collection $donations;
 
-    #[ORM\OneToMany(targetEntity: FlowerCycleCompletion::class, mappedBy: 'flower')]
-    private Collection $cycleCompletions;
-
     public function __construct()
     {
         $this->currentUsers = new ArrayCollection();
         $this->donations = new ArrayCollection();
-        $this->cycleCompletions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -108,13 +104,6 @@ class Flower
         return $this->cycleCompletions;
     }
 
-    public function getCycleCompletionsForUser(User $user): ?FlowerCycleCompletion
-    {
-        return $this->cycleCompletions
-            ->filter(fn(FlowerCycleCompletion $completion) => $completion->getUser() === $user)
-            ->first() ?: null;
-    }
-
     public function getMatrixPosition(): int
     {
         return match ($this->level) {
@@ -149,42 +138,9 @@ class Flower
         };
     }
 
-    public function getUserPosition(User $user): ?int
-    {
-        foreach ($this->donations as $donation) {
-            if (
-                $donation->getRecipient() === $user &&
-                in_array($donation->getDonationType(), ['direct', 'registration', 'matrix_propagation'])
-            ) {
-                return $donation->getCyclePosition();
-            }
-        }
-        return null;
-    }
-
     public function isCurrentUserFlower(User $user): bool
     {
         return $user->getCurrentFlower() === $this;
-    }
-
-    public function getFlowerCycles(): array
-    {
-        $cycles = [];
-        foreach ($this->donations as $donation) {
-            $cycleNumber = ceil($donation->getCyclePosition() / 5);
-            if (!isset($cycles[$cycleNumber])) {
-                $cycles[$cycleNumber] = [
-                    'positions' => [],
-                    'complete' => false
-                ];
-            }
-            $cycles[$cycleNumber]['positions'][] = [
-                'position' => $donation->getCyclePosition() % 5 ?: 5,
-                'user' => $donation->getRecipient()
-            ];
-            $cycles[$cycleNumber]['complete'] = count($cycles[$cycleNumber]['positions']) === 5;
-        }
-        return $cycles;
     }
 
     public static function getAllFlowers(): array
@@ -231,10 +187,5 @@ class Flower
                 'amount' => 12800
             ]
         ];
-    }
-
-    public function __toString(): string
-    {
-        return $this->name;
     }
 }

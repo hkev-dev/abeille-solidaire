@@ -15,9 +15,9 @@ parameters:
     coinpayments.public_key: "%env(COINPAYMENTS_PUBLIC_KEY)%"
     coinpayments.private_key: "%env(COINPAYMENTS_PRIVATE_KEY)%"
     coinpayments.ipn_secret: "%env(COINPAYMENTS_IPN_SECRET)%"
-    app.secret: '%env(APP_SECRET)%'
-    kyc_uploads_dir: '%kernel.project_dir%/private/uploads/kyc'
-    kyc_provider: 'sumsub' # or your chosen KYC provider
+    app.secret: "%env(APP_SECRET)%"
+    kyc_uploads_dir: "%kernel.project_dir%/private/uploads/kyc"
+    kyc_provider: "sumsub" # or your chosen KYC provider
 
 services:
     # default configuration for services in *this* file
@@ -34,8 +34,28 @@ services:
             - "../src/Entity/"
             - "../src/Kernel.php"
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Payment System Services
+    App\Service\Payment\PaymentFactory:
+        arguments:
+            $container: '@service_container'
+        calls:
+            - [registerPaymentService, ['stripe', 'App\Service\Payment\StripePaymentService']]
+            - [registerPaymentService, ['coinpayments', 'App\Service\Payment\CoinPaymentsService']]
+
+    App\Service\Payment\StripePaymentService:
+        public: true
+        arguments:
+            $params: "@parameter_bag"
+            $logger: "@logger"
+
+    App\Service\Payment\CoinPaymentsService:
+        public: true
+        arguments:
+            $params: "@parameter_bag"
+            $logger: "@logger"
+            $router: "@router"
+
+    # Existing Services
     gedmo.mapping.driver.attribute:
         class: Gedmo\Mapping\Driver\AttributeReader
 
@@ -67,23 +87,8 @@ services:
             $registrationLimiter: "@limiter.registration_limiter"
             $recaptchaSecretKey: "%app.recaptcha.secret_key%"
 
-    App\Service\RegistrationPaymentService:
-        arguments:
-            $params: '@parameter_bag'
-            $eventDispatcher: '@event_dispatcher'
-            $logger: '@logger'
-            $router: '@router'
-            $entityManager: '@doctrine.orm.entity_manager'
-            $donationService: '@App\Service\DonationService'
-
-    App\Service\CoinPaymentsService:
-        arguments:
-            $params: '@parameter_bag'
-            $logger: '@logger'
-
     App\Controller\Public\AuthController:
         autowire: true
-        # Remove explicit logger argument since it will be autowired
 
     App\EventSubscriber\MembershipEventSubscriber:
         tags:
@@ -91,18 +96,15 @@ services:
 
     App\Service\KycService:
         arguments:
-            $kycUploadsDir: '%kyc_uploads_dir%'
-            $kycProvider: '%kyc_provider%'
+            $kycUploadsDir: "%kyc_uploads_dir%"
+            $kycProvider: "%kyc_provider%"
 
-    # Update Stripe client service definition to match BaseStripeClient constructor
     stripe.client:
         class: Stripe\StripeClient
-        arguments: ['%stripe.secret_key%']
+        arguments: ["%stripe.secret_key%"]
 
-    # Update PaymentMethodService to use properly initialized Stripe client
     App\Service\PaymentMethodService:
         arguments:
-            $stripe: '@stripe.client'
-            $entityManager: '@doctrine.orm.entity_manager'
-            $coinPayments: '@App\Service\CoinPaymentsService'
-            $logger: '@logger'
+            $stripe: "@stripe.client"
+            $entityManager: "@doctrine.orm.entity_manager"
+            $logger: "@logger"

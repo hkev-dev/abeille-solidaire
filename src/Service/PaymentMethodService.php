@@ -3,10 +3,11 @@
 namespace App\Service;
 
 use App\Entity\User;
+use Stripe\StripeClient;
+use Psr\Log\LoggerInterface;
 use App\Entity\PaymentMethod;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Stripe\StripeClient;
+use App\Service\Payment\CoinPaymentsService;
 
 class PaymentMethodService
 {

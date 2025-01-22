@@ -4,13 +4,11 @@ namespace App\Service;
 
 use App\DTO\RegistrationDTO;
 use App\Entity\User;
-use App\Entity\Flower;
 use App\Event\UserRegistrationEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Psr\Log\LoggerInterface;
-use App\Repository\FlowerRepository;
 
 class UserRegistrationService
 {
@@ -18,10 +16,7 @@ class UserRegistrationService
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly EmailService $emailService,
         private readonly LoggerInterface $logger,
-        private readonly FlowerRepository $flowerRepository, // Add this
-        private readonly MatrixPlacementService $matrixPlacementService // Add this
     ) {
     }
 
@@ -42,12 +37,7 @@ class UserRegistrationService
                 ->setOrganizationName($dto->organizationName)
                 ->setOrganizationNumber($dto->organizationNumber)
                 ->setWalletBalance(0.0)
-                ->setIsVerified(false)
-                ->setHasPaidAnnualFee(false)
-                // Initialize matrix properties with default values
-                ->setMatrixDepth(0)
-                ->setMatrixPosition(0)
-                ->setParent(null);
+                ->setHasPaidAnnualFee(false);
 
             // Hash password
             $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->password);
@@ -65,9 +55,6 @@ class UserRegistrationService
             // Dispatch registration event
             $event = new UserRegistrationEvent($user);
             $this->eventDispatcher->dispatch($event, UserRegistrationEvent::NAME);
-
-            // Send welcome email
-            $this->emailService->sendWelcomeEmail($user);
 
             return $user;
 

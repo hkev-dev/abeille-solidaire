@@ -202,7 +202,7 @@
 						</form>
 
 						{# Crypto Payment Form - Updated for CoinPayments #}
-						<form id="crypto-payment" action="{{ path('app.registration.payment.crypto', {'id': user.id}) }}" method="POST" style="display: none;">
+						<form id="crypto-payment" method="POST" style="display: none;">
 							<input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
 
 							<div class="mb-4">

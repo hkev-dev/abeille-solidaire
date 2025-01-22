@@ -2,9 +2,8 @@
 
 namespace App\Controller\User;
 
-use App\Service\FlowerProgressionService;
-use App\Service\MatrixPlacementService;
 use App\Repository\FlowerRepository;
+use App\Service\MatrixService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,8 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ProgressionController extends AbstractController
 {
     public function __construct(
-        private readonly FlowerProgressionService $progressionService,
-        private readonly MatrixPlacementService $matrixPlacementService,
+        private readonly MatrixService $matrixService,
         private readonly FlowerRepository $flowerRepository
     ) {
     }
@@ -31,22 +29,22 @@ class ProgressionController extends AbstractController
 
         return $this->render('user/pages/progression/matrix.html.twig', [
             'currentFlower' => $currentFlower,
-            'matrix' => $this->matrixPlacementService->visualizeMatrix($currentFlower),
+            'matrix' => $this->matrixService->visualizeMatrix($currentFlower),
             'progress' => $user->getFlowerProgress(),
-            'position' => $this->progressionService->getCurrentPosition($user),
-            'totalReceived' => $this->progressionService->getTotalReceivedInCurrentFlower($user),
-            'referrals' => $user->getReferrals()->toArray() // Add this line to pass referrals to template
+            'position' => $user->getMatrixPosition(),
+            'totalReceived' => $user->getTotalReceived()
         ]);
     }
 
     #[Route('/cycles', name: 'app.user.progression.cycles')]
     public function cycles(): Response
     {
+        /* @var User $user  */
         $user = $this->getUser();
 
         return $this->render('user/pages/progression/cycles.html.twig', [
-            'completedCycles' => $this->progressionService->getAllCompletedCycles($user),
-            'totalEarned' => $this->progressionService->getTotalEarned($user),
+            'completedCycles' => [],
+            'totalEarned' => $user->getTotalReceived(),
             'currentFlower' => $user->getCurrentFlower(),
             'progress' => $user->getFlowerProgress()
         ]);
@@ -67,9 +65,8 @@ class ProgressionController extends AbstractController
         return $this->render('user/pages/progression/next_flower.html.twig', [
             'currentFlower' => $currentFlower,
             'nextFlower' => $nextFlower,
-            'requirements' => $this->progressionService->getNextFlowerRequirements($user),
-            'progress' => $user->getFlowerProgress(),
-            'referrals' => $this->progressionService->getReferralsInNextFlower($user, $nextFlower)
+            'requirements' => $nextFlower->getDonationAmount(),
+            'progress' => $user->getFlowerProgress()
         ]);
     }
 }

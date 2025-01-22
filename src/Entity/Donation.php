@@ -12,20 +12,9 @@ class Donation
 {
     use TimestampableTrait;
 
-    public const TYPE_DIRECT = 'direct';
     public const TYPE_SOLIDARITY = 'solidarity';
-    public const TYPE_MATRIX_PROPAGATION = 'matrix_propagation';
     public const TYPE_REGISTRATION = 'registration';
     public const TYPE_SUPPLEMENTARY = 'supplementary';
-    public const TYPE_MEMBERSHIP = 'membership';
-
-    public const SOLIDARITY_STATUS_PENDING = 'pending';
-    public const SOLIDARITY_STATUS_DISTRIBUTED = 'distributed';
-    public const SOLIDARITY_STATUS_NOT_APPLICABLE = 'not_applicable';
-
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_FAILED = 'failed';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -43,54 +32,15 @@ class Donation
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount;
 
-    #[ORM\Column(length: 20)]
-    private string $donationType;
-
     #[ORM\ManyToOne(targetEntity: Flower::class, inversedBy: 'donations')]
     #[ORM\JoinColumn(nullable: false)]
     private Flower $flower;
 
-    #[ORM\Column(type: 'integer')]
-    private int $cyclePosition;
-
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $transactionDate;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $stripePaymentIntentId = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinpaymentsTransactionId = null;
-
-    #[ORM\Column(length: 64, nullable: true)]
-    private ?string $cryptoCurrency = null;
-
-    #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
-    private ?float $cryptoAmount = null;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 6, nullable: true)]
-    private ?float $exchangeRate = null;
-
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private ?int $confirmationsNeeded = null;
-
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private ?int $confirmationsReceived = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $statusUrl = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $destinationAddress = null;
-
-    #[ORM\Column(length: 32, nullable: true)]
-    private ?string $cryptoStatus = null;
-
-    #[ORM\Column(length: 20)]
-    private string $solidarityDistributionStatus = self::SOLIDARITY_STATUS_NOT_APPLICABLE;
-
-    #[ORM\Column(length: 20)]
-    private string $status = self::STATUS_PENDING;
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $donationType;
 
     public function getId(): ?int
     {
@@ -130,17 +80,6 @@ class Donation
         return $this;
     }
 
-    public function getDonationType(): string
-    {
-        return $this->donationType;
-    }
-
-    public function setDonationType(string $donationType): self
-    {
-        $this->donationType = $donationType;
-        return $this;
-    }
-
     public function getFlower(): Flower
     {
         return $this->flower;
@@ -149,17 +88,6 @@ class Donation
     public function setFlower(Flower $flower): self
     {
         $this->flower = $flower;
-        return $this;
-    }
-
-    public function getCyclePosition(): int
-    {
-        return $this->cyclePosition;
-    }
-
-    public function setCyclePosition(int $cyclePosition): self
-    {
-        $this->cyclePosition = $cyclePosition;
         return $this;
     }
 
@@ -174,200 +102,22 @@ class Donation
         return $this;
     }
 
-    public function getStripePaymentIntentId(): ?string
+    public function getDonationType(): string
     {
-        return $this->stripePaymentIntentId;
+        return $this->donationType;
     }
 
-    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
+    public function setDonationType(string $donationType): self
     {
-        $this->stripePaymentIntentId = $stripePaymentIntentId;
-        return $this;
-    }
-
-    public function getCoinpaymentsTransactionId(): ?string
-    {
-        return $this->coinpaymentsTransactionId;
-    }
-
-    public function setCoinpaymentsTransactionId(?string $txnId): self
-    {
-        $this->coinpaymentsTransactionId = $txnId;
-        return $this;
-    }
-
-    public function getCryptoCurrency(): ?string
-    {
-        return $this->cryptoCurrency;
-    }
-
-    public function setCryptoCurrency(?string $currency): self
-    {
-        $this->cryptoCurrency = $currency;
-        return $this;
-    }
-
-    public function getCryptoAmount(): ?float
-    {
-        return $this->cryptoAmount;
-    }
-
-    public function setCryptoAmount(?float $amount): self
-    {
-        $this->cryptoAmount = $amount;
-        return $this;
-    }
-
-    public function getExchangeRate(): ?float
-    {
-        return $this->exchangeRate;
-    }
-
-    public function setExchangeRate(?float $rate): self
-    {
-        $this->exchangeRate = $rate;
-        return $this;
-    }
-
-    public function getConfirmationsNeeded(): ?int
-    {
-        return $this->confirmationsNeeded;
-    }
-
-    public function setConfirmationsNeeded(?int $confirms): self
-    {
-        $this->confirmationsNeeded = $confirms;
-        return $this;
-    }
-
-    public function getConfirmationsReceived(): ?int
-    {
-        return $this->confirmationsReceived;
-    }
-
-    public function setConfirmationsReceived(?int $confirms): self
-    {
-        $this->confirmationsReceived = $confirms;
-        return $this;
-    }
-
-    public function getStatusUrl(): ?string
-    {
-        return $this->statusUrl;
-    }
-
-    public function setStatusUrl(?string $url): self
-    {
-        $this->statusUrl = $url;
-        return $this;
-    }
-
-    public function getDestinationAddress(): ?string
-    {
-        return $this->destinationAddress;
-    }
-
-    public function setDestinationAddress(?string $address): self
-    {
-        $this->destinationAddress = $address;
-        return $this;
-    }
-
-    public function getCryptoStatus(): ?string
-    {
-        return $this->cryptoStatus;
-    }
-
-    public function setCryptoStatus(?string $status): self
-    {
-        $this->cryptoStatus = $status;
-        return $this;
-    }
-
-    public function getSolidarityDistributionStatus(): string
-    {
-        return $this->solidarityDistributionStatus;
-    }
-
-    public function setSolidarityDistributionStatus(string $status): self
-    {
-        if (
-            !in_array($status, [
-                self::SOLIDARITY_STATUS_PENDING,
-                self::SOLIDARITY_STATUS_DISTRIBUTED,
-                self::SOLIDARITY_STATUS_NOT_APPLICABLE
-            ])
-        ) {
-            throw new \InvalidArgumentException('Invalid solidarity distribution status');
-        }
-        $this->solidarityDistributionStatus = $status;
-        return $this;
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): self
-    {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_COMPLETED, self::STATUS_FAILED])) {
-            throw new \InvalidArgumentException('Invalid donation status');
-        }
-        
-        $this->status = $status;
-        return $this;
-    }
-
-    public function isCompleted(): bool
-    {
-        return $this->status === self::STATUS_COMPLETED;
-    }
-
-    public function isPending(): bool
-    {
-        return $this->status === self::STATUS_PENDING;
-    }
-
-    public function isFailed(): bool
-    {
-        return $this->status === self::STATUS_FAILED;
-    }
-
-    public function validateMatrixDonation(): bool
-    {
-        // Validate cycle position for matrix-based donations
-        if (in_array($this->donationType, ['direct', 'matrix_propagation', 'registration'])) {
-            if ($this->cyclePosition < 1 || $this->cyclePosition > 4) {
-                return false;
-            }
-
-            // For matrix propagation, ensure donor is parent of recipient
-            if ($this->donationType === 'matrix_propagation' && $this->recipient->getParent() !== $this->donor) {
-                return false;
-            }
+        if (!in_array($donationType, [
+            self::TYPE_SOLIDARITY,
+            self::TYPE_REGISTRATION,
+            self::TYPE_SUPPLEMENTARY,
+        ])) {
+            throw new \InvalidArgumentException('Invalid donation type');
         }
 
-        return true;
-    }
-
-    public function isMatrixRelated(): bool
-    {
-        return in_array($this->donationType, [
-            self::TYPE_DIRECT,
-            self::TYPE_MATRIX_PROPAGATION,
-            self::TYPE_REGISTRATION
-        ]);
-    }
-
-    public function getCycleType(): string
-    {
-        if ($this->isMatrixRelated()) {
-            return 'matrix';
-        } elseif ($this->donationType === self::TYPE_SOLIDARITY) {
-            return 'solidarity';
-        } else {
-            return 'other';
-        }
+        $this->donationType = $donationType;
+        return $this;
     }
 }
