@@ -61,7 +61,7 @@ class EmailService
                 'user' => $user,
                 'matrixPosition' => $position,
                 'matrixDepth' => $depth,
-                'dashboardUrl' => $this->router->generate('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                'dashboardUrl' => $this->router->generate('app.user.dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL)
             ]
         );
     }
@@ -175,7 +175,7 @@ class EmailService
                     'amount' => $membership->getCryptoAmount(),
                     'currency' => $membership->getCryptoCurrency()
                 ] : null,
-                'dashboardUrl' => $this->router->generate('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                'dashboardUrl' => $this->router->generate('app.user.dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL)
             ]
         );
     }

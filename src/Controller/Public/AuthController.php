@@ -19,6 +19,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\FormLoginAuthenticator;
 
 class AuthController extends AbstractController
 {
@@ -28,7 +30,9 @@ class AuthController extends AbstractController
         private readonly LoggerInterface $logger,
         private readonly UserRepository $userRepository,
         private readonly FlowerRepository $flowerRepository,
-        private readonly PaymentFactory $paymentFactory
+        private readonly PaymentFactory $paymentFactory,
+        private readonly UserAuthenticatorInterface $userAuthenticator,
+        private readonly FormLoginAuthenticator $authenticator
     ) {
     }
 
@@ -36,7 +40,7 @@ class AuthController extends AbstractController
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
-            return $this->redirectToRoute('landing.home');
+            return $this->redirectToRoute('app.user.dashboard');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -154,15 +158,35 @@ class AuthController extends AbstractController
     }
 
     #[Route('/register/{id}/check-payment-status', name: 'app.check_payment_status')]
-    public function checkPaymentStatus(User $user): Response
+    public function checkPaymentStatus(User $user, Request $request): Response
     {
         $status = $user->getRegistrationPaymentStatus();
 
         if ($status === 'completed') {
-            return $this->json([
-                'status' => 'completed',
-                'redirect' => $this->generateUrl('landing.home')
-            ]);
+            try {
+                // Auto login the user
+                $this->userAuthenticator->authenticateUser(
+                    $user,
+                    $this->authenticator,
+                    $request
+                );
+
+                return $this->json([
+                    'status' => 'completed',
+                    'redirect' => $this->generateUrl('app.user.dashboard')
+                ]);
+            } catch (\Exception $e) {
+                $this->logger->error('Auto-login failed after registration', [
+                    'user_id' => $user->getId(),
+                    'error' => $e->getMessage()
+                ]);
+                
+                // Fallback to login page if auto-login fails
+                return $this->json([
+                    'status' => 'completed',
+                    'redirect' => $this->generateUrl('app.login')
+                ]);
+            }
         }
 
         return $this->json([

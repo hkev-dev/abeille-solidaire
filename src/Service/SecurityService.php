@@ -28,7 +28,7 @@ class SecurityService
         'membership_renew' => 'app.membership.renew',
         'membership_status' => 'app.membership.status',
         'email_verify' => 'app.verify_email',
-        'dashboard' => 'landing.home'
+        'dashboard' => 'app.user.dashboard'
     ];
 
     public function __construct(

@@ -87,7 +87,21 @@ services:
             $registrationLimiter: "@limiter.registration_limiter"
             $recaptchaSecretKey: "%app.recaptcha.secret_key%"
 
+    Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface:
+        alias: security.authentication.success_handler.main.form_login
+
+    Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface:
+        alias: security.authentication.failure_handler.main.form_login
+
+    # Authenticator configuration
+    app.security.form_login_authenticator:
+        class: Symfony\Component\Security\Http\Authenticator\FormLoginAuthenticator
+        arguments:
+            $options: { login_path: app.login, check_path: app.login }
+
     App\Controller\Public\AuthController:
+        arguments:
+            $authenticator: '@app.security.form_login_authenticator'
         autowire: true
 
     App\EventSubscriber\MembershipEventSubscriber:

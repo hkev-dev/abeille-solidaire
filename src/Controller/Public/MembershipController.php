@@ -102,7 +102,7 @@ class MembershipController extends AbstractController
         if ($membership && !$this->membershipService->isExpired($user)) {
             return $this->json([
                 'status' => 'completed',
-                'redirect' => $this->generateUrl('landing.home')
+                'redirect' => $this->generateUrl('app.user.dashboard')
             ]);
         }
 
