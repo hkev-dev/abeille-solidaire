@@ -31,11 +31,16 @@ class FlowerController extends AbstractController
             return $this->redirectToRoute('app.user.dashboard');
         }
 
+        // Initialize matrix positions with null values
+        $matrixPositions = array_fill(1, 4, null);
+
         // Get direct children in the matrix
         $children = $user->getChildren();
-        $matrixPositions = [];
         foreach ($children as $child) {
-            $matrixPositions[$child->getMatrixPosition()] = $child;
+            $position = $child->getMatrixPosition();
+            if ($position >= 1 && $position <= 4) {
+                $matrixPositions[$position] = $child;
+            }
         }
 
         $data = [
