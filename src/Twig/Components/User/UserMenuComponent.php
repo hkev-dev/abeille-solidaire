@@ -108,4 +108,10 @@ class UserMenuComponent
     {
         return $this->donationRepository->getTotalMadeByUser($this->getCurrentUser());
     }
+
+    #[ExposeInTemplate]
+    public function getUserProject(): ?Project
+    {
+        return $this->getCurrentUser()->getProject();
+    }
 }

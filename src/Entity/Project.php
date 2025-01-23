@@ -59,7 +59,7 @@ class Project
     #[ORM\JoinColumn(nullable: false)]
     private ?ProjectCategory $category = null;
 
-    #[ORM\ManyToOne(inversedBy: 'projects')]
+    #[ORM\OneToOne(inversedBy: 'project')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 

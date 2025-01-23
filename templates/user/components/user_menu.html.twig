@@ -66,6 +66,33 @@
             ]
         }) }}
 
+        {# Project Management - Single Project #}
+        {{ menuItem.render({
+            label: 'Mon Projet',
+            icon: 'ki-duotone ki-rocket',
+            submenu: userProject ? [
+                {
+                    label: 'Détails du Projet',
+                },
+                {
+                    label: 'Mises à jour',
+                    badge: userProject.updates|length > 0 ? {
+                        text: userProject.updates|length,
+                        class: 'badge-primary'
+                    } : null
+                },
+                {
+                    label: 'FAQs',
+                }
+            ] : [
+                {
+                    label: 'Ajouter mon Projet',
+                    disabled: not withdrawalEligibility.hasKyc,
+                    tooltip: not withdrawalEligibility.hasKyc ? 'Validation KYC requise' : null
+                }
+            ]
+        }) }}
+
         {# Profile & Settings #}
         {{ menuItem.render({
             label: 'Paramètres',

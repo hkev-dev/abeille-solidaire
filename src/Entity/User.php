@@ -73,8 +73,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $organizationNumber = null;
 
-    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'creator')]
-    private Collection $projects;
+    #[ORM\OneToOne(targetEntity: Project::class, mappedBy: 'creator', cascade: ['persist', 'remove'])]
+    private ?Project $project = null;
 
     #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
     private Collection $backedProjects;
@@ -137,13 +137,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->projects = new ArrayCollection();
         $this->backedProjects = new ArrayCollection();
         $this->children = new ArrayCollection();
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
-        $this->memberships = new ArrayCollection();
         $this->hasPaidAnnualFee = false;
     }
 
@@ -169,31 +167,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function addProject(Project $project): self
+    public function getProject(): ?Project
     {
-        if (!$this->projects->contains($project)) {
-            $this->projects->add($project);
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($project === null && $this->project !== null) {
+            $this->project->setCreator(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($project !== null && $project->getCreator() !== $this) {
             $project->setCreator($this);
         }
 
+        $this->project = $project;
         return $this;
-    }
-
-    public function removeProject(Project $project): self
-    {
-        if ($this->projects->removeElement($project)) {
-            // set the owning side to null (unless already changed)
-            if ($project->getCreator() === $this) {
-                $project->setCreator(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getProjects(): Collection
-    {
-        return $this->projects;
     }
 
     public function getUserIdentifier(): string
@@ -588,7 +580,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasProject(): bool
     {
-        return !$this->projects->isEmpty();
+        return $this->project !== null;
     }
 
     public function isEligibleForWithdrawal(): bool
