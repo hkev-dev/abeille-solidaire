@@ -80,4 +80,53 @@ class StripePaymentService extends AbstractPaymentService
     {
         return true; // No verification needed for Stripe
     }
+
+    protected function processRegistrationPayment(User $user, bool $includeMembership, string $paymentIntentId): void
+    {
+        try {
+            $this->em->beginTransaction();
+
+            // Place user in matrix and create registration donation
+            $this->matrixService->placeUserInMatrix($user);
+            
+            // Get the parent's donation and update payment info
+            $registrationDonation = $this->em->getRepository(Donation::class)
+                ->findOneBy([
+                    'donor' => $user,
+                    'donationType' => Donation::TYPE_REGISTRATION
+                ]);
+            
+            if ($registrationDonation) {
+                $registrationDonation
+                    ->setStripePaymentIntentId($paymentIntentId)
+                    ->setPaymentProvider('stripe')
+                    ->setPaymentStatus('completed');
+            }
+
+            // Handle membership if included
+            if ($includeMembership) {
+                $user->setHasPaidAnnualFee(true);
+                
+                // Create membership donation with payment info
+                $membershipDonation = $this->donationService->createMembershipDonation($user);
+                $membershipDonation
+                    ->setStripePaymentIntentId($paymentIntentId)
+                    ->setPaymentProvider('stripe')
+                    ->setPaymentStatus('completed');
+            }
+
+            // Update user status
+            $user->setRegistrationPaymentStatus('completed')
+                ->setIsKycVerified(false)
+                ->setWaitingSince(null);
+
+            $this->em->flush();
+            $this->em->commit();
+
+        } catch (\Exception $e) {
+            $this->em->rollback();
+            $this->logger->error('Failed to process Stripe registration payment: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

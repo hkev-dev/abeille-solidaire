@@ -9,6 +9,8 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DonationService
 {
+    public const MEMBERSHIP_FEE = 25.00;
+
     protected EntityManagerInterface $em;
 
     public function __construct(EntityManagerInterface $em)
@@ -21,7 +23,8 @@ class DonationService
         User $recipient,
         float $amount,
         string $donationType,
-        ?Flower $flower = null
+        ?Flower $flower = null,
+        string $paymentStatus = 'pending'
     ): Donation {
         $donation = new Donation();
         $donation
@@ -30,6 +33,7 @@ class DonationService
             ->setAmount($amount)
             ->setDonationType($donationType)
             ->setFlower($flower)
+            ->setPaymentStatus($paymentStatus)
             ->setTransactionDate(new \DateTimeImmutable());
 
         $this->em->persist($donation);
@@ -40,35 +44,47 @@ class DonationService
 
     public function createSolidarityDonation(User $donor, float $amount, ?Flower $flower = null): ?Donation
     {
-        // Find an active user who was recruited by others but hasn't recruited yet
-        // These users need the most support to grow their matrix
-        $recipient = $this->em->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->leftJoin('u.children', 'c')
-            ->where('u.id != :userId')
-            ->andWhere('u.registrationPaymentStatus = :status')
-            ->andWhere('u.parent IS NOT NULL')  // Must have a parent (recruited)
-            ->andWhere('COUNT(c.id) = 0')       // Has no children yet (needs help)
-            ->setParameter('userId', $donor->getId())
-            ->setParameter('status', 'completed')
-            ->groupBy('u.id')
-            ->orderBy('u.createdAt', 'ASC')  // Prioritize longest waiting
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        // Find root user (Abeille Solidaire - matrixDepth = 0)
+        $rootUser = $this->em->getRepository(User::class)
+            ->findOneBy(['matrixDepth' => 0]);
 
-        if ($recipient) {
-            return $this->createDonation(
-                $donor,
-                $recipient,
-                $amount,
-                Donation::TYPE_SOLIDARITY,
-                $flower
-            );
+        if (!$rootUser) {
+            throw new \RuntimeException('Root user (Abeille Solidaire) not found');
         }
 
-        return null;
+        $donation = $this->createDonation(
+            $donor,
+            $rootUser,
+            $amount,
+            Donation::TYPE_SOLIDARITY,
+            $flower,
+            'completed' // Set payment status as completed immediately
+        );
+
+        // Set payment provider as internal since this is an automatic system transfer
+        $donation->setPaymentProvider('internal');
+        $this->em->flush();
+
+        return $donation;
+    }
+
+    public function createMembershipDonation(User $donor): ?Donation
+    {
+        // Find root user (matrixDepth = 0)
+        $rootUser = $this->em->getRepository(User::class)
+            ->findOneBy(['matrixDepth' => 0]);
+
+        if (!$rootUser) {
+            throw new \RuntimeException('Root user not found');
+        }
+
+        return $this->createDonation(
+            $donor,
+            $rootUser,
+            self::MEMBERSHIP_FEE,
+            Donation::TYPE_MEMBERSHIP,
+            $donor->getCurrentFlower()
+        );
     }
 
     public function hasCompletedCycle(User $user): bool

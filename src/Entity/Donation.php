@@ -15,6 +15,17 @@ class Donation
     public const TYPE_SOLIDARITY = 'solidarity';
     public const TYPE_REGISTRATION = 'registration';
     public const TYPE_SUPPLEMENTARY = 'supplementary';
+    public const TYPE_MEMBERSHIP = 'membership';
+
+    public const PROVIDER_STRIPE = 'stripe';
+    public const PROVIDER_COINPAYMENTS = 'coinpayments';
+    public const PROVIDER_INTERNAL = 'internal';
+
+    public const PAYMENT_PROVIDERS = [
+        self::PROVIDER_STRIPE,
+        self::PROVIDER_COINPAYMENTS,
+        self::PROVIDER_INTERNAL
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -41,6 +52,21 @@ class Donation
 
     #[ORM\Column(type: 'string', length: 20)]
     private string $donationType;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripePaymentIntentId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coinpaymentsTransactionId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $cryptoWithdrawalTransactionId = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $paymentProvider = null;
+
+    #[ORM\Column(length: 20)]
+    private string $paymentStatus = 'pending';
 
     public function getId(): ?int
     {
@@ -113,11 +139,73 @@ class Donation
             self::TYPE_SOLIDARITY,
             self::TYPE_REGISTRATION,
             self::TYPE_SUPPLEMENTARY,
+            self::TYPE_MEMBERSHIP
         ])) {
             throw new \InvalidArgumentException('Invalid donation type');
         }
 
         $this->donationType = $donationType;
+        return $this;
+    }
+
+    public function getStripePaymentIntentId(): ?string
+    {
+        return $this->stripePaymentIntentId;
+    }
+
+    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
+    {
+        $this->stripePaymentIntentId = $stripePaymentIntentId;
+        return $this;
+    }
+
+    public function getCoinpaymentsTransactionId(): ?string
+    {
+        return $this->coinpaymentsTransactionId;
+    }
+
+    public function setCoinpaymentsTransactionId(?string $coinpaymentsTransactionId): self
+    {
+        $this->coinpaymentsTransactionId = $coinpaymentsTransactionId;
+        return $this;
+    }
+
+    public function getCryptoWithdrawalTransactionId(): ?string
+    {
+        return $this->cryptoWithdrawalTransactionId;
+    }
+
+    public function setCryptoWithdrawalTransactionId(?string $cryptoWithdrawalTransactionId): self
+    {
+        $this->cryptoWithdrawalTransactionId = $cryptoWithdrawalTransactionId;
+        return $this;
+    }
+
+    public function getPaymentProvider(): ?string
+    {
+        return $this->paymentProvider;
+    }
+
+    public function setPaymentProvider(?string $paymentProvider): self
+    {
+        if ($paymentProvider !== null && !in_array($paymentProvider, self::PAYMENT_PROVIDERS)) {
+            throw new \InvalidArgumentException('Invalid payment provider');
+        }
+        $this->paymentProvider = $paymentProvider;
+        return $this;
+    }
+
+    public function getPaymentStatus(): string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(string $paymentStatus): self
+    {
+        if (!in_array($paymentStatus, ['pending', 'completed', 'failed'])) {
+            throw new \InvalidArgumentException('Invalid payment status');
+        }
+        $this->paymentStatus = $paymentStatus;
         return $this;
     }
 }

@@ -3,8 +3,6 @@
 namespace App\Service\Payment;
 
 use App\Entity\User;
-use App\Entity\Donation;
-use App\Entity\Membership;
 use App\Service\MatrixService;
 use App\Service\DonationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,17 +41,23 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
 
             // Handle membership if included
             if ($includeMembership) {
-                $user->setHasPaidAnnualFee(true)
-                    ->setHasPaidAnnualFee(true);
+                $user->setHasPaidAnnualFee(true);
+                
+                // Create membership donation to root user
+                $this->donationService->createMembershipDonation($user);
             }
 
             // Update user status
-            $user->setRegistrationPaymentStatus('completed');
+            $user->setRegistrationPaymentStatus('completed')
+                ->setIsKycVerified(false) // Requires manual verification
+                ->setWaitingSince(null);   // No longer waiting
 
             $this->em->flush();
             $this->em->commit();
+
         } catch (\Exception $e) {
             $this->em->rollback();
+            $this->logger->error('Failed to process registration payment: ' . $e->getMessage());
             throw $e;
         }
     }

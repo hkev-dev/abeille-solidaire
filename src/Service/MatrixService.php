@@ -37,13 +37,14 @@ class MatrixService
             // Set initial flower to same as parent's current flower
             $user->setCurrentFlower($parent->getCurrentFlower());
 
-            // Create registration donation to parent
+            // Create registration donation to parent with explicit pending status
             $this->donationService->createDonation(
                 $user,
                 $parent,
                 25.00,
                 Donation::TYPE_REGISTRATION,
-                $parent->getCurrentFlower()
+                $parent->getCurrentFlower(),
+                'pending' // Explicitly set as pending until payment is confirmed
             );
 
             $this->em->flush();

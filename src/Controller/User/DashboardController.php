@@ -94,8 +94,8 @@ class DashboardController extends AbstractController
                 'description' => $this->formatDonationDescription($donation, $isDonor),
                 'amount' => $isDonor ? -$donation->getAmount() : $donation->getAmount(),
                 'date' => $donation->getTransactionDate(),
-                'status' => 'Complété',
-                'statusColor' => 'bg-success-100 text-success-800'
+                'status' => $this->formatPaymentStatus($donation->getPaymentStatus()),
+                'statusColor' => $this->getPaymentStatusColor($donation->getPaymentStatus())
             ];
         }
 
@@ -118,6 +118,26 @@ class DashboardController extends AbstractController
         usort($activities, fn($a, $b) => $b['date'] <=> $a['date']);
 
         return array_slice($activities, 0, 10); // Return last 10 activities
+    }
+
+    private function formatPaymentStatus(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'En attente',
+            'completed' => 'Complété',
+            'failed' => 'Échoué',
+            default => ucfirst($status)
+        };
+    }
+
+    private function getPaymentStatusColor(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'bg-warning-100 text-warning-800',
+            'completed' => 'bg-success-100 text-success-800',
+            'failed' => 'bg-danger-100 text-danger-800',
+            default => 'bg-gray-100 text-gray-800'
+        };
     }
 
     private function formatDonationType(string $type): string
