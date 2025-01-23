@@ -144,6 +144,13 @@ class SecuritySubscriber implements EventSubscriberInterface
                 $this->pendingRedirect = new RedirectResponse($this->urlGenerator->generate('app.membership.renew'));
                 return;
             }
+            
+            // Set default redirection to dashboard if no other conditions triggered
+            if (!$this->pendingRedirect) {
+                $this->pendingRedirect = new RedirectResponse(
+                    $this->urlGenerator->generate('app.user.dashboard')
+                );
+            }
 
             $this->logger->info('User authenticated successfully', [
                 'user_id' => $user->getId(),
