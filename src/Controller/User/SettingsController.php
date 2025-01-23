@@ -161,7 +161,8 @@ class SettingsController extends AbstractController
         $user = $this->getUser();
 
         return $this->render('user/pages/settings/membership.html.twig', [
-            'currentMembership' => $user->getCurrentMembership(),
+            'currentMembership' => $user->hasPaidAnnualFee(),
+            'expiresAt' => $user->getAnnualFeeExpiresAt(),
             'membershipHistory' => $this->membershipService->getMembershipHistory($user),
             'renewalAmount' => $this->membershipService->getRenewalAmount(),
         ]);

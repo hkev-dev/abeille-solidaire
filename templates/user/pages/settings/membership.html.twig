@@ -21,12 +21,12 @@
                         {% endif %}
                     </h2>
                     
-                    {% if currentMembership %}
+                    {% if currentMembership and expiresAt %}
                         <p class="text-gray-600">
-                            Votre adhésion est valide jusqu'au {{ currentMembership.endDate|date('d/m/Y') }}
+                            Votre adhésion est valide jusqu'au {{ expiresAt|date('d/m/Y') }}
                         </p>
                         <p class="text-sm text-gray-500 mt-2">
-                            Renouvellement automatique prévu le {{ currentMembership.endDate|date('d/m/Y') }}
+                            Renouvellement automatique prévu le {{ expiresAt|date('d/m/Y') }}
                         </p>
                     {% else %}
                         <p class="text-gray-600 max-w-2xl mx-auto">
@@ -49,21 +49,16 @@
     </div>
 
     {# Membership Details #}
-    {% if currentMembership %}
+    {% if currentMembership and expiresAt %}
         <div class="card mb-6">
             <div class="card-header">
                 <h3 class="card-title">Détails de l'Adhésion</h3>
             </div>
             <div class="card-body">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="border rounded-lg p-4">
-                        <p class="text-sm text-gray-500 mb-1">Date de Début</p>
-                        <p class="font-medium">{{ currentMembership.startDate|date('d/m/Y') }}</p>
-                    </div>
-                    
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="border rounded-lg p-4">
                         <p class="text-sm text-gray-500 mb-1">Date d'Expiration</p>
-                        <p class="font-medium">{{ currentMembership.endDate|date('d/m/Y') }}</p>
+                        <p class="font-medium">{{ expiresAt|date('d/m/Y') }}</p>
                     </div>
                     
                     <div class="border rounded-lg p-4">
@@ -93,34 +88,26 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Période</th>
+                                <th>Date de Transaction</th>
                                 <th>Montant</th>
                                 <th>Méthode</th>
-                                <th>État</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for membership in membershipHistory %}
+                            {% for donation in membershipHistory %}
                                 <tr>
                                     <td>
                                         <span class="text-gray-600">
-                                            {{ membership.startDate|date('d/m/Y') }} - {{ membership.endDate|date('d/m/Y') }}
+                                            {{ donation.transactionDate|date('d/m/Y') }}
                                         </span>
                                     </td>
-                                    <td>€{{ membership.amount|number_format(2) }}</td>
+                                    <td>€{{ donation.amount|number_format(2) }}</td>
                                     <td>
-                                        {% if membership.stripePaymentIntentId %}
+                                        {% if donation.stripePaymentIntentId %}
                                             <span class="badge badge-light-primary">Carte Bancaire</span>
                                         {% else %}
                                             <span class="badge badge-light-info">Crypto</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if membership.isActive %}
-                                            <span class="badge badge-success">Active</span>
-                                        {% else %}
-                                            <span class="badge badge-light">Expirée</span>
                                         {% endif %}
                                     </td>
                                     <td>

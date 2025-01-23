@@ -1,14 +1,15 @@
 {% extends 'user/layouts/default.html.twig' %}
 
 {% block content %}
-    <div class="container-fixed">
-        {# Settings Navigation #}
-        {% include 'user/components/settings-menu.html.twig' with {
+	<div
+		class="container-fixed">
+		{# Settings Navigation #}
+		{% include 'user/components/settings-menu.html.twig' with {
             user: app.user,
-            currentMembership: app.user.currentMembership
+            currentMembership: app.user.hasPaidAnnualFee
         } %}
 
-        {# Page Content #}
-        {% block settings_content %}{% endblock %}
-    </div>
+		{# Page Content #}
+		{% block settings_content %}{% endblock %}
+	</div>
 {% endblock %}

@@ -46,7 +46,7 @@ class WalletController extends AbstractController
                 'weeklyLimit' => \App\Entity\Withdrawal::MAX_AMOUNT,
                 'minWithdrawal' => \App\Entity\Withdrawal::MIN_AMOUNT,
             ],
-            'cryptoCurrencies' => $this->coinPaymentsService->getAcceptedCurrencies()
+            'cryptoCurrencies' => $this->coinPaymentsService->getAcceptedCryptoCurrencies()
         ];
 
         return $this->render('user/pages/wallet/index.html.twig', $data);
@@ -58,14 +58,10 @@ class WalletController extends AbstractController
         $user = $this->getUser();
 
         // Check all withdrawal prerequisites
-        $canWithdraw =
-            $user->isKycVerified() &&
-            $user->getProjectDescription() &&
-            $user->getCurrentMembership() &&
-            $user->getWalletBalance() >= \App\Entity\Withdrawal::MIN_AMOUNT;
+        $canWithdraw = $user->isEligibleForWithdrawal();
 
         $form = $this->createForm(WithdrawalFormType::class, null, [
-            'crypto_currencies' => $this->coinPaymentsService->getAcceptedCurrencies()
+            'crypto_currencies' => $this->coinPaymentsService->getAcceptedCryptoCurrencies()
         ]);
 
         $form->handleRequest($request);

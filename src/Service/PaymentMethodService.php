@@ -106,7 +106,7 @@ class PaymentMethodService
     public function getSupportedCryptoCurrencies(): array
     {
         try {
-            return $this->coinPayments->getAcceptedCurrencies();
+            return $this->coinPayments->getAcceptedCryptoCurrencies();
         } catch (\Exception $e) {
             $this->logger->error('Error fetching supported cryptocurrencies', [
                 'error' => $e->getMessage()
