@@ -25,49 +25,43 @@ class UserMenuComponent
     }
 
     #[ExposeInTemplate]
+    public function getCurrentUser(): User
+    {
+        return $this->security->getUser();
+    }
+
+    #[ExposeInTemplate]
     public function getCurrentFlower(): ?Flower
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        return $user->getCurrentFlower();
+        return $this->getCurrentUser()->getCurrentFlower();
     }
 
     #[ExposeInTemplate]
     public function getFlowerProgress(): array
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        $currentFlower = $user->getCurrentFlower();
-        
-        $received = $this->donationRepository->countByRecipientAndFlower($user, $currentFlower);
-        return [
-            'received' => $received,
-            'total' => 4,
-            'percentage' => $currentFlower ? ($received / 4 * 100) : 0
-        ];
+        $user = $this->getCurrentUser();
+        return $user->getFlowerProgress();
     }
 
     #[ExposeInTemplate]
     public function getWalletBalance(): float
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        return $user->getWalletBalance();
+        return $this->getCurrentUser()->getWalletBalance();
     }
 
     #[ExposeInTemplate]
-    public function getUnreadDonationsCount(): int
+    public function getUnreadDonations(): array
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        return count($this->donationRepository->findRecentByUser($user, 10));
+        return $this->donationRepository->findRecentByUser(
+            $this->getCurrentUser(),
+            10
+        );
     }
 
     #[ExposeInTemplate]
     public function getMembershipInfo(): array
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
+        $user = $this->getCurrentUser();
         return [
             'isActive' => $user->hasPaidAnnualFee(),
             'expiresAt' => $user->getAnnualFeeExpiresAt(),
@@ -76,59 +70,42 @@ class UserMenuComponent
     }
 
     #[ExposeInTemplate]
-    public function getKycStatus(): bool
+    public function getWithdrawalEligibility(): array
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        return $user->isKycVerified();
-    }
-
-    #[ExposeInTemplate]
-    public function getCurrentFlowerData(): array
-    {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        $currentFlower = $user->getCurrentFlower();
-        
-        if (!$currentFlower) {
-            return [
-                'name' => 'Aucune',
-                'amount' => 0,
-                'level' => 0
-            ];
-        }
-
+        $user = $this->getCurrentUser();
         return [
-            'name' => $currentFlower->getName(),
-            'amount' => $currentFlower->getDonationAmount(),
-            'level' => $currentFlower->getLevel()
+            'isEligible' => $user->isEligibleForWithdrawal(),
+            'hasKyc' => $user->isKycVerified(),
+            'hasAnnualFee' => $user->hasPaidAnnualFee(),
+            'hasProject' => $user->hasProject(),
+            'hasMinimumMatrixDepth' => $user->getMatrixDepth() >= 3
         ];
     }
 
     #[ExposeInTemplate]
     public function getMatrixInfo(): array
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
+        $user = $this->getCurrentUser();
+        $currentFlower = $user->getCurrentFlower();
+        
         return [
             'depth' => $user->getMatrixDepth(),
             'position' => $user->getMatrixPosition(),
-            'children' => $user->getChildren()->count()
+            'childrenCount' => $user->getMatrixChildrenCount(),
+            'totalReceived' => $currentFlower ? $user->getTotalReceivedInFlower() : 0,
+            'currentCycleReceived' => $currentFlower ? $user->getTotalReceivedInCurrentCycle() : 0
         ];
     }
 
     #[ExposeInTemplate]
-    public function getCompletedCycles(): int
+    public function getTotalDonationsReceived(): float
     {
-        /** @var User $user */
-        $user = $this->security->getUser();
-        $currentFlower = $user->getCurrentFlower();
-        
-        if (!$currentFlower) {
-            return 0;
-        }
+        return $this->donationRepository->getTotalReceivedByUser($this->getCurrentUser());
+    }
 
-        $cycleInfo = $this->donationRepository->getCurrentCycleInfo($user, $currentFlower);
-        return $cycleInfo['totalCompletedCycles'];
+    #[ExposeInTemplate]
+    public function getTotalDonationsMade(): float
+    {
+        return $this->donationRepository->getTotalMadeByUser($this->getCurrentUser());
     }
 }

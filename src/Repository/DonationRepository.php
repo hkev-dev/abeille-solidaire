@@ -209,4 +209,21 @@ class DonationRepository extends ServiceEntityRepository
 
         return (int) $result;
     }
+
+    public function countCompletedCycles(User $user, Flower $flower): int
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('COUNT(d.id) as donationCount')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType = :donationType')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $flower)
+            ->setParameter('donationType', Donation::TYPE_REGISTRATION)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Each 4 donations completes a cycle
+        return (int) floor($result / 4);
+    }
 }

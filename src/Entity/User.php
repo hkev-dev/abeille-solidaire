@@ -598,4 +598,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                $this->matrixDepth >= 3 &&   // Has at least 4 levels in branch
                $this->hasProject();         // Has at least one project
     }
+
+    public function getFlowerProgress(): array
+    {
+        $childrenCount = $this->getMatrixChildrenCount();
+        return [
+            'received' => $childrenCount,
+            'total' => 4,
+            'percentage' => ($childrenCount / 4) * 100,
+            'remaining' => 4 - $childrenCount
+        ];
+    }
+
+    public function getTotalReceivedInFlower(): float
+    {
+        $total = 0.0;
+        foreach ($this->donationsReceived as $donation) {
+            if ($donation->getFlower() === $this->currentFlower) {
+                $total += $donation->getAmount();
+            }
+        }
+        return $total;
+    }
+
+    public function getTotalReceivedInCurrentCycle(): float
+    {
+        $total = 0.0;
+        $cycleStart = new \DateTime();
+        
+        // Get the last solidarity donation to determine cycle start
+        $lastSolidarity = $this->donationsReceived
+            ->filter(fn($d) => $d->getDonationType() === 'solidarity')
+            ->last();
+        
+        if ($lastSolidarity) {
+            $cycleStart = $lastSolidarity->getTransactionDate();
+        }
+
+        foreach ($this->donationsReceived as $donation) {
+            if ($donation->getFlower() === $this->currentFlower &&
+                $donation->getTransactionDate() > $cycleStart) {
+                $total += $donation->getAmount();
+            }
+        }
+        return $total;
+    }
 }

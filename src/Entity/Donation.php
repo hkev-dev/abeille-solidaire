@@ -208,4 +208,26 @@ class Donation
         $this->paymentStatus = $paymentStatus;
         return $this;
     }
+
+    /**
+     * Helper method for templates to get donation type
+     */
+    public function getType(): string
+    {
+        return $this->donationType;
+    }
+
+    /**
+     * Get a human-readable label for the donation type
+     */
+    public function getTypeLabel(): string
+    {
+        return match($this->donationType) {
+            self::TYPE_REGISTRATION => "Inscription",
+            self::TYPE_SOLIDARITY => "Solidarité",
+            self::TYPE_SUPPLEMENTARY => "Supplémentaire",
+            self::TYPE_MEMBERSHIP => "Adhésion",
+            default => "Inconnu"
+        };
+    }
 }

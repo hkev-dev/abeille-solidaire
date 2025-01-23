@@ -9,147 +9,85 @@
             route: 'app.user.dashboard'
         }) }}
 
-        {# Current Flower Section - Updated to use component data directly #}
-        {% set flowerData = {
-            name: currentFlower ? currentFlower.name : 'Aucune',
-            amount: currentFlower ? currentFlower.donationAmount : 0,
-            level: currentFlower ? currentFlower.level : 0
-        } %}
-        {{ menuItem.render({
-            label: 'Ma Fleur Actuelle',
-            icon: 'ki-duotone ki-abstract-26',
-            route: 'app.user.flower.current',
-            badge: {
-                text: flowerProgress.received ~ '/4',
-                class: flowerProgress.received == 4 ? 'badge-success' : 'badge-info'
-            }
-        }) }}
+        {# Current Flower Section #}
+        {% if currentFlower %}
+            {{ menuItem.render({
+                label: currentFlower.name,
+                icon: 'ki-duotone ki-abstract-36',
+                route: 'app.user.flower.current',
+                badge: {
+                    text: flowerProgress.received ~ '/4',
+                    class: flowerProgress.received == 4 ? 'badge-success' : 'badge-primary'
+                }
+            }) }}
+        {% endif %}
 
         {# Donations Management #}
         {{ menuItem.render({
             label: 'Dons',
             icon: 'ki-duotone ki-heart',
-            routes: ['app.user.donations.received', 'app.user.donations.sent', 'app.user.donations.solidarity'],
+            routes: ['app.user.donations.received', 'app.user.donations.sent'],
             submenu: [
                 {
                     label: 'Dons Reçus',
                     route: 'app.user.donations.received',
-                    badge: unreadDonationsCount > 0 ? {
-                        text: unreadDonationsCount,
+                    badge: unreadDonations|length > 0 ? {
+                        text: unreadDonations|length,
                         class: 'badge-success'
                     } : null
                 },
                 {
                     label: 'Dons Envoyés',
                     route: 'app.user.donations.sent'
-                },
-                {
-                    label: 'Dons Solidaires',
-                    route: 'app.user.donations.solidarity'
                 }
             ]
         }) }}
 
-        {# Wallet & Withdrawals #}
+        {# Wallet with withdrawal eligibility check #}
         {{ menuItem.render({
             label: 'Portefeuille',
             icon: 'ki-duotone ki-wallet',
-            routes: ['app.user.wallet.index', 'app.user.wallet.withdraw', 'app.user.wallet.history'],
+            routes: ['app.user.wallet.index', 'app.user.wallet.withdraw'],
             submenu: [
                 {
                     label: 'Solde',
                     route: 'app.user.wallet.index',
                     badge: {
-                        text: '€ ' ~ walletBalance|number_format(2, ',', ' '),
+                        text: walletBalance|format_currency('EUR'),
                         class: 'badge-primary'
                     }
                 },
                 {
                     label: 'Retrait',
-                    route: 'app.user.wallet.withdraw'
-                },
-                {
-                    label: 'Historique',
-                    route: 'app.user.wallet.history'
+                    route: 'app.user.wallet.withdraw',
+                    disabled: not withdrawalEligibility.isEligible,
+                    tooltip: not withdrawalEligibility.isEligible ? 'Conditions requises non remplies' : null
                 }
             ]
         }) }}
 
-        {# Project Management #}
-        {{ menuItem.render({
-            label: 'Mon Projet',
-            icon: 'ki-duotone ki-rocket',
-            submenu: [
-                {
-                    label: 'Présentation'
-                },
-                {
-                    label: 'Story'
-                },
-                {
-                    label: 'Actualités'
-                },
-                {
-                    label: 'Questions/Réponses'
-                },
-                {
-                    label: 'Témoignages'
-                }
-            ]
-        }) }}
-
-        {# Flower Progress - Using directly exposed template variables #}
-        {{ menuItem.render({
-            label: 'Progression',
-            icon: 'ki-duotone ki-chart-line',
-            routes: ['app.user.progression.matrix', 'app.user.progression.cycles', 'app.user.progression.next_flower'],
-            submenu: [
-                {
-                    label: 'Matrice Actuelle',
-                    route: 'app.user.progression.matrix'
-                },
-                {
-                    label: 'Cycles Complétés',
-                    route: 'app.user.progression.cycles',
-                    badge: flowerProgress.received > 0 ? {
-                        text: (flowerProgress.received / 4)|round ~ '/10',
-                        class: (flowerProgress.received / 4) >= 10 ? 'badge-warning' : 'badge-success'
-                    } : null
-                },
-                {
-                    label: 'Prochaine Fleur',
-                    route: 'app.user.progression.next_flower',
-                    badge: (flowerProgress.received / 4) >= 10 ? {
-                        text: 'Disponible',
-                        class: 'badge-success'
-                    } : null
-                }
-            ]
-        }) }}
-
-        {# Settings & Profile - Updated to use membershipInfo directly #}
+        {# Profile & Settings #}
         {{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-            routes: ['app.user.settings.kyc', 'app.user.settings.payment_methods', 'app.user.settings.membership'],
+            routes: ['app.user.settings.profile', 'app.user.settings.kyc', 'app.user.settings.membership'],
             submenu: [
                 {
-                    label: 'KYC Vérification',
+                    label: 'Mon Profil'
+                },
+                {
+                    label: 'KYC',
                     route: 'app.user.settings.kyc',
-                    badge: not kycStatus ? {
-                        text: 'Requis',
+                    badge: not withdrawalEligibility.hasKyc ? {
+                        text: 'À valider',
                         class: 'badge-warning'
                     } : null
                 },
                 {
-                    label: 'Méthodes de Paiement',
-                    route: 'app.user.settings.payment_methods'
-                },
-                {
-                    label: 'Adhésion Annuelle',
+                    label: 'Adhésion',
                     route: 'app.user.settings.membership',
                     badge: not membershipInfo.isActive ? {
-                        text: 'À renouveler',
+                        text: membershipInfo.daysUntilExpiration <= 0 ? 'Expirée' : 'J-' ~ membershipInfo.daysUntilExpiration,
                         class: 'badge-danger'
                     } : null
                 }

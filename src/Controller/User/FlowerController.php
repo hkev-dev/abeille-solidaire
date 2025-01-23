@@ -2,6 +2,7 @@
 
 namespace App\Controller\User;
 
+use App\Entity\User;
 use App\Entity\Flower;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
@@ -30,30 +31,34 @@ class FlowerController extends AbstractController
             return $this->redirectToRoute('app.user.dashboard');
         }
 
-        // Get matrix positions with user data
-        $matrixPositions = array_map(function($position) use ($user) {
-            return [
-                'userId' => $position['user_id'],
-                'firstName' => $position['first_name'],
-                'lastName' => $position['last_name'],
-                'position' => $position['matrix_position'],
-                'depth' => $position['matrix_depth'],
-                'isCurrentUser' => $position['user_id'] === $user->getId(),
-                'isChild' => $position['parent_id'] === $user->getId(),
-            ];
-        }, $this->userRepository->getMatrixPositionsForFlower($currentFlower));
+        // Get direct children in the matrix
+        $children = $user->getChildren();
+        $matrixPositions = [];
+        foreach ($children as $child) {
+            $matrixPositions[$child->getMatrixPosition()] = $child;
+        }
 
         $data = [
+            'user' => $user,
             'flower' => $currentFlower,
             'allFlowers' => $this->getFlowerProgression($currentFlower),
-            'progress' => $user->getFlowerProgress(),
+            'walletBalance' => $user->getWalletBalance(),
+            'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
+            'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
             'matrixPositions' => $matrixPositions,
-            'completedCycles' => $user->getFlowerCompletionCount($currentFlower),
-            'recentDonations' => $this->donationRepository->findByFlowerAndRecipient($currentFlower, $user, 5),
+            'membershipInfo' => [
+                'isActive' => $user->hasPaidAnnualFee(),
+                'expiresAt' => $user->getAnnualFeeExpiresAt(),
+                'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
+            ],
+            'flowerProgress' => $user->getFlowerProgress(),
             'totalReceivedInFlower' => $this->donationRepository->getTotalReceivedInFlower($user, $currentFlower),
-            'userPosition' => $user->getMatrixPosition(),
-            'userDepth' => $user->getMatrixDepth(),
-            'recentActivity' => $this->donationRepository->findByFlowerWithActivity($currentFlower, 10),
+            'userLevel' => $user->getMatrixLevel(),    // Add this for proper level display
+            'userDepth' => $user->getMatrixDepth(),    // Add this to fix the missing variable
+            'completedCycles' => $this->donationRepository->countCompletedCycles($user, $currentFlower),
+            'isKycVerified' => $user->isKycVerified(),
+            'recentDonations' => $this->donationRepository->findRecentByUser($user, 5),
+            'canWithdraw' => $user->isEligibleForWithdrawal() && $user->getWalletBalance() >= 50.0,
         ];
 
         return $this->render('user/pages/flower/current.html.twig', $data);
@@ -61,15 +66,22 @@ class FlowerController extends AbstractController
 
     private function getFlowerProgression(Flower $currentFlower): array
     {
+        $allFlowers = $this->flowerRepository->findBy([], ['level' => 'ASC']);
+        $currentLevel = $currentFlower->getLevel();
+
         return array_map(
-            fn(Flower $flower) => [
-                'id' => $flower->getId(),
-                'name' => $flower->getName(),
-                'donationAmount' => $flower->getDonationAmount(),
-                'isActive' => $flower === $currentFlower,
-                'isCompleted' => $flower->getDonationAmount() < $currentFlower->getDonationAmount()
-            ],
-            $this->flowerRepository->findAll()
+            function (Flower $flower) use ($currentLevel) {
+                $flowerLevel = $flower->getLevel();
+                return [
+                    'id' => $flower->getId(),
+                    'name' => $flower->getName(),
+                    'donationAmount' => $flower->getDonationAmount(),
+                    'isActive' => $flowerLevel === $currentLevel,
+                    'isCompleted' => $flowerLevel < $currentLevel,
+                    'isNext' => $flowerLevel === $currentLevel + 1,
+                ];
+            },
+            $allFlowers
         );
     }
 }
