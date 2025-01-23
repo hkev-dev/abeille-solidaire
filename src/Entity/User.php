@@ -347,6 +347,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->matrixDepth + 1;
     }
 
+    public function getMatrixChildrenCount(): int
+    {
+        return $this->children->count();
+    }
+
     public function getDonationsMade(): Collection
     {
         return $this->donationsMade;
@@ -579,5 +584,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $interval->days;
+    }
+
+    public function hasProject(): bool
+    {
+        return !$this->projects->isEmpty();
+    }
+
+    public function isEligibleForWithdrawal(): bool
+    {
+        return $this->isKycVerified &&      // KYC verification completed
+               $this->hasPaidAnnualFee &&   // Annual membership is active
+               $this->matrixDepth >= 3 &&   // Has at least 4 levels in branch
+               $this->hasProject();         // Has at least one project
     }
 }

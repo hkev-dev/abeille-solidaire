@@ -1,0 +1,62 @@
+<div class="card">
+    <div class="card-header border-b">
+        <h3 class="card-title flex items-center space-x-2">
+            <span class="ki-duotone ki-people text-xl text-primary"></span>
+            <span>Enfants Directs</span>
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if matrixChildren|length > 0 %}
+            <div class="space-y-2">
+                {% for child in matrixChildren %}
+                    <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group relative">
+                        {# Avatar Section #}
+                        {% if child.avatar %}
+                            <img src="{{ vich_uploader_asset(child, 'avatarFile') }}" 
+                                 alt="{{ child.fullName }}" 
+                                 class="w-10 h-10 rounded-full">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                <span class="text-primary-700 text-sm font-medium">
+                                    {{ child.firstName|first }}{{ child.lastName|first }}
+                                </span>
+                            </div>
+                        {% endif %}
+
+                        {# Simplified User Info Section #}
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ child.fullName }}</p>
+                                    <p class="text-xs text-gray-500">{{ child.currentFlower.name }}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    {% if child.isKycVerified %}
+                                        <span class="ki-duotone ki-shield-tick text-success text-sm"></span>
+                                    {% endif %}
+                                    {% if child.hasPaidAnnualFee %}
+                                        <span class="ki-duotone ki-star text-warning text-sm"></span>
+                                    {% endif %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary-50 text-primary-700">
+                                        {{ child.getMatrixChildrenCount() }}/4
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Replace existing hover details with new component #}
+                        {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': child} %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-6">
+                <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <span class="ki-duotone ki-people text-2xl text-gray-400"></span>
+                </div>
+                <p class="text-gray-500 text-sm">Aucun enfant direct dans la matrice</p>
+                <p class="text-xs text-gray-400 mt-1">Partagez votre expérience pour agrandir votre réseau</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

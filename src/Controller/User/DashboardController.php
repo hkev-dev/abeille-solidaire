@@ -5,6 +5,7 @@ namespace App\Controller\User;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Repository\DonationRepository;
+use App\Repository\WithdrawalRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +15,7 @@ class DashboardController extends AbstractController
     public function __construct(
         private readonly DonationRepository $donationRepository,
         private readonly UserRepository $userRepository,
+        private readonly WithdrawalRepository $withdrawalRepository,
     ) {
     }
 
@@ -27,12 +29,15 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app.login');
         }
 
-        // Calculate flower progress
+        // Get current flower first
         $currentFlower = $user->getCurrentFlower();
+
+        // Calculate flower progress based on direct children count
         $flowerProgress = [
-            'received' => $this->donationRepository->countByRecipientAndFlower($user, $currentFlower),
-            'total' => 4, // Always 4 donations needed per flower
-            'percentage' => 0
+            'received' => $user->getMatrixChildrenCount(),
+            'total' => 4, // Always need 4 direct children to complete a flower
+            'percentage' => 0,
+            'remainingSlots' => max(0, 4 - $user->getMatrixChildrenCount())
         ];
         $flowerProgress['percentage'] = ($flowerProgress['received'] / $flowerProgress['total']) * 100;
 
@@ -42,6 +47,12 @@ class DashboardController extends AbstractController
             'expiresAt' => $user->getAnnualFeeExpiresAt(),
             'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
         ];
+
+        // Calculate withdrawal eligibility
+        $canWithdraw = $user->isEligibleForWithdrawal();
+
+        // Format recent activities
+        $recentActivity = $this->formatRecentActivity($user);
 
         $data = [
             'user' => $user,
@@ -61,9 +72,122 @@ class DashboardController extends AbstractController
             ],
             'isKycVerified' => $user->isKycVerified(),
             'totalMembers' => $this->userRepository->countActiveMembers(),
+            'recentActivity' => $recentActivity,
+            'canWithdraw' => $canWithdraw && $user->getWalletBalance() >= 50.0,
         ];
 
         return $this->render('user/pages/dashboard/index.html.twig', $data);
+    }
+
+    private function formatRecentActivity(User $user): array
+    {
+        $activities = [];
+
+        // Get recent donations (received and made)
+        $recentDonations = $this->donationRepository->findRecentByUser($user, 10);
+        foreach ($recentDonations as $donation) {
+            $isDonor = $donation->getDonor() === $user;
+            $activities[] = [
+                'type' => $this->formatDonationType($donation->getDonationType()),
+                'icon' => $this->getDonationIcon($donation->getDonationType(), $isDonor),
+                'color' => $this->getDonationColor($donation->getDonationType(), $isDonor),
+                'description' => $this->formatDonationDescription($donation, $isDonor),
+                'amount' => $isDonor ? -$donation->getAmount() : $donation->getAmount(),
+                'date' => $donation->getTransactionDate(),
+                'status' => 'Complété',
+                'statusColor' => 'bg-success-100 text-success-800'
+            ];
+        }
+
+        // Get recent withdrawals
+        $recentWithdrawals = $this->withdrawalRepository->findRecentByUser($user, 5);
+        foreach ($recentWithdrawals as $withdrawal) {
+            $activities[] = [
+                'type' => 'Retrait',
+                'icon' => 'ki-bank',
+                'color' => 'warning',
+                'description' => sprintf('Retrait via %s', $withdrawal->getWithdrawalMethod() === 'stripe' ? 'virement bancaire' : 'crypto'),
+                'amount' => -$withdrawal->getAmount(),
+                'date' => $withdrawal->getRequestedAt(),
+                'status' => $this->formatWithdrawalStatus($withdrawal->getStatus()),
+                'statusColor' => $this->getWithdrawalStatusColor($withdrawal->getStatus())
+            ];
+        }
+
+        // Sort by date descending
+        usort($activities, fn($a, $b) => $b['date'] <=> $a['date']);
+
+        return array_slice($activities, 0, 10); // Return last 10 activities
+    }
+
+    private function formatDonationType(string $type): string
+    {
+        return match ($type) {
+            'registration' => 'Inscription',
+            'solidarity' => 'Don Solidaire',
+            'supplementary' => 'Don Supplémentaire',
+            'membership' => 'Adhésion',
+            default => ucfirst($type)
+        };
+    }
+
+    private function getDonationIcon(string $type, bool $isDonor): string
+    {
+        return match ($type) {
+            'registration' => $isDonor ? 'ki-user-square' : 'ki-user-tick',
+            'solidarity' => 'ki-heart',
+            'supplementary' => 'ki-plus',
+            'membership' => 'ki-star',
+            default => 'ki-gift'
+        };
+    }
+
+    private function getDonationColor(string $type, bool $isDonor): string
+    {
+        if ($isDonor) {
+            return 'warning';
+        }
+
+        return match ($type) {
+            'registration' => 'info',
+            'solidarity' => 'success',
+            'supplementary' => 'primary',
+            'membership' => 'warning',
+            default => 'primary'
+        };
+    }
+
+    private function formatDonationDescription(object $donation, bool $isDonor): string
+    {
+        $otherParty = $isDonor ? $donation->getRecipient() : $donation->getDonor();
+        $action = $isDonor ? 'à' : 'de';
+
+        return sprintf(
+            '%s %s %s',
+            $this->formatDonationType($donation->getDonationType()),
+            $action,
+            $otherParty->getFullName()
+        );
+    }
+
+    private function formatWithdrawalStatus(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'En attente',
+            'processed' => 'Traité',
+            'failed' => 'Échoué',
+            default => ucfirst($status)
+        };
+    }
+
+    private function getWithdrawalStatusColor(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'bg-warning-100 text-warning-800',
+            'processed' => 'bg-success-100 text-success-800',
+            'failed' => 'bg-danger-100 text-danger-800',
+            default => 'bg-gray-100 text-gray-800'
+        };
     }
 }
 

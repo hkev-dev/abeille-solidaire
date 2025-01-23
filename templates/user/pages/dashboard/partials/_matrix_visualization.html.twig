@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Votre Position dans la Matrice</h3>
+    </div>
+    <div class="card-body">
+        <div class="flex items-center justify-center space-x-4 mb-6">
+            <div class="relative group"> {# Removed text-center class #}
+                <div class="w-16 h-16 rounded-full bg-success-100 flex items-center justify-center mx-auto mb-2 border-2 border-success">
+                    <span class="text-success font-bold">YOU</span>
+                </div>
+                <div class="text-sm font-medium text-center">Position {{ matrixPosition.position }}</div>
+                
+                {# Hover details will now use its own alignment #}
+                {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': user} %}
+            </div>
+        </div>
+
+        {% if matrixChildren|length > 0 %}
+            <div class="grid grid-cols-4 gap-4 mt-4">
+                {% for i in 1..4 %}
+                    {% set child = matrixChildren[i-1] ?? null %}
+                    <div class="text-center">
+                        {% if child %}
+                            <div class="relative group">
+                                <div class="w-12 h-12 rounded-full bg-info-100 flex items-center justify-center mx-auto mb-2 border-2 border-info">
+                                    <span class="text-info font-semibold">{{ child.firstName|first }}{{ child.lastName|first }}</span>
+                                </div>
+                                <div class="text-xs text-gray-600">Position {{ i }}</div>
+                                
+                                {# Include hover details for child #}
+                                {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': child} %}
+                            </div>
+                        {% else %}
+                            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 border-2 border-dashed border-gray-300">
+                                <span class="text-gray-400">{{ i }}</span>
+                            </div>
+                            <div class="text-xs text-gray-400">Disponible</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>

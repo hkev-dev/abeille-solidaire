@@ -1,0 +1,29 @@
+{# KYC Status Card #}
+<div class="relative overflow-hidden rounded-xl border {{ isKycVerified ? 'border-success/30 bg-success/5' : 'border-danger/30 bg-danger/5' }}">
+	<div class="absolute right-0 top-0 h-full w-1.5 {{ isKycVerified ? 'bg-success' : 'bg-danger' }}"></div>
+	<div class="p-4">
+		<div class="flex items-start justify-between">
+			<div class="space-y-1">
+				<div class="flex items-center space-x-2">
+					<span class="ki-duotone {{ isKycVerified ? 'ki-shield-tick text-success' : 'ki-shield-cross text-danger' }} text-xl"></span>
+					<h4 class="font-medium text-gray-900">Vérification KYC</h4>
+				</div>
+				<p class="text-sm {{ isKycVerified ? 'text-gray-600' : 'text-danger-600' }}">
+					{{ isKycVerified ? 'Votre identité a été vérifiée' : 'La vérification est requise pour les retraits' }}
+				</p>
+			</div>
+			<div class="flex-shrink-0">
+				<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ isKycVerified ? 'bg-success-100 text-success-800' : 'bg-danger-100 text-danger-800' }}">
+					{{ isKycVerified ? 'Vérifié' : 'Non Vérifié' }}
+				</span>
+			</div>
+		</div>
+		{% if not isKycVerified %}
+			<a href="#" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
+				<span class="ki-duotone ki-user-tick mr-2 text-lg"></span>
+				Compléter la vérification KYC
+				<span class="ki-duotone ki-arrow-right ml-1 text-lg"></span>
+			</a>
+		{% endif %}
+	</div>
+</div>

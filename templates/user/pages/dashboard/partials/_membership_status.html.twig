@@ -1,0 +1,50 @@
+{# Membership Status Card #}
+<div class="relative overflow-hidden rounded-xl border {{ membershipInfo.isActive ? 'border-success/30 bg-success/5' : 'border-warning/30 bg-warning/5' }}">
+	<div class="absolute right-0 top-0 h-full w-1.5 {{ membershipInfo.isActive ? 'bg-success' : 'bg-warning' }}"></div>
+	<div class="p-4">
+		<div class="flex items-start justify-between">
+			<div class="space-y-1">
+				<div class="flex items-center space-x-2">
+					<span class="ki-duotone {{ membershipInfo.isActive ? 'ki-check text-success' : 'ki-information-3 text-warning' }} text-xl"></span>
+					<h4 class="font-medium text-gray-900">Adhésion Annuelle</h4>
+				</div>
+				{% if membershipInfo.isActive %}
+					<div class="flex items-center space-x-2">
+						<span class="ki-duotone ki-calendar text-gray-400"></span>
+						<p class="text-sm {{ membershipInfo.daysUntilExpiration <= 30 ? 'text-warning-600' : 'text-gray-600' }}">
+							{% if membershipInfo.daysUntilExpiration > 30 %}
+								Expire le
+								{{ membershipInfo.expiresAt|date('d/m/Y') }}
+							{% elseif membershipInfo.daysUntilExpiration > 0 %}
+								<span class="text-warning-600">
+									Expire dans
+									{{ membershipInfo.daysUntilExpiration }}
+									jours
+								</span>
+							{% else %}
+								<span class="text-danger-600">
+									Adhésion expirée - Renouvellement requis
+								</span>
+							{% endif %}
+						</p>
+					</div>
+				{% else %}
+					<p class="text-sm text-warning-600">Une adhésion active est requise pour accéder à toutes les fonctionnalités</p>
+				{% endif %}
+			</div>
+			<div class="flex-shrink-0">
+				<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ membershipInfo.isActive ? 'bg-success-100 text-success-800' : 'bg-warning-100 text-warning-800' }}">
+					{{ membershipInfo.isActive ? 'Active' : 'Requise' }}
+				</span>
+			</div>
+		</div>
+
+		{% if not membershipInfo.isActive or membershipInfo.daysUntilExpiration <= 30 %}
+			<a href="#" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
+				<span class="ki-duotone ki-credit-cart mr-2 text-lg"></span>
+				{{ membershipInfo.isActive ? 'Renouveler l\'adhésion' : 'Payer l\'adhésion' }}
+				<span class="ki-duotone ki-arrow-right ml-1 text-lg"></span>
+			</a>
+		{% endif %}
+	</div>
+</div>

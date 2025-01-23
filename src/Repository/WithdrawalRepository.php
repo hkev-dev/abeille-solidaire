@@ -40,4 +40,15 @@ class WithdrawalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findRecentByUser(User $user, int $limit = 5): array
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('w.requestedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

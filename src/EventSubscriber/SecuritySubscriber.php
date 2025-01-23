@@ -135,7 +135,7 @@ class SecuritySubscriber implements EventSubscriberInterface
             }
 
             if ($user->getWaitingSince() !== null) {
-                $this->pendingRedirect = new RedirectResponse($this->urlGenerator->generate('app.waiting_room'));
+                $this->pendingRedirect = new RedirectResponse($this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()]));
                 return;
             }
 
