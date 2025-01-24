@@ -4,7 +4,7 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
 
 **Core Concepts:**
 
-- **Users:** Members of the platform with profiles, projects, and wallets. A new user must pay a 25€ initial donation upon registration to activate their account and enter the Violette flower matrix, starting at the same flower level as their parent. They may or may not pay the annual membership fee at registration.
+- **Users:** Members of the platform with profiles, a single project, and wallets. A new user must pay a 25€ initial donation upon registration to activate their account and enter the Violette flower matrix, starting at the same flower level as their parent. They may or may not pay the annual membership fee at registration.
 - **Flowers (Cycles):** The donation system is structured around "flowers," representing different investment levels. There are 10 flowers:
   - Violette: 25€
   - Coquelicot: 50€
@@ -25,7 +25,7 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
 - **Solidarity Donations:** When a user completes a flower cycle, 50% of the received registration donations is kept in their wallet, and the other 50% is automatically redistributed as a "solidarity donation" to the **Abeille Solidaire user (the first user or "mother" account).**
 - **Matrix Structure:** The donation system is structured as a 4x4 matrix. It starts with a "mother" account (root). This mother account receives 4 accounts under it at level 1. Each of these 4 accounts then receives 4 new accounts at level 2, and so on. Placement is done chronologically (first come, first served). Each matrix level must be filled before moving to the next. **Each user starts in the same flower cycle as their parent. The "Violette" flower is just the starting point for all users.**
 - **Withdrawals:** Users can withdraw funds from their wallets (minimum 50€, maximum 10000€ per week), with a 6% withdrawal fee applied. Withdrawals initiated with card payments are processed via bank wire transfer, while cryptocurrency withdrawals are processed using a cryptocurrency supported by CoinPayments. **Users must have paid their annual membership fee and their matrix branch must have at least 4 levels filled to be eligible for withdrawals.**
-- **Projects:** Users can submit a short description of their projects. A project description is mandatory for withdrawal requests. Donations are not directly tied to specific projects but are necessary for the system to function.
+- **Projects:** Users can submit a short description of their projects. A project description is mandatory for withdrawal requests. **A user can have only one project.** Donations are not directly tied to specific projects but are necessary for the system to function. **A project will have the following attributes: goal (the total amount of money they want to collect), pledged (the amount of money the user received via donations), a start date and an end date.**
 - **Cycle Limit:** Each flower cycle has a limit of 10 iterations. This does not apply with the flow revision.
 - **Supplementary Donations:** Supplementary donations act as direct donations to the next user in line to receive a new registration, helping them complete their cycle.
 - **Annual Membership:** A mandatory annual membership fee of 25€ is required and renewable each year. This fee can be paid during registration or later. Non-renewal blocks access to key functionalities (including withdrawals and potentially further progression in flowers) and the site after a grace period. Consider sending email reminders before membership expiration.
@@ -38,7 +38,11 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
 - `flowers`: `id`, `name`, `donation_amount`
 - `donations`: `id`, `donor_id` (FK to `users`), `recipient_id` (FK to `users`), `amount`, `donation_type` ('registration', 'solidarity', 'supplementary', 'membership'), `flower_id` (FK to `flowers`), `cycle_position` (1-4), `transaction_date`, `stripe_payment_intent_id`, `coinpayments_txn_id`, `crypto_withdrawal_transaction_id`
 - `withdrawals`: `id`, `user_id` (FK to `users`), `amount`, `withdrawal_method` ('stripe', 'crypto'), `status` ('pending', 'processed', 'failed'), `requested_at`, `processed_at`
-- `projects`: `id`, `user_id` (FK to `users`), `title`, `description`, `created_at`, `updated_at`
+- `projects`: `id`, `user_id` (FK to `users`), `title`, `description`, `goal`, `pledged`, `start_date`, `end_date`, `created_at`, `updated_at`
+- `project_reviews`: `id`, `project_id` (FK to `projects`), `author_id` (FK to `users`), `comment`, `rating`, `created_at`, `updated_at`
+- `project_categories`: `id`, `name`, `icon`, `created_at`, `updated_at`
+- `project_faqs`: `id`, `project_id` (FK to `projects`), `question`, `answer`, `created_at`, `updated_at`
+- `project_updates`: `id`, `project_id` (FK to `projects`), `title`, `content`, `is_milestone`, `created_at`, `updated_at`
 - `payment_methods`: `id`, `user_id` (FK to `users`), `method_type` ('card', 'crypto'), `stripe_customer_id`, `coinbase_account_id`, `is_default`
 
 **Key Logic to Consider:**
@@ -102,19 +106,18 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
   8. Update the `wallet_balance` in the `users` table.
   9. Update the `status` of the withdrawal request in the `withdrawals` table ('pending', 'processed', 'failed').
 - **Supplementary Donations:**
-
   1. Users can make a supplementary donation for 25€.
   2. A service determines the next user in line to receive a new "registration" donation based on the matrix structure (e.g., the user with the fewest direct children).
   3. The supplementary donation goes directly to that selected user's _parent_.
   4. Process the payment via Stripe or CoinPayments.
   5. Create a `Donation` record with `donation_type` = 'supplementary', `donor_id` = the user making the supplementary donation, `recipient_id` = the _parent_ of the next-in-line user, `amount` = 25, `flower_id` = Violette's ID, and the `stripe_payment_intent_id` or `coinpayments_txn_id`.
   6. This supplementary donation _does not_ trigger any new user registrations. It simply acts as a "boost" to help the system progress.
-
 - **Annual Membership:** Implement logic to manage annual membership payments. Users who did not pay the annual membership during registration should have a clear way to pay it later (via a dedicated page or button). Renewals should be processed similarly, updating the `has_paid_annual_fee` flag and potentially storing the payment transaction. Implement logic to block access to key functionalities (like withdrawals and potentially further progression in flowers) for users whose membership has expired. Consider sending email reminders before membership expiration.
 - **KYC Verification:** Mandatory KYC verification is required, limiting the platform to one account per person (same name, same address). Profiles cannot be modified after verification.
 - **Functionalities and Transparency:**
   - Donation Receipt: Automatically generate and provide a downloadable or emailable donation receipt for each donation (registration, supplementary, and membership payments).
   - Matrix Visualization: Implement a feature allowing users to visualize their position and their direct descendants in the 4x4 matrix in the Violette flower.
+  - **Single Project:** Implement a system that ensures each user can have only one project. The project will have attributes for `goal`, `pledged`, `start_date`, and `end_date`.
   - Project Announcements: Implement a system for administrators to announce successful fundraising and project achievements.
   - Member Counter: Display a real-time count of registered donors.
   - Closed Cycles Display: Display a list of completed cycles with the associated donation amounts for transparency.
@@ -129,7 +132,11 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
   - `User` has many `Donations` (as donor and recipient).
   - `User` has many `Withdrawals`.
   - `User` has one `PaymentMethod`.
-  - `User` can have many `Projects`.
+  - **`User` has one `Project`.**
+    - **`Project` has many `ProjectReviews`**
+    - **`Project` has many `ProjectFAQs`**
+    - **`Project` has many `ProjectUpdates`**
+    - **`Project` has one `ProjectCategory`**
   - `User` has many `children` (one-to-many self-referential, inverse side).
   - `User` has one `parent` (many-to-one self-referential, owning side).
   - `Flower` has many `Donations`.
@@ -158,5 +165,7 @@ You are an expert AI code assistant specializing in Symfony PHP development, spe
 - **Supplementary Donation:** Functions as a direct donation to the _parent_ of the next-in-line user (the user with the fewest children). It does not create a new user.
 - **Automatic Upgrade:** When the user gets 4 new registrants the parent progresses automatically to Coquelicot, and then the first registered child progresses in the same manner, and so on.
 - **Constant Donation:** All _user-initiated_ donations are 25€. Flower level indicates achievement.
+- **Single Project Per User:** Each user can have one and only one project. A project has a `goal`, `pledged` amount, `start_date`, and `end_date`.
+- **Project Structure:** Projects have reviews, categories, FAQs, and updates.
 
 This revised system provides a more sustainable and community-driven donation platform. Good luck!

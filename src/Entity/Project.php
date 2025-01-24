@@ -22,11 +22,7 @@ class Project
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    public ?int $id = null {
-        get {
-            return $this->id;
-        }
-    }
+    public ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
@@ -34,14 +30,11 @@ class Project
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[ORM\Column]
-    private float $goal = 0.0;
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?float $goal = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private float $pledged = 0.0;
-
-    #[ORM\Column]
-    private ?int $backers = 0;
 
     #[Vich\UploadableField(mapping: 'projects', fileNameProperty: 'image')]
     private ?File $imageFile = null;
@@ -49,10 +42,10 @@ class Project
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $location = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeInterface $startDate = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
@@ -69,17 +62,8 @@ class Project
     #[ORM\OneToMany(targetEntity: ProjectReview::class, mappedBy: 'project')]
     private Collection $reviews;
 
-    #[ORM\OneToMany(targetEntity: ProjectReward::class, mappedBy: 'project')]
-    private Collection $rewards;
-
     #[ORM\OneToMany(targetEntity: ProjectFAQ::class, mappedBy: 'project')]
     private Collection $faqs;
-
-    #[ORM\OneToOne(targetEntity: ProjectStory::class, mappedBy: 'project', cascade: ['persist', 'remove'])]
-    private ?ProjectStory $story = null;
-
-    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'project')]
-    private Collection $backings;
 
     #[ORM\Column(length: 255, unique: true)]
     #[Gedmo\Slug(fields: ['title'])]
@@ -92,12 +76,13 @@ class Project
     {
         $this->updates = new ArrayCollection();
         $this->reviews = new ArrayCollection();
-        $this->rewards = new ArrayCollection();
         $this->faqs = new ArrayCollection();
-        $this->backings = new ArrayCollection();
     }
 
-    // Add getters and setters for all properties
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getTitle(): ?string
     {
@@ -121,55 +106,36 @@ class Project
         return $this;
     }
 
-    public function getStory(): ?ProjectStory
-    {
-        return $this->story;
-    }
-
-    public function setStory(?ProjectStory $story): static
-    {
-        if ($story === null && $this->story !== null) {
-            $this->story->setProject(null);
-        }
-
-        if ($story !== null && $story->getProject() !== $this) {
-            $story->setProject($this);
-        }
-
-        $this->story = $story;
-        return $this;
-    }
-
-    public function getGoal(): float
+    public function getGoal(): ?float
     {
         return $this->goal;
     }
 
-    public function setGoal(float $goal): static
+    public function setGoal(?float $goal): static
     {
         $this->goal = $goal;
         return $this;
     }
 
-    public function getPledged(): float
+    public function getPledged(): ?float
     {
         return $this->pledged;
     }
 
-    public function setPledged(float $pledged): static
+    public function setPledged(?float $pledged): static
     {
         $this->pledged = $pledged;
         return $this;
     }
 
-    public function getBackers(): ?int
+    public function getStartDate(): ?\DateTimeInterface
     {
-        return $this->backers;
+        return $this->startDate;
     }
 
-    public function setBackers(int $backers): static
+    public function setStartDate(\DateTimeInterface $startDate): static
     {
-        $this->backers = $backers;
+        $this->startDate = $startDate;
         return $this;
     }
 
@@ -194,17 +160,6 @@ class Project
     public function setImage(?string $image): static
     {
         $this->image = $image;
-        return $this;
-    }
-
-    public function getLocation(): ?string
-    {
-        return $this->location;
-    }
-
-    public function setLocation(string $location): static
-    {
-        $this->location = $location;
         return $this;
     }
 
@@ -270,21 +225,6 @@ class Project
         return $this->reviews;
     }
 
-    public function getRewards(): Collection
-    {
-        return $this->rewards;
-    }
-
-    public function getFaqs(): Collection
-    {
-        return $this->faqs;
-    }
-
-    public function getBackings(): Collection
-    {
-        return $this->backings;
-    }
-
     public function addReview(ProjectReview $review): static
     {
         if (!$this->reviews->contains($review)) {
@@ -304,23 +244,9 @@ class Project
         return $this;
     }
 
-    public function addReward(ProjectReward $reward): static
+    public function getFaqs(): Collection
     {
-        if (!$this->rewards->contains($reward)) {
-            $this->rewards->add($reward);
-            $reward->setProject($this);
-        }
-        return $this;
-    }
-
-    public function removeReward(ProjectReward $reward): static
-    {
-        if ($this->rewards->removeElement($reward)) {
-            if ($reward->getProject() === $this) {
-                $reward->setProject(null);
-            }
-        }
-        return $this;
+        return $this->faqs;
     }
 
     public function addFaq(ProjectFAQ $faq): static
@@ -340,42 +266,6 @@ class Project
             }
         }
         return $this;
-    }
-
-    public function addBacking(ProjectBacking $backing): static
-    {
-        if (!$this->backings->contains($backing)) {
-            $this->backings->add($backing);
-            $backing->setProject($this);
-        }
-        return $this;
-    }
-
-    public function removeBacking(ProjectBacking $backing): static
-    {
-        if ($this->backings->removeElement($backing)) {
-            if ($backing->getProject() === $this) {
-                $backing->setProject(null);
-            }
-        }
-        return $this;
-    }
-
-    public function getProgress(): float
-    {
-        if ($this->goal <= 0) {
-            return 0;
-        }
-        return min(100, ($this->pledged / $this->goal) * 100);
-    }
-
-    public function getDaysLeft(): int
-    {
-        if (!$this->endDate) {
-            return 0;
-        }
-        $now = new \DateTime();
-        return max(0, $this->endDate->diff($now)->days);
     }
 
     public function getSlug(): ?string
@@ -398,5 +288,22 @@ class Project
     {
         $this->isActive = $isActive;
         return $this;
+    }
+
+    public function getProgress(): float
+    {
+        if ($this->goal <= 0) {
+            return 0;
+        }
+        return min(100, ($this->pledged / $this->goal) * 100);
+    }
+
+    public function getDaysLeft(): int
+    {
+        if (!$this->endDate) {
+            return 0;
+        }
+        $now = new \DateTimeImmutable();
+        return max(0, $this->endDate->diff($now)->days);
     }
 }

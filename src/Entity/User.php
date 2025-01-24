@@ -73,11 +73,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $organizationNumber = null;
 
-    #[ORM\OneToOne(targetEntity: Project::class, mappedBy: 'creator', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: Project::class, mappedBy: 'creator')]
     private ?Project $project = null;
-
-    #[ORM\OneToMany(targetEntity: ProjectBacking::class, mappedBy: 'backer')]
-    private Collection $backedProjects;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $walletBalance = 0.0;
@@ -137,7 +134,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->backedProjects = new ArrayCollection();
         $this->children = new ArrayCollection();
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
