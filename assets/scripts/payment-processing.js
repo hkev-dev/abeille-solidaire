@@ -106,11 +106,13 @@ export class PaymentProcessor {
 
     async handleSubmit(event) {
         event.preventDefault();
-
+        
         if (this.processing) return;
         this.processing = true;
 
-        const submitButton = this.form.querySelector('button[type="submit"]');
+        const submitButton = this.form.querySelector('button[type="submit"]');        
+        const includeMembership = document.querySelector('[name="payment_selection[include_annual_membership]"]');
+
         const originalText = submitButton.textContent;
         submitButton.disabled = true;
         submitButton.innerHTML = `
@@ -129,7 +131,7 @@ export class PaymentProcessor {
                 },
                 body: JSON.stringify({
                     payment_method: 'stripe',
-                    include_annual_membership: document.querySelector('[name="payment_selection[include_annual_membership]"]').checked
+                    include_annual_membership: includeMembership ? includeMembership.checked : false
                 })
             });
 

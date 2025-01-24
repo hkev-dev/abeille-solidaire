@@ -61,4 +61,35 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
             throw $e;
         }
     }
+
+    protected function processMembershipPayment(User $user, string $paymentReference): void
+    {
+        try {
+            $this->em->beginTransaction();
+
+            // Update user membership status
+            $user->setHasPaidAnnualFee(true);
+
+            // Create membership donation record
+            $membershipDonation = $this->donationService->createMembershipDonation($user);
+            
+            if (str_starts_with($paymentReference, 'pi_')) {
+                $membershipDonation->setStripePaymentIntentId($paymentReference);
+                $membershipDonation->setPaymentProvider('stripe');
+            } else {
+                $membershipDonation->setCoinpaymentsTransactionId($paymentReference);
+                $membershipDonation->setPaymentProvider('coinpayments');
+            }
+            
+            $membershipDonation->setPaymentStatus('completed');
+
+            $this->em->flush();
+            $this->em->commit();
+
+        } catch (\Exception $e) {
+            $this->em->rollback();
+            $this->logger->error('Failed to process membership payment: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

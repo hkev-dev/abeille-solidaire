@@ -74,8 +74,7 @@ export class PaymentMethodManager {
     async handleCardSubmission(e) {
         e.preventDefault();
         const form = e.target;
-        const submitButton = form.querySelector('button[type="submit"]');
-        
+        const submitButton = form.querySelector('button[type="submit"]');        
         submitButton.disabled = true;
         
         try {

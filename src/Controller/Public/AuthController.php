@@ -75,8 +75,16 @@ class AuthController extends AbstractController
 
             try {
                 $user = $this->userRegistrationService->registerUser($dto);
+                
+                // Auto login the user right after registration
+                $this->userAuthenticator->authenticateUser(
+                    $user,
+                    $this->authenticator,
+                    $request
+                );
+
                 $this->addFlash('success', 'Registration successful! Please complete your payment to be placed in the matrix system.');
-                return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
+                return $this->redirectToRoute('app.registration.payment');
             } catch (\Exception $e) {
                 $this->logger->error('Registration failed', [
                     'error' => $e->getMessage(),
@@ -92,11 +100,17 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/register/{id}/payment', name: 'app.registration.payment', methods: ['GET', 'POST'])]
-    public function paymentSelection(User $user, Request $request): Response
+    #[Route('/register/payment', name: 'app.registration.payment', methods: ['GET', 'POST'])]
+    public function paymentSelection(Request $request): Response
     {
-        if ($user->getRegistrationPaymentStatus() !== 'pending') {
+        $user = $this->getUser();
+        
+        if (!$user) {
             return $this->redirectToRoute('app.login');
+        }
+
+        if ($user->getRegistrationPaymentStatus() !== 'pending') {
+            return $this->redirectToRoute('app.user.dashboard');
         }
 
         // Handle AJAX requests for payment creation
@@ -123,10 +137,7 @@ class AuthController extends AbstractController
             }
         }
 
-        $form = $this->createForm(PaymentSelectionType::class, null, [
-            'action' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
-        ]);
-
+        $form = $this->createForm(PaymentSelectionType::class);
         $form->handleRequest($request);
 
         return $this->render('public/pages/auth/payment-selection.html.twig', [
@@ -136,15 +147,21 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/register/{id}/waiting-room', name: 'app.waiting_room')]
-    public function waitingRoom(User $user, Request $request): Response
+    #[Route('/register/waiting-room', name: 'app.waiting_room')]
+    public function waitingRoom(Request $request): Response
     {
-        if ($user->getRegistrationPaymentStatus() === 'completed') {
+        $user = $this->getUser();
+        
+        if (!$user) {
             return $this->redirectToRoute('app.login');
         }
 
+        if ($user->getRegistrationPaymentStatus() === 'completed') {
+            return $this->redirectToRoute('app.user.dashboard');
+        }
+
         if ($user->getRegistrationPaymentStatus() === 'failed') {
-            return $this->redirectToRoute('app.registration.payment', ['id' => $user->getId()]);
+            return $this->redirectToRoute('app.registration.payment');
         }
 
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
@@ -152,41 +169,30 @@ class AuthController extends AbstractController
         return $this->render('public/pages/auth/waiting-room.html.twig', [
             'user' => $user,
             'payment_method' => $paymentMethod,
-            'payment_url' => $this->generateUrl('app.registration.payment', ['id' => $user->getId()]),
+            'payment_url' => $this->generateUrl('app.registration.payment'),
             'txn_id' => $request->getSession()->get('txn_id')
         ]);
     }
 
-    #[Route('/register/{id}/check-payment-status', name: 'app.check_payment_status')]
-    public function checkPaymentStatus(User $user, Request $request): Response
+    #[Route('/register/check-payment-status', name: 'app.check_payment_status')]
+    public function checkPaymentStatus(Request $request): Response
     {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->json([
+                'status' => 'error',
+                'redirect' => $this->generateUrl('app.login')
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
         $status = $user->getRegistrationPaymentStatus();
 
         if ($status === 'completed') {
-            try {
-                // Auto login the user
-                $this->userAuthenticator->authenticateUser(
-                    $user,
-                    $this->authenticator,
-                    $request
-                );
-
-                return $this->json([
-                    'status' => 'completed',
-                    'redirect' => $this->generateUrl('app.user.dashboard')
-                ]);
-            } catch (\Exception $e) {
-                $this->logger->error('Auto-login failed after registration', [
-                    'user_id' => $user->getId(),
-                    'error' => $e->getMessage()
-                ]);
-                
-                // Fallback to login page if auto-login fails
-                return $this->json([
-                    'status' => 'completed',
-                    'redirect' => $this->generateUrl('app.login')
-                ]);
-            }
+            return $this->json([
+                'status' => 'completed',
+                'redirect' => $this->generateUrl('app.user.dashboard')
+            ]);
         }
 
         return $this->json([

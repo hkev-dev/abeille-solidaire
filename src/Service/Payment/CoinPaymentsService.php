@@ -81,6 +81,40 @@ class CoinPaymentsService extends AbstractPaymentService
         }
     }
 
+    public function createMembershipPayment(User $user): array
+    {
+        try {
+            $result = $this->coinPayments->CreateComplexTransaction(
+                amount: 25.00,
+                currency1: 'EUR',
+                currency2: 'BTC',
+                buyer_email: $user->getEmail(),
+                address: "",
+                buyer_name: $user->getFullName(),
+                item_name: 'Annual Membership Renewal',
+                item_number: "M_{$user->getId()}",
+                invoice: "MEM-" . uniqid(),
+                custom: json_encode([
+                    'user_id' => $user->getId(),
+                    'payment_type' => 'membership'
+                ]),
+                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            );
+
+            if ($result['error'] !== 'ok') {
+                throw new \RuntimeException($result['error']);
+            }
+
+            return $result['result'];
+        } catch (\Exception $e) {
+            $this->logger->error('CoinPayments membership transaction creation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->getId()
+            ]);
+            throw $e;
+        }
+    }
+
     public function handlePaymentSuccess(array $paymentData): void
     {
         $customData = json_decode($paymentData['custom'], true);
@@ -90,8 +124,13 @@ class CoinPaymentsService extends AbstractPaymentService
             throw new \Exception('User not found');
         }
 
-        $includeMembership = $customData['include_membership'] ?? false;
-        $this->processRegistrationPayment($user, $includeMembership, $paymentData['txn_id']);
+        $paymentType = $customData['payment_type'];
+        if ($paymentType === 'registration') {
+            $includeMembership = $customData['include_membership'] ?? false;
+            $this->processRegistrationPayment($user, $includeMembership, $paymentData['txn_id']);
+        } elseif ($paymentType === 'membership') {
+            $this->processMembershipPayment($user, $paymentData['txn_id']);
+        }
     }
 
     public function handlePaymentFailure(array $paymentData): void

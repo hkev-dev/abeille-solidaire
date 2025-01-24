@@ -279,9 +279,9 @@ stripePublicKey: '{{ stripe_public_key }}',
 environment: '{{ app.environment }}',
 amount: 25,
 userEmail: '{{ user.email }}',
-returnUrl: '{{ path("app.waiting_room", {id: user.id}) }}',
-createIntentUrl: '{{ path("app.registration.payment", {id: user.id}) }}',
-currenciesUrl: '{{ path("app.registration.crypto.currencies", {id: user.id}) }}',
+returnUrl: '{{ path("app.waiting_room") }}',
+createIntentUrl: '{{ path("app.registration.payment") }}',
+currenciesUrl: '{{ path("app.registration.crypto.currencies") }}',
 csrf: {
 stripeToken: '{{ csrf_token('stripe_payment') }}',
 cryptoToken: '{{ csrf_token('crypto_payment') }}'

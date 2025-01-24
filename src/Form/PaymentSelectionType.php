@@ -31,8 +31,10 @@ class PaymentSelectionType extends AbstractType
                     ])
                 ],
                 'attr' => ['class' => 'payment-method-selection']
-            ])
-            ->add('include_annual_membership', CheckboxType::class, [
+            ]);
+
+        if ($options['show_annual_membership']) {
+            $builder->add('include_annual_membership', CheckboxType::class, [
                 'required' => false,
                 'label' => 'Payer l\'adhésion annuelle maintenant (25€)',
                 'label_attr' => ['class' => 'form-check-label'],
@@ -46,11 +48,13 @@ class PaymentSelectionType extends AbstractType
                 'help' => 'Le montant total sera de 50€ (25€ inscription + 25€ adhésion)',
                 'help_attr' => ['class' => 'form-text text-muted'],
                 'mapped' => false
-            ])
-            ->add('csrf_token', HiddenType::class, [
-                'mapped' => false,
-                'data' => 'payment_selection'
             ]);
+        }
+
+        $builder->add('csrf_token', HiddenType::class, [
+            'mapped' => false,
+            'data' => 'payment_selection'
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -59,7 +63,8 @@ class PaymentSelectionType extends AbstractType
             'csrf_protection' => true,
             'csrf_field_name' => '_csrf_token',
             'csrf_token_id' => 'payment_selection',
-            'allow_extra_fields' => true
+            'allow_extra_fields' => true,
+            'show_annual_membership' => true
         ]);
     }
 }

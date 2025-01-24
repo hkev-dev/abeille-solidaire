@@ -10,6 +10,8 @@ use Psr\Log\LoggerInterface;
 class MembershipService
 {
     public const ANNUAL_FEE = 25.0;
+    private const MEMBERSHIP_DURATION = 'P1Y'; // 1 year
+    private const GRACE_PERIOD = 'P15D'; // 15 days grace period
     
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -76,6 +78,18 @@ class MembershipService
         }
     }
 
+    public function getLatestMembership(User $user): ?Donation
+    {
+        return $this->entityManager->getRepository(Donation::class)
+            ->findOneBy(
+                [
+                    'donor' => $user,
+                    'donationType' => 'membership'
+                ],
+                ['transactionDate' => 'DESC']
+            );
+    }
+
     public function getRenewalAmount(): float
     {
         return self::ANNUAL_FEE;
@@ -89,5 +103,33 @@ class MembershipService
                 ['donor' => $user, 'donationType' => 'membership'],
                 ['transactionDate' => 'DESC']
             );
+    }
+
+    public function isExpired(User $user): bool
+    {
+        if (!$user->hasPaidAnnualFee()) {
+            return true;
+        }
+
+        $lastPaymentDate = $this->getLastMembershipPaymentDate($user);
+        if (!$lastPaymentDate) {
+            return true;
+        }
+
+        $expiryDate = $lastPaymentDate->add(new \DateInterval(self::MEMBERSHIP_DURATION));
+        $graceDate = $expiryDate->add(new \DateInterval(self::GRACE_PERIOD));
+
+        return new \DateTime() > $graceDate;
+    }
+
+    private function getLastMembershipPaymentDate(User $user): ?\DateTime
+    {
+        $lastMembershipDonation = $this->entityManager->getRepository(Donation::class)
+            ->findOneBy(
+                ['donor' => $user, 'donationType' => 'membership'],
+                ['transactionDate' => 'DESC']
+            );
+
+        return $lastMembershipDonation?->getTransactionDate();
     }
 }

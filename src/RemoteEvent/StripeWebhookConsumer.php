@@ -22,6 +22,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
 
     public function consume(RemoteEvent $event): void
     {
+
         $payload = $event->getPayload();
         $eventType = $event->getName();
 
@@ -40,7 +41,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
     private function handlePaymentSuccess(array $paymentIntent): array
     {
         $metadata = $paymentIntent['metadata'];
-        
+
         if (!isset($metadata['user_id'])) {
             throw new WebhookException('Missing user ID in payment metadata');
         }
@@ -50,29 +51,49 @@ final class StripeWebhookConsumer implements ConsumerInterface
             throw new WebhookException('User not found');
         }
 
-        // Use the new payment service structure
-        $this->paymentService->handlePaymentSuccess([
-            'payment_intent_id' => $paymentIntent['id'],
-            'metadata' => $metadata,
-            'amount' => $paymentIntent['amount'],
-            'currency' => $paymentIntent['currency'],
-            'payment_type' => $metadata['payment_type'] ?? 'registration'
-        ]);
+        $paymentType = $metadata['payment_type'] ?? 'registration';
 
-        return [
-            'status' => 'success',
-            'type' => 'payment_intent.succeeded',
-            'payment_intent' => $paymentIntent['id'],
-        ];
+        try {
+            // Handle different payment types
+            $this->paymentService->handlePaymentSuccess([
+                'payment_intent_id' => $paymentIntent['id'],
+                'metadata' => $metadata,
+                'amount' => $paymentIntent['amount'],
+                'currency' => $paymentIntent['currency'],
+                'payment_type' => $paymentType
+            ]);
+
+            $this->logger->info('Payment processed successfully', [
+                'type' => $paymentType,
+                'user_id' => $user->getId(),
+                'payment_intent' => $paymentIntent['id']
+            ]);
+
+            return [
+                'status' => 'success',
+                'type' => 'payment_intent.succeeded',
+                'payment_intent' => $paymentIntent['id'],
+                'payment_type' => $paymentType
+            ];
+        } catch (\Exception $e) {
+            $this->logger->error('Payment processing failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->getId(),
+                'payment_intent' => $paymentIntent['id']
+            ]);
+            throw $e;
+        }
     }
 
     private function handlePaymentFailure(array $paymentIntent): array
     {
         $metadata = $paymentIntent['metadata'];
+        $paymentType = $metadata['payment_type'] ?? 'registration';
 
         if (!isset($metadata['user_id'])) {
             $this->logger->warning('Missing user ID in failed payment metadata', [
-                'payment_intent' => $paymentIntent['id']
+                'payment_intent' => $paymentIntent['id'],
+                'payment_type' => $paymentType
             ]);
             return [
                 'status' => 'ignored',
@@ -80,17 +101,26 @@ final class StripeWebhookConsumer implements ConsumerInterface
             ];
         }
 
-        // Use the new payment service structure
-        $this->paymentService->handlePaymentFailure([
-            'payment_intent_id' => $paymentIntent['id'],
-            'metadata' => $metadata,
-            'error' => $paymentIntent['last_payment_error']['message'] ?? 'Payment failed'
-        ]);
+        try {
+            $this->paymentService->handlePaymentFailure([
+                'payment_intent_id' => $paymentIntent['id'],
+                'metadata' => $metadata,
+                'error' => $paymentIntent['last_payment_error']['message'] ?? 'Payment failed',
+                'payment_type' => $paymentType
+            ]);
 
-        return [
-            'status' => 'failed',
-            'type' => 'payment_intent.payment_failed',
-            'payment_intent' => $paymentIntent['id']
-        ];
+            return [
+                'status' => 'failed',
+                'type' => 'payment_intent.payment_failed',
+                'payment_intent' => $paymentIntent['id'],
+                'payment_type' => $paymentType
+            ];
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to handle payment failure', [
+                'error' => $e->getMessage(),
+                'payment_intent' => $paymentIntent['id']
+            ]);
+            throw $e;
+        }
     }
 }

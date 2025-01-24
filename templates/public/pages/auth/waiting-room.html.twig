@@ -1,11 +1,21 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Traitement du Paiement - Abeilles Solidaires{% endblock %}
+{% block title %}
+    {% if context is defined and context == 'membership' %}
+        Traitement du Renouvellement - Abeilles Solidaires
+    {% else %}
+        Traitement de l'Inscription - Abeilles Solidaires
+    {% endif %}
+{% endblock %}
 
 {% block content %}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Traitement en Cours',
-        breadcrumbs: [
+        title: context is defined and context == 'membership' ? 'Renouvellement en Cours' : 'Inscription en Cours',
+        breadcrumbs: context is defined and context == 'membership' ? [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Mon Compte', path: 'app.user.dashboard'},
+            {label: 'Renouvellement', path: null}
+        ] : [
             {label: 'Accueil', path: 'landing.home'},
             {label: 'Inscription', path: 'app.register'},
             {label: 'Traitement', path: null}
@@ -24,12 +34,22 @@
                         {% else %}
                             <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
                         {% endif %}
-                        <h3 class="login-register__title">Traitement de Votre Paiement</h3>
+                        
+                        <h3 class="login-register__title">
+                            {% if context is defined and context == 'membership' %}
+                                Traitement du Paiement d'Adhésion
+                            {% else %}
+                                Traitement du Paiement d'Inscription
+                            {% endif %}
+                        </h3>
 
                         {% if payment_method == 'stripe' %}
                             <p>Votre paiement par carte est en cours de traitement. Cette page se mettra à jour automatiquement.</p>
                         {% else %}
                             <p>En attente de confirmation de la transaction cryptomonnaie. Cela peut prendre quelques minutes.</p>
+                            {% if txn_id %}
+                                <p class="text-muted small">ID Transaction: {{ txn_id }}</p>
+                            {% endif %}
                         {% endif %}
 
                         <div class="progress mt-4 mb-4">
@@ -46,6 +66,12 @@
                         <a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
                             Besoin d'Aide ?
                         </a>
+                        
+                        {% if payment_method == 'crypto' %}
+                            <a href="{{ payment_url }}" class="thm-btn ml-3">
+                                Retour au Paiement
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -56,22 +82,27 @@
 {% block javascripts %}
     {{ parent() }}
     <script type="text/javascript">
-        // Poll for payment status every 5 seconds
-const checkPaymentStatus = async () => {
-try {
-const response = await fetch('{{ path("app.check_payment_status", {id: user.id}) }}');
-const data = await response.json();
+        const checkPaymentStatus = async () => {
+            try {
+                const response = await fetch('{{ context is defined and context == "membership" 
+                    ? path("app.membership.check_payment") 
+                    : path("app.check_payment_status") 
+                }}');
+                const data = await response.json();
 
-if (data.status === 'completed' && data.redirect) {
-window.location.href = data.redirect;
-} else if (data.status === 'failed') {
-window.location.href = '{{ path("app.registration.payment", {id: user.id}) }}';
-}
-} catch (error) {
-console.error('Error checking payment status:', error);
-}
-};
+                if (data.status === 'completed' && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (data.status === 'failed') {
+                    window.location.href = '{{ payment_url }}';
+                }
+            } catch (error) {
+                console.error('Error checking payment status:', error);
+            }
+        };
 
-setInterval(checkPaymentStatus, 5000);
+        // Initial check after 2 seconds
+        setTimeout(checkPaymentStatus, 2000);
+        // Then check every 5 seconds
+        setInterval(checkPaymentStatus, 5000);
     </script>
 {% endblock %}

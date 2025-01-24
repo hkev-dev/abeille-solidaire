@@ -40,7 +40,7 @@
 		</div>
 
 		{% if not membershipInfo.isActive or membershipInfo.daysUntilExpiration <= 30 %}
-			<a href="#" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
+			<a href="{{ path('app.membership.renew') }}" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
 				<span class="ki-duotone ki-credit-cart mr-2 text-lg"></span>
 				{{ membershipInfo.isActive ? 'Renouveler l\'adhésion' : 'Payer l\'adhésion' }}
 				<span class="ki-duotone ki-arrow-right ml-1 text-lg"></span>

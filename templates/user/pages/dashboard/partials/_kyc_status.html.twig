@@ -19,7 +19,7 @@
 			</div>
 		</div>
 		{% if not isKycVerified %}
-			<a href="#" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
+			<a href="{{ path('app.user.settings.kyc') }}" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
 				<span class="ki-duotone ki-user-tick mr-2 text-lg"></span>
 				Compléter la vérification KYC
 				<span class="ki-duotone ki-arrow-right ml-1 text-lg"></span>

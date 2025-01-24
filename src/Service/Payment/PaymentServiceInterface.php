@@ -25,4 +25,9 @@ interface PaymentServiceInterface
      * Verify payment callback signature/authenticity
      */
     public function verifyPaymentCallback(array $data, string $signature): bool;
+
+    /**
+     * Create a payment for membership renewal
+     */
+    public function createMembershipPayment(User $user): array;
 }

@@ -46,6 +46,26 @@ class StripePaymentService extends AbstractPaymentService
         ];
     }
 
+    public function createMembershipPayment(User $user): array
+    {
+        $amount = 2500; // 25€ in cents
+
+        $paymentIntent = PaymentIntent::create([
+            'amount' => $amount,
+            'currency' => 'eur',
+            'metadata' => [
+                'user_id' => $user->getId(),
+                'payment_type' => 'membership'
+            ]
+        ]);
+
+        return [
+            'clientSecret' => $paymentIntent->client_secret,
+            'amount' => $amount / 100,
+            'paymentIntentId' => $paymentIntent->id
+        ];
+    }
+
     public function handlePaymentSuccess(array $paymentData): void
     {
         $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
@@ -55,8 +75,13 @@ class StripePaymentService extends AbstractPaymentService
             throw new \Exception('User not found');
         }
 
-        $includeMembership = $paymentIntent->metadata['include_membership'] === 'true';
-        $this->processRegistrationPayment($user, $includeMembership, $paymentIntent->id);
+        $paymentType = $paymentIntent->metadata['payment_type'];
+        if ($paymentType === 'registration') {
+            $includeMembership = $paymentIntent->metadata['include_membership'] === 'true';
+            $this->processRegistrationPayment($user, $includeMembership, $paymentIntent->id);
+        } elseif ($paymentType === 'membership') {
+            $this->processMembershipPayment( $user, $paymentIntent->id);
+        }
 
         // Set Stripe customer ID
         if ($paymentIntent->customer) {
