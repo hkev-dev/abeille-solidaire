@@ -2,20 +2,21 @@
 
 namespace App\Entity;
 
-use App\Entity\Trait\TimestampableTrait;
-use App\Repository\ProjectRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Serializable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ProjectRepository;
 use Gedmo\Mapping\Annotation as Gedmo;
+use App\Entity\Trait\TimestampableTrait;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\ArrayCollection;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[Vich\Uploadable]
-class Project
+class Project implements Serializable
 {
     use TimestampableTrait;
 
@@ -144,12 +145,14 @@ class Project
         return $this->imageFile;
     }
 
-    public function setImageFile(?File $imageFile = null): void
+    public function setImageFile(?File $imageFile = null): static
     {
         $this->imageFile = $imageFile;
         if (null !== $imageFile) {
             $this->updatedAt = new \DateTimeImmutable();
         }
+
+        return $this;
     }
 
     public function getImage(): ?string
@@ -305,5 +308,24 @@ class Project
         }
         $now = new \DateTimeImmutable();
         return max(0, $this->endDate->diff($now)->days);
+    }
+
+
+    /** @see \Serializable::serialize() */
+    public function serialize()
+    {
+        return serialize(array(
+            $this->id,
+            $this->image,
+
+        ));
+    }
+
+    /** @see \Serializable::unserialize() */
+    public function unserialize($serialized)
+    {
+        list(
+            $this->id,
+        ) = unserialize($serialized);
     }
 }

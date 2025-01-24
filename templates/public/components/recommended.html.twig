@@ -14,29 +14,29 @@
 		{# Recommended Projects Carousel #}
 		<div class="recommended-one__bottom">
 			<div class="recommended-one__carousel owl-carousel owl-theme thm-owl__carousel" data-owl-options='{
-					                "loop": true,
-					                "autoplay": false,
-					                "margin": 30,
-					                "nav": false,
-					                "dots": true,
-					                "smartSpeed": 500,
-					                "autoplayTimeout": 10000,
-					                "navText": ["<span class=\"fa fa-angle-left\"></span>","<span class=\"fa fa-angle-right\"></span>"],
-					                "responsive": {
-					                    "0": {
-					                        "items": 1
-					                    },
-					                    "768": {
-					                        "items": 2
-					                    },
-					                    "992": {
-					                        "items": 3
-					                    },
-					                    "1200": {
-					                        "items": 4
-					                    }
-					                }
-					            }'>
+										                "loop": true,
+										                "autoplay": false,
+										                "margin": 30,
+										                "nav": false,
+										                "dots": true,
+										                "smartSpeed": 500,
+										                "autoplayTimeout": 10000,
+										                "navText": ["<span class=\"fa fa-angle-left\"></span>","<span class=\"fa fa-angle-right\"></span>"],
+										                "responsive": {
+										                    "0": {
+										                        "items": 1
+										                    },
+										                    "768": {
+										                        "items": 2
+										                    },
+										                    "992": {
+										                        "items": 3
+										                    },
+										                    "1200": {
+										                        "items": 4
+										                    }
+										                }
+										            }'>
 				{% for project in recommendedProjects %}
 					<div class="item">
 						<div class="recommended-one__single">
@@ -65,7 +65,8 @@
 												<i class="fa fa-clock"></i>
 											</div>
 											<div class="text">
-												<p>{{ project.daysLeft }} Jours Restants</p>
+												<p>{{ project.daysLeft }}
+													Jours Restants</p>
 											</div>
 										</div>
 									</div>
@@ -97,12 +98,15 @@
 									{# Project Goals #}
 									<div class="project-one__goals">
 										<p class="project-one__goals-one">
-											<span>{{ project.pledged|number_format(0, '.', ',') }} €</span>
-											<br>Objectif de {{ project.goal|number_format(0, '.', ' ') }} €
+											<span>{{ project.pledged|number_format(0, '.', ',') }}
+												€</span>
+											<br>Objectif de
+											{{ project.goal|number_format(0, '.', ' ') }}
+											€
 										</p>
 										<p class="project-one__goals-one">
-											<span class="odometer project-one__plus" data-count="{{ project.backers }}"></span>
-											<br>Contributeurs
+											<span>{{ project.reviews|length }}</span>
+											<br>Avis
 										</p>
 									</div>
 								</div>

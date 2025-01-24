@@ -1,0 +1,126 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% block title %}FAQs du Projet{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Questions Fréquentes</h3>
+            <div class="card-toolbar">
+                <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#add_faq_modal">
+                    <i class="ki-duotone ki-plus fs-5"></i>
+                    Nouvelle FAQ
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if project.faqs|length > 0 %}
+                <div class="accordion" id="project_faqs">
+                    {% for faq in project.faqs %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq_heading_{{ faq.id }}">
+                                <button class="accordion-button fs-4 fw-semibold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq_content_{{ faq.id }}" aria-expanded="false">
+                                    {{ faq.question }}
+                                </button>
+                            </h2>
+                            <div id="faq_content_{{ faq.id }}" class="accordion-collapse collapse" aria-labelledby="faq_heading_{{ faq.id }}" data-bs-parent="#project_faqs">
+                                <div class="accordion-body">
+                                    <div class="fs-6 text-gray-800">{{ faq.answer|nl2br }}</div>
+                                    <div class="d-flex justify-content-end mt-4">
+                                        <button type="button" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#edit_faq_modal_{{ faq.id }}">
+                                            <i class="ki-duotone ki-pencil fs-5"></i>
+                                            Modifier
+                                        </button>
+                                        <form method="post" action="{{ path('app.user.project.faqs.delete', {'id': faq.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette FAQ ?');" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-light-danger">
+                                                <i class="ki-duotone ki-trash fs-5"></i>
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Edit FAQ Modal #}
+                        <div class="modal fade" id="edit_faq_modal_{{ faq.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered mw-650px">
+                                <div class="modal-content">
+                                    <form method="post" action="{{ path('app.user.project.faqs.update', {'id': faq.id}) }}" class="form">
+                                        <div class="modal-header">
+                                            <h2 class="fw-bold">Modifier la FAQ</h2>
+                                            <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                                            <div class="d-flex flex-column mb-8 fv-row">
+                                                <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                                    <span class="required">Question</span>
+                                                </label>
+                                                <input type="text" class="form-control form-control-solid" name="question" value="{{ faq.question }}" required/>
+                                            </div>
+                                            <div class="d-flex flex-column mb-8">
+                                                <label class="fs-6 fw-semibold mb-2">
+                                                    <span class="required">Réponse</span>
+                                                </label>
+                                                <textarea class="form-control form-control-solid" rows="6" name="answer" required>{{ faq.answer }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="indicator-label">Mettre à jour</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-10">
+                    <i class="ki-duotone ki-question fs-3hx text-gray-300 mb-5"></i>
+                    <div class="text-muted fw-semibold fs-6">Aucune FAQ pour le moment</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Add FAQ Modal #}
+    <div class="modal fade" id="add_faq_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <form method="post" action="{{ path('app.user.project.faqs.create') }}" class="form">
+                    <div class="modal-header">
+                        <h2 class="fw-bold">Nouvelle FAQ</h2>
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                        </div>
+                    </div>
+                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                        <div class="d-flex flex-column mb-8 fv-row">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                <span class="required">Question</span>
+                            </label>
+                            <input type="text" class="form-control form-control-solid" name="question" required/>
+                        </div>
+                        <div class="d-flex flex-column mb-8">
+                            <label class="fs-6 fw-semibold mb-2">
+                                <span class="required">Réponse</span>
+                            </label>
+                            <textarea class="form-control form-control-solid" rows="6" name="answer" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="indicator-label">Ajouter</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,34 +1,52 @@
 {# templates/components/project-details/story-content.html.twig #}
-<ul class="list-unstyled project-details__tab-box-story-points">
-    {% for point in project.story.keyPoints %} 
-        <li>
-            <div class="icon">
-                <span class="fa fa-check"></span>
-            </div>
-            <div class="text">
-                <p>{{ point }}</p>
-            </div>
-        </li>
-    {% endfor %}
-</ul>
-
-<div class="project-details__tab-box-story-img-box-one">
-    <div class="row">
-        {# <div class="col-xl-6"> #}
-            <div class="project-details__tab-box-story-img-one-single">
-                <img src="{{ vich_uploader_asset(project.story, 'mainImageFile') }}" alt="Project Story Main Image">
-            </div>
-        {# </div> #}
+<div class="mb-10">
+    {# Main Project Details #}
+    <div class="fs-fw-normal text-gray-700 mb-5">
+        {{ project.description|nl2br }}
     </div>
-</div>
 
-<p class="project-details__tab-box-story-text-2">
-    {{ project.story.paragraphs[0] }}
-</p>
+    {# Project Stats Cards #}
+    <div class="row g-5 g-xl-10 mb-15 mt-10">
+        {# Pledged Amount #}
+        {# Goal Progress #}
+        <div class="col-md-6">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column h-100 justify-content-center">
+                        <div class="mb-7">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="fs-2 fw-bold text-dark me-2">{{ project.pledged|format_currency('EUR') }}</span>
+                                <span class="fs-7 fw-semibold text-gray-500">sur {{ project.goal|format_currency('EUR') }}</span>
+                            </div>
+                            <div class="progress h-8px bg-light-primary mb-2">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ project.progress }}%"></div>
+                            </div>
+                            <span class="fs-7 fw-semibold text-gray-500">{{ project.progress|round }}% de l'objectif</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div class="project-details__tab-box-story-img-two">
-    <img src="{{ vich_uploader_asset(project.story, 'secondaryImageFile') }}" alt="Project Story Secondary Image">
-    <p class="project-details__tab-box-story-text-3">
-        {{ project.story.paragraphs[1] }}
-    </p>
+        {# Timeline #}
+        <div class="col-md-6">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column h-100">
+                        <span class="fs-5 fw-bold text-dark mb-4">Calendrier</span>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-gray-600">Début</span>
+                                <span class="fw-bold">{{ project.startDate|format_datetime('short', 'none') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-gray-600">Fin</span>
+                                <span class="fw-bold">{{ project.endDate|format_datetime('short', 'none') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

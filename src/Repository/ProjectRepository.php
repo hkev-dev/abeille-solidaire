@@ -21,7 +21,6 @@ class ProjectRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('p')
             ->where('p.isActive = :active')
-            ->setParameter('now', new \DateTime())
             ->setParameter('active', true)
             ->orderBy('p.pledged', 'DESC')
             ->getQuery()

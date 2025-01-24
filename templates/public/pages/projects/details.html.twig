@@ -36,11 +36,6 @@
 							<div class="project-details-top__tag">
 								<p>{{ project.category.name }}</p>
 							</div>
-							<div class="project-details-top__address">
-								<p>
-									<i class="fas fa-map-marker"></i>
-									{{ project.location }}</p>
-							</div>
 						</div>
 						<h3 class="project-details-top__title">{{ project.title }}</h3>
 						{% include 'public/components/project-details/statistics.html.twig' with { project: project } %}
@@ -56,17 +51,11 @@
 	<section class="project-details-bottom">
 		<div class="container">
 			<div class="row">
-				<div class="col-xl-8 col-lg-7">
-					{% include 'public/components/project-details/tabs.html.twig' with {
-                        story: project.story,
-                        faqs: project.faqs,
-                        updates: project.updates,
-                        reviews: project.reviews
-                    } %}
-				</div>
-				<div class="col-xl-4 col-lg-5">
-					{% include 'public/components/project-details/rewards.html.twig' %}
-				</div>
+				{% include 'public/components/project-details/tabs.html.twig' with {
+					faqs: project.faqs,
+					updates: project.updates,
+					reviews: project.reviews
+				} %}
 			</div>
 		</div>
 	</section>

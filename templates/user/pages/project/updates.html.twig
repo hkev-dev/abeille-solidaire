@@ -1,0 +1,85 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% block title %}Mises à jour du Projet{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Mises à jour du Projet</h3>
+            <div class="card-toolbar">
+                <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#add_update_modal">
+                    <i class="ki-duotone ki-plus fs-5"></i>
+                    Nouvelle mise à jour
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if project.updates|length > 0 %}
+                <div class="timeline">
+                    {% for update in project.updates %}
+                        <div class="timeline-item">
+                            <div class="timeline-line w-40px"></div>
+                            <div class="timeline-icon symbol symbol-circle symbol-40px me-4">
+                                <div class="symbol-label bg-light">
+                                    <i class="ki-duotone ki-message-text-2 fs-2 text-gray-500"></i>
+                                </div>
+                            </div>
+                            <div class="timeline-content mb-10 mt-n1">
+                                <div class="pe-3 mb-5">
+                                    <div class="fs-5 fw-bold mb-2">{{ update.title }}</div>
+                                    <div class="d-flex align-items-center mt-1 fs-6">
+                                        <div class="text-muted me-2 fs-7">Ajouté le {{ update.createdAt|format_datetime('medium', 'short') }}</div>
+                                    </div>
+                                </div>
+                                <div class="overflow-auto pb-5">
+                                    <div class="fs-6 text-gray-800 pe-4">{{ update.content|nl2br }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-10">
+                    <i class="ki-duotone ki-message-text-2 fs-3hx text-gray-300 mb-5"></i>
+                    <div class="text-muted fw-semibold fs-6">Aucune mise à jour pour le moment</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Add Update Modal #}
+    <div class="modal fade" id="add_update_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <form method="post" action="{{ path('app.user.project.updates.create') }}" class="form">
+                    <div class="modal-header">
+                        <h2 class="fw-bold">Nouvelle mise à jour</h2>
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                        </div>
+                    </div>
+                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                        <div class="d-flex flex-column mb-8 fv-row">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                <span class="required">Titre</span>
+                            </label>
+                            <input type="text" class="form-control form-control-solid" name="title" required/>
+                        </div>
+                        <div class="d-flex flex-column mb-8">
+                            <label class="fs-6 fw-semibold mb-2">
+                                <span class="required">Contenu</span>
+                            </label>
+                            <textarea class="form-control form-control-solid" rows="6" name="content" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="indicator-label">Ajouter</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

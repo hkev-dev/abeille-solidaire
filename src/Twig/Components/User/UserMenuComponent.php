@@ -3,6 +3,7 @@ namespace App\Twig\Components\User;
 
 use App\Entity\User;
 use App\Entity\Flower;
+use App\Entity\Project;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;

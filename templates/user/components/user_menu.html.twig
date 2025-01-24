@@ -70,12 +70,15 @@
         {{ menuItem.render({
             label: 'Mon Projet',
             icon: 'ki-duotone ki-rocket',
+            routes: ['app.user.project.index', 'app.user.project.updates', 'app.user.project.faqs'],
             submenu: userProject ? [
                 {
                     label: 'Détails du Projet',
+                    route: 'app.user.project.index'
                 },
                 {
                     label: 'Mises à jour',
+                    route: 'app.user.project.updates',
                     badge: userProject.updates|length > 0 ? {
                         text: userProject.updates|length,
                         class: 'badge-primary'
@@ -83,10 +86,12 @@
                 },
                 {
                     label: 'FAQs',
+                    route: 'app.user.project.faqs'
                 }
             ] : [
                 {
                     label: 'Ajouter mon Projet',
+                    route: 'app.user.project.create',
                     disabled: not withdrawalEligibility.hasKyc,
                     tooltip: not withdrawalEligibility.hasKyc ? 'Validation KYC requise' : null
                 }

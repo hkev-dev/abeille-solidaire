@@ -33,6 +33,22 @@ export default plugin(({addComponents}) => {
 				'border-bottom-right-radius': '0',
 				'border-right': '0'
 			}
-		}
+		},
+        '.input-group-euro': {
+            'position': 'relative',
+            '&::before': {
+                'content': '"€"',
+                'position': 'absolute',
+                'left': '12px',
+                'top': '50%',
+                'transform': 'translateY(-50%)',
+                'color': 'var(--tw-gray-500)',
+                'z-index': '10',
+                'pointer-events': 'none'
+            },
+            '.input': {
+                'width': '100%'
+            }
+        }
 	});
 });
