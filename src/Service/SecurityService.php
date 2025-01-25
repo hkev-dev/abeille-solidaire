@@ -121,6 +121,25 @@ class SecurityService
     }
 
     /**
+     * Validates only membership status
+     * @throws UserAccessException
+     */
+    public function validateMembership(User $user): void
+    {
+        // Skip validation for super admin
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+            return;
+        }
+
+        if ($this->membershipService->isExpired($user)) {
+            throw new UserAccessException(
+                'membership_expired',
+                'Annual membership has expired.'
+            );
+        }
+    }
+
+    /**
      * Simple status checks without redirection
      */
     public function canAccessDashboard(User $user): bool

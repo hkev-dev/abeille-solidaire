@@ -2,6 +2,7 @@
 
 namespace App\Controller\Public;
 
+use App\Entity\User;
 use App\Service\SecurityService;
 use App\Form\PaymentSelectionType;
 use App\Service\MembershipService;
@@ -26,18 +27,19 @@ class MembershipController extends AbstractController
     #[Route('/membership/status', name: 'app.membership.status', methods: ['GET'])]
     public function status(): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
 
-        try {
-            $this->securityService->validateMembership($user);
+        // Direct check using membership service
+        if ($user->hasPaidAnnualFee()) {
             return $this->json(['status' => 'active']);
-        } catch (UserAccessException $e) {
-            return $this->json([
-                'status' => 'expired',
-                'message' => $e->getMessage(),
-                'renewal_url' => $this->generateUrl('app.membership.renew')
-            ]);
         }
+
+        return $this->json([
+            'status' => 'expired',
+            'message' => 'Annual membership has expired.',
+            'renewal_url' => $this->generateUrl('app.membership.renew')
+        ]);
     }
 
     #[Route('/membership/renew', name: 'app.membership.renew', methods: ['GET', 'POST'])]
@@ -45,38 +47,55 @@ class MembershipController extends AbstractController
     {
         $user = $this->getUser();
 
-        // Handle AJAX requests for payment creation
-        if ($request->isXmlHttpRequest() && $request->getContent()) {
-            $data = json_decode($request->getContent(), true);
-            $paymentMethod = $data['payment_method'] ?? 'stripe';
-
-            try {
-                $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
-                $paymentData = $paymentService->createMembershipPayment($user);
-
-                // Store payment method in session
-                $request->getSession()->set('payment_method', $paymentMethod);
-                if (isset($paymentData['txn_id'])) {
-                    $request->getSession()->set('txn_id', $paymentData['txn_id']);
-                }
-
-                return $this->json($paymentData);
-            } catch (\Exception $e) {
-                return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-            }
+        // Redirect if user already has active membership
+        if ($user->hasPaidAnnualFee()) {
+            return $this->redirectToRoute('app.user.dashboard');
         }
 
+        // Handle AJAX payment creation requests
+        if ($request->isXmlHttpRequest() && $request->getContent()) {
+            return $this->handleAjaxPayment($request, $user);
+        }
+
+        // Display payment form
         $form = $this->createForm(PaymentSelectionType::class, null, [
-            'show_annual_membership' => false, // Hide annual membership checkbox for renewal
-            'action' => $this->generateUrl('app.membership.renew', ['id' => $user->getId()]),
+            'show_annual_membership' => false,
+            'action' => $this->generateUrl('app.membership.renew'),
         ]);
-        $form->handleRequest($request);
 
         return $this->render('public/pages/membership/renew.html.twig', [
             'form' => $form->createView(),
             'amount' => $this->membershipService->getRenewalAmount(),
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
         ]);
+    }
+
+    /**
+     * Handle AJAX payment creation request
+     */
+    private function handleAjaxPayment(Request $request, User $user): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $paymentMethod = $data['payment_method'] ?? 'stripe';
+
+            $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+            $paymentData = $paymentService->createMembershipPayment($user);
+
+            // Store payment info in session
+            $session = $request->getSession();
+            $session->set('payment_method', $paymentMethod);
+            if (isset($paymentData['txn_id'])) {
+                $session->set('txn_id', $paymentData['txn_id']);
+            }
+
+            return $this->json($paymentData);
+        } catch (\Exception $e) {
+            return $this->json(
+                ['error' => $e->getMessage()],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
     }
 
     #[Route('/membership/renew/crypto', name: 'app.membership..crypto', methods: ['POST'])]
