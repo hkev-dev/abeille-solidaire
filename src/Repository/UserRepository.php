@@ -62,4 +62,21 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * Find users with expired registrations (unverified and waiting for more than specified days)
+     */
+    public function findByExpiredRegistration(\DateTime $expiryDate): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.registrationPaymentStatus = :status')
+            ->andWhere('u.isKycVerified = :kyc')
+            ->andWhere('u.waitingSince IS NOT NULL')
+            ->andWhere('u.waitingSince < :expiryDate')
+            ->setParameter('status', 'pending')
+            ->setParameter('kyc', false)
+            ->setParameter('expiryDate', $expiryDate)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Event\AuthenticationEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
@@ -181,7 +180,7 @@ class SecuritySubscriber implements EventSubscriberInterface
     {
         try {
             $expiryDate = new \DateTime("-" . self::REGISTRATION_EXPIRY_DAYS . " days");
-            $expiredUsers = $this->userRepository->findExpiredRegistrations($expiryDate);
+            $expiredUsers = $this->userRepository->findByExpiredRegistration($expiryDate);
 
             foreach ($expiredUsers as $user) {
                 $this->logger->info('Removing expired registration', [
