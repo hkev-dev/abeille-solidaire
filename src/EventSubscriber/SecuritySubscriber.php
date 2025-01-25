@@ -117,46 +117,16 @@ class SecuritySubscriber implements EventSubscriberInterface
             return;
         }
 
-        // Check user status and set pending redirect
         try {
-            if ($this->isRegistrationExpired($user)) {
-                throw new CustomUserMessageAuthenticationException('Your registration has expired. Please register again.');
-            }
-
-            if (!$user->isVerified()) {
-                if ($user->getRegistrationPaymentStatus() === 'pending') {
-                    // Updated to use correct route with required user ID parameter
-                    $this->pendingRedirect = new RedirectResponse(
-                        $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
-                    );
-                    return;
-                }
-            }
-
-            if ($user->getWaitingSince() !== null) {
-                $this->pendingRedirect = new RedirectResponse($this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()]));
-                return;
-            }
-
-            // Check annual membership status
-            if ($this->securityService->isAnnualMembershipExpired($user)) {
-                $this->pendingRedirect = new RedirectResponse($this->urlGenerator->generate('app.membership.renew'));
-                return;
-            }
+            $this->pendingRedirect = $this->determineRedirect($user);
             
-            // Set default redirection to dashboard if no other conditions triggered
-            if (!$this->pendingRedirect) {
-                $this->pendingRedirect = new RedirectResponse(
-                    $this->urlGenerator->generate('app.user.dashboard')
-                );
-            }
-
             $this->logger->info('User authenticated successfully', [
                 'user_id' => $user->getId(),
                 'status' => [
                     'verified' => $user->isVerified(),
                     'payment_status' => $user->getRegistrationPaymentStatus(),
-                    'waiting_since' => $user->getWaitingSince()?->format('Y-m-d H:i:s')
+                    'waiting_since' => $user->getWaitingSince()?->format('Y-m-d H:i:s'),
+                    'redirect_to' => $this->pendingRedirect?->getTargetUrl()
                 ]
             ]);
 
@@ -167,6 +137,40 @@ class SecuritySubscriber implements EventSubscriberInterface
             ]);
             throw $e;
         }
+    }
+
+    private function determineRedirect(User $user): RedirectResponse
+    {
+        // Check expiration first
+        if ($this->isRegistrationExpired($user)) {
+            throw new CustomUserMessageAuthenticationException('Your registration has expired. Please register again.');
+        }
+
+        // Priority 1: Pending registration payment
+        if ($user->getRegistrationPaymentStatus() === 'pending') {
+            return new RedirectResponse(
+                $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
+            );
+        }
+
+        // Priority 2: Waiting room (only if registration is not pending)
+        if ($user->getWaitingSince() !== null && $user->getRegistrationPaymentStatus() !== 'pending') {
+            return new RedirectResponse(
+                $this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()])
+            );
+        }
+
+        // Priority 3: Annual membership renewal (only for verified users)
+        if ($user->isVerified() && $this->securityService->isAnnualMembershipExpired($user)) {
+            return new RedirectResponse(
+                $this->urlGenerator->generate('app.membership.renew')
+            );
+        }
+
+        // Default: Dashboard (only for verified users)
+        return new RedirectResponse(
+            $this->urlGenerator->generate('app.user.dashboard')
+        );
     }
 
     public function onKernelResponse(ResponseEvent $event): void
