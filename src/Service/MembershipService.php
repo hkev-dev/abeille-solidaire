@@ -107,6 +107,11 @@ class MembershipService
 
     public function isExpired(User $user): bool
     {
+        // Root user (mother account) never expires
+        if ($user->getId() === 1 || $user->getMatrixDepth() === 0) {
+            return false;
+        }
+
         if (!$user->hasPaidAnnualFee()) {
             return true;
         }
