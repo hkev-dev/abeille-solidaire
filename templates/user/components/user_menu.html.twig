@@ -1,17 +1,18 @@
 {% import "user/components/menu-item.html.twig" as menuItem %}
 
 <div {{ attributes }}>
-    <div class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
-        {# Dashboard #}
-        {{ menuItem.render({
+	<div
+		class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+		{# Dashboard #}
+		{{ menuItem.render({
             label: 'Tableau de bord',
             icon: 'ki-duotone ki-element-11',
             route: 'app.user.dashboard'
         }) }}
 
-        {# Current Flower Section #}
-        {% if currentFlower %}
-            {{ menuItem.render({
+		{# Current Flower Section #}
+		{% if currentFlower %}
+			{{ menuItem.render({
                 label: currentFlower.name,
                 icon: 'ki-duotone ki-abstract-36',
                 route: 'app.user.flower.current',
@@ -20,10 +21,10 @@
                     class: flowerProgress.received == 4 ? 'badge-success' : 'badge-primary'
                 }
             }) }}
-        {% endif %}
+		{% endif %}
 
-        {# Donations Management #}
-        {{ menuItem.render({
+		{# Donations Management #}
+		{{ menuItem.render({
             label: 'Dons',
             icon: 'ki-duotone ki-heart',
             routes: ['app.user.donations.received', 'app.user.donations.sent'],
@@ -43,8 +44,8 @@
             ]
         }) }}
 
-        {# Wallet with withdrawal eligibility check #}
-        {{ menuItem.render({
+		{# Wallet with withdrawal eligibility check #}
+		{{ menuItem.render({
             label: 'Portefeuille',
             icon: 'ki-duotone ki-wallet',
             routes: ['app.user.wallet.index', 'app.user.wallet.withdraw'],
@@ -66,11 +67,11 @@
             ]
         }) }}
 
-        {# Project Management - Single Project #}
-        {{ menuItem.render({
+		{# Project Management - Single Project #}
+		{{ menuItem.render({
             label: 'Mon Projet',
             icon: 'ki-duotone ki-rocket',
-            routes: ['app.user.project.index', 'app.user.project.updates', 'app.user.project.faqs'],
+            routes: ['app.user.project.index', 'app.user.project.create', 'app.user.project.update', 'app.user.project.updates', 'app.user.project.updates.create', 'app.user.project.updates.update' , 'app.user.project.faqs'],
             submenu: userProject ? [
                 {
                     label: 'Détails du Projet',
@@ -79,6 +80,7 @@
                 {
                     label: 'Mises à jour',
                     route: 'app.user.project.updates',
+                    routes: ['app.user.project.updates.create', 'app.user.project.updates.update'],
                     badge: userProject.updates|length > 0 ? {
                         text: userProject.updates|length,
                         class: 'badge-primary'
@@ -98,8 +100,8 @@
             ]
         }) }}
 
-        {# Profile & Settings #}
-        {{ menuItem.render({
+		{# Profile & Settings #}
+		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
             routes: ['app.user.settings.profile', 'app.user.settings.kyc', 'app.user.settings.membership'],
@@ -125,5 +127,5 @@
                 }
             ]
         }) }}
-    </div>
+	</div>
 </div>

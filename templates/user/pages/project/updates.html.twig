@@ -1,85 +1,265 @@
 {% extends 'user/layouts/default.html.twig' %}
 
-{% block title %}Mises à jour du Projet{% endblock %}
+{% block title %}Journal du Projet{% endblock %}
 
-{% block body %}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Mises à jour du Projet</h3>
-            <div class="card-toolbar">
-                <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#add_update_modal">
-                    <i class="ki-duotone ki-plus fs-5"></i>
-                    Nouvelle mise à jour
-                </button>
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Project Header Banner #}
+        <div class="relative rounded-xl overflow-hidden mb-8">
+            {% if project.image %}
+                <div class="absolute inset-0">
+                    <img src="{{ vich_uploader_asset(project, 'imageFile') }}" 
+                         alt="{{ project.title }}"
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/40"></div>
+                </div>
+            {% else %}
+                <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary/60"></div>
+            {% endif %}
+
+            <div class="relative px-8 py-12">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div class="text-white">
+                        <h1 class="text-3xl font-bold mb-2">{{ project.title }}</h1>
+                        <p class="text-white/80">Journal du projet</p>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="bg-white/10 backdrop-blur rounded-lg px-6 py-3">
+                            <div class="text-2xl font-bold text-white">{{ project.updates|length }}</div>
+                            <div class="text-sm text-white/80">Publications</div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur rounded-lg px-6 py-3">
+                            <div class="text-2xl font-bold text-white">{{ (project.progress)|round }}%</div>
+                            <div class="text-sm text-white/80">Objectif atteint</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card-body">
-            {% if project.updates|length > 0 %}
-                <div class="timeline">
-                    {% for update in project.updates %}
-                        <div class="timeline-item">
-                            <div class="timeline-line w-40px"></div>
-                            <div class="timeline-icon symbol symbol-circle symbol-40px me-4">
-                                <div class="symbol-label bg-light">
-                                    <i class="ki-duotone ki-message-text-2 fs-2 text-gray-500"></i>
-                                </div>
-                            </div>
-                            <div class="timeline-content mb-10 mt-n1">
-                                <div class="pe-3 mb-5">
-                                    <div class="fs-5 fw-bold mb-2">{{ update.title }}</div>
-                                    <div class="d-flex align-items-center mt-1 fs-6">
-                                        <div class="text-muted me-2 fs-7">Ajouté le {{ update.createdAt|format_datetime('medium', 'short') }}</div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {# Updates Timeline #}
+            <div class="lg:col-span-8">
+                {% if project.updates|length > 0 %}
+                    <div class="space-y-6">
+                        {% for update in project.updates %}
+                            <article class="group bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300">
+                                {% if update.imageName %}
+                                    <div class="relative aspect-video overflow-hidden">
+                                        <img src="{{ vich_uploader_asset(update, 'imageFile') }}" 
+                                             alt="{{ update.title }}"
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <time class="text-sm text-gray-500 flex items-center gap-2">
+                                            <i class="ki-duotone ki-calendar-tick fs-2"></i>
+                                            {{ update.createdAt|date('d M Y') }}
+                                        </time>
+                                        
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ path('app.user.project.updates.edit', {'id': update.id}) }}" 
+                                                class="btn btn-icon btn-sm btn-light">
+                                                <i class="ki-duotone ki-pencil fs-2"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-icon btn-sm btn-light-danger"
+                                                    data-modal-toggle="#deleteModal-{{ update.id }}">
+                                                <i class="ki-duotone ki-trash fs-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <h2 class="text-xl font-bold text-gray-900 mb-4">{{ update.title }}</h2>
+                                    
+                                    <div class="prose max-w-none">
+                                        {% if update.content|length > 300 %}
+                                            <div class="content-preview">
+                                                {{ update.content|slice(0, 300)|nl2br }}...
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-light-primary mt-2 read-more"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#contentModal-{{ update.id }}">
+                                                    Lire la suite
+                                                </button>
+                                            </div>
+                                            
+                                            {# Full Content Modal #}
+                                            <div class="modal fade" id="contentModal-{{ update.id }}" tabindex="-1">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">{{ update.title }}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body prose">
+                                                            {{ update.content|nl2br }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            {{ update.content|nl2br }}
+                                        {% endif %}
                                     </div>
                                 </div>
-                                <div class="overflow-auto pb-5">
-                                    <div class="fs-6 text-gray-800 pe-4">{{ update.content|nl2br }}</div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    {# Delete Confirmation Modal - One per update #}
+                    {% for update in project.updates %}
+                        <div class="modal" data-modal="true" id="deleteModal-{{ update.id }}">
+                            <div class="modal-content max-w-[500px] top-[20%]">
+                                <div class="modal-header">
+                                    <h3 class="modal-title">Confirmer la suppression</h3>
+                                    <button class="btn btn-xs btn-icon btn-light" data-modal-dismiss="true">
+                                        <i class="ki-duotone ki-cross fs-2"></i>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Êtes-vous sûr de vouloir supprimer cette mise à jour ?</p>
+                                    <p class="text-danger"><small>Cette action est irréversible.</small></p>
+                                    <form action="{{ path('app.user.project.updates.delete', {'id': update.id}) }}" 
+                                          method="POST" 
+                                          class="flex justify-end gap-4 mt-6">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="button" class="btn btn-light" data-modal-dismiss="true">Annuler</button>
+                                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
+                {% else %}
+                    <div class="text-center py-16 bg-white rounded-xl">
+                        <img src="{{ asset('build/media/illustrations/empty-updates.svg') }}" 
+                             alt="No updates" 
+                             class="w-64 h-64 mx-auto mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">
+                            Racontez votre histoire
+                        </h3>
+                        <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                            Partagez régulièrement les avancées de votre projet pour garder vos soutiens informés et engagés.
+                        </p>
+                        <a href="{{ path('app.user.project.updates.create') }}" 
+                           class="btn btn-primary btn-lg">
+                            <i class="ki-duotone ki-plus-square fs-2 me-2"></i>
+                            Créer ma première publication
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Sidebar #}
+            <div class="lg:col-span-4">
+                <div class="sticky top-8 space-y-6">
+                    {# Quick Actions Card #}
+                    <div class="card">
+                        <div class="card-body">
+                            <a href="{{ path('app.user.project.updates.create') }}" 
+                               class="btn btn-primary w-full mb-6">
+                                <i class="ki-duotone ki-plus-square fs-2 me-2"></i>
+                                Nouvelle Publication
+                            </a>
+
+                            {# Project Stats #}
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-lg bg-light">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <i class="ki-duotone ki-graph-up fs-2 text-primary"></i>
+                                        <span class="font-medium text-gray-900">Statistiques</span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-600">Publications</span>
+                                            <span class="font-semibold text-gray-900">{{ project.updates|length }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-600">Dernier post</span>
+                                            <span class="text-gray-900">
+                                                {% if project.updates|length > 0 %}
+                                                    {{ project.updates|last.createdAt|date('d M Y') }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Writing Tips Card #}
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h4 class="font-medium text-gray-900 mb-4">Conseils de rédaction</h4>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <i class="ki-duotone ki-chart-simple fs-2 text-primary"></i>
+                                    <div>
+                                        <h5 class="font-medium text-gray-900">Progrès réguliers</h5>
+                                        <p class="text-sm text-gray-600">Partagez vos avancées, même les petites victoires</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <i class="ki-duotone ki-picture fs-2 text-primary"></i>
+                                    <div>
+                                        <h5 class="font-medium text-gray-900">Photos et vidéos</h5>
+                                        <p class="text-sm text-gray-600">Illustrez vos mises à jour avec du contenu visuel</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <i class="ki-duotone ki-message-text fs-2 text-primary"></i>
+                                    <div>
+                                        <h5 class="font-medium text-gray-900">Transparence</h5>
+                                        <p class="text-sm text-gray-600">Soyez honnête sur les défis rencontrés</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            {% else %}
-                <div class="text-center py-10">
-                    <i class="ki-duotone ki-message-text-2 fs-3hx text-gray-300 mb-5"></i>
-                    <div class="text-muted fw-semibold fs-6">Aucune mise à jour pour le moment</div>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 
-    {# Add Update Modal #}
-    <div class="modal fade" id="add_update_modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mw-650px">
+    {# Share Modal #}
+    <div class="modal fade" tabindex="-1" id="shareModal">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <form method="post" action="{{ path('app.user.project.updates.create') }}" class="form">
-                    <div class="modal-header">
-                        <h2 class="fw-bold">Nouvelle mise à jour</h2>
-                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                        </div>
-                    </div>
-                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
-                        <div class="d-flex flex-column mb-8 fv-row">
-                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
-                                <span class="required">Titre</span>
-                            </label>
-                            <input type="text" class="form-control form-control-solid" name="title" required/>
-                        </div>
-                        <div class="d-flex flex-column mb-8">
-                            <label class="fs-6 fw-semibold mb-2">
-                                <span class="required">Contenu</span>
-                            </label>
-                            <textarea class="form-control form-control-solid" rows="6" name="content" required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="indicator-label">Ajouter</span>
+                <div class="modal-header">
+                    <h5 class="modal-title">Partager cette mise à jour</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-4">
+                        <input type="text" class="input" id="share-url" readonly>
+                        <button class="btn btn-primary" type="button" onclick="copyShareLink()">
+                            <i class="ki-duotone ki-copy fs-2"></i>
                         </button>
                     </div>
-                </form>
+                    <div class="flex justify-center gap-4">
+                        <button class="btn btn-icon btn-light-primary" onclick="shareOnFacebook()">
+                            <i class="ki-duotone ki-facebook fs-2"></i>
+                        </button>
+                        <button class="btn btn-icon btn-light-info" onclick="shareOnTwitter()">
+                            <i class="ki-duotone ki-twitter fs-2"></i>
+                        </button>
+                        <button class="btn btn-icon btn-light-success" onclick="shareOnWhatsApp()">
+                            <i class="ki-duotone ki-whatsapp fs-2"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 {% endblock %}
+

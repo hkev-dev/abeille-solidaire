@@ -1,71 +1,86 @@
 {# templates/components/project-details/tabs.html.twig #}
 <div class="project-details__tab-box tabs-box">
-    <ul class="tab-buttons clearfix list-unstyled">
-        <li data-tab="#story" class="tab-btn active-btn"><span>Déscription</span></li>
-        <li data-tab="#faqs" class="tab-btn"><span>FAQ</span></li>
-        <li data-tab="#updates" class="tab-btn"><span>Actualités</span></li>
-        <li data-tab="#reviews" class="tab-btn"><span>Avis ({{ reviews|length }})</span></li>
-    </ul>
+	<ul class="tab-buttons clearfix list-unstyled">
+		<li data-tab="#story" class="tab-btn active-btn">
+			<span>Déscription</span>
+		</li>
+		<li data-tab="#faqs" class="tab-btn">
+			<span>FAQ</span>
+		</li>
+		<li data-tab="#updates" class="tab-btn">
+			<span>Actualités</span>
+		</li>
+		<li data-tab="#reviews" class="tab-btn">
+			<span>Avis ({{ reviews|length }})</span>
+		</li>
+	</ul>
 
-    <div class="tabs-content">
-        {# Story Tab #}
-        <div class="tab active-tab" id="story">
-            <div class="project-details__tab-box-story">
-                {# <p class="project-details__tab-box-story-text">Story</p> #}
-                {% include 'public/components/project-details/story-content.html.twig' %}
-            </div>
-        </div>
+	<div
+		class="tabs-content">
+		{# Story Tab #}
+		<div class="tab active-tab" id="story">
+			<div
+				class="project-details__tab-box-story">
+				{# <p class="project-details__tab-box-story-text">Story</p> #}
+				{% include 'public/components/project-details/story-content.html.twig' %}
+			</div>
+		</div>
 
-        {# FAQs Tab #}
-        <div class="tab" id="faqs">
-            <div class="project-details__faq">
-                {% if faqs is empty %}
-                    <div class="project-details__faq-empty">
-                        <p>Aucune question fréquente disponible pour ce projet.</p>
-                    </div>
-                {% else %}
-                    <div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
-                        {% for faq in faqs %}
-                            <div class="accrodion{% if loop.first %} active{% endif %}">
-                                <div class="accrodion-title">
-                                    <h4>{{ faq.question }}</h4>
-                                </div>
-                                <div class="accrodion-content">
-                                    <div class="inner">
-                                        <p>{{ faq.answer }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+		{# FAQs Tab #}
+		<div class="tab" id="faqs">
+			<div class="project-details__faq">
+				{% if faqs is empty %}
+					<div class="project-details__faq-empty">
+						<p>Aucune question fréquente disponible pour ce projet.</p>
+					</div>
+				{% else %}
+					<div class="accrodion-grp faq-one-accrodion" data-grp-name="faq-one-accrodion-1">
+						{% for faq in faqs %}
+							<div class="accrodion{% if loop.first %} active{% endif %}">
+								<div class="accrodion-title">
+									<h4>{{ faq.question }}</h4>
+								</div>
+								<div class="accrodion-content">
+									<div class="inner">
+										<p>{{ faq.answer }}</p>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
+		</div>
 
-        {# Updates Tab #}
-        <div class="tab" id="updates">
-            <div class="project-details__updates">
-                {% if updates is empty %}
-                    <div class="project-details__updates-single">
-                        <p class="project-details__updates-text-1">Aucune actualité pour le moment.</p>
-                    </div>
-                {% else %}
-                    {% for update in updates %}
-                        <div class="project-details__updates-single{% if loop.last %} mrb-0{% endif %}">
-                            <div class="project-details__updates-title-box">
-                                <p class="project-details__updates-sub-title">{{ update.time }}</p>
-                                <h5 class="project-details__updates-title">{{ update.title }}</h5>
-                            </div>
-                            <p class="project-details__updates-text-1">{{ update.content }}</p>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
+		{# Updates Tab #}
+		<div class="tab" id="updates">
+			<div class="project-details__updates">
+				{% if updates is empty %}
+					<div class="project-details__updates-single">
+						<p class="project-details__updates-text-1">Aucune actualité pour le moment.</p>
+					</div>
+				{% else %}
+					{% for update in updates %}
+						<div class="project-details__updates-single{% if loop.last %} mrb-0{% endif %}">
+							<div class="project-details__updates-title-box">
+								<p class="project-details__updates-sub-title">{{ update.time }}</p>
+								<h5 class="project-details__updates-title">{{ update.title }}</h5>
+							</div>
+							<p class="project-details__updates-text-1">{{ update.content }}</p>
+							{% if update.imageName %}
+								<div class="project-details__updates-img position-relative rounded overflow-hidden mb-4 mt-4 ratio ratio-16x9">
+									<img src="{{ vich_uploader_asset(update, 'imageFile') }}" alt="{{ update.title }}" class="w-100 h-100" style="object-fit: cover;">
+								</div>
+							{% endif %}
+						</div>
+					{% endfor %}
+				{% endif %}
+			</div>
+		</div>
 
-        {# Reviews Tab #}
-        <div class="tab" id="reviews">
-            {% include 'public/components/project-details/reviews.html.twig' with { reviews: reviews } %}
-        </div>
-    </div>
+		{# Reviews Tab #}
+		<div class="tab" id="reviews">
+			{% include 'public/components/project-details/reviews.html.twig' with { reviews: reviews } %}
+		</div>
+	</div>
 </div>

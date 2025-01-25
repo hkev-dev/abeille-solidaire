@@ -49,3 +49,10 @@ vich_uploader:
             uri_prefix: /uploads/users/avatars
             upload_destination: '%kernel.project_dir%/public/uploads/users/avatars'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+        project_updates:
+            uri_prefix: /uploads/project/updates
+            upload_destination: '%kernel.project_dir%/public/uploads/project/updates'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            delete_on_update: true
+            delete_on_remove: true

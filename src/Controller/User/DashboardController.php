@@ -25,10 +25,6 @@ class DashboardController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user) {
-            return $this->redirectToRoute('app.login');
-        }
-
         // Get current flower first
         $currentFlower = $user->getCurrentFlower();
 

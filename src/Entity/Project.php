@@ -57,7 +57,8 @@ class Project implements Serializable
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 
-    #[ORM\OneToMany(targetEntity: ProjectUpdate::class, mappedBy: 'project')]
+    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectUpdate::class)]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $updates;
 
     #[ORM\OneToMany(targetEntity: ProjectReview::class, mappedBy: 'project')]
