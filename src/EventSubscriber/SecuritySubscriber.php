@@ -26,6 +26,10 @@ class SecuritySubscriber implements EventSubscriberInterface
         'app.webhook.coinbase',
         'app.registration.payment', // Updated route name
         'app.waiting_room',
+        'app.membership.renew',        // Add membership routes to excluded
+        'app.membership.status',
+        'app.membership.check_payment',
+        'app.membership.check_payment_status',
         '_wdt', // Web Debug Toolbar
         '_profiler'
     ];

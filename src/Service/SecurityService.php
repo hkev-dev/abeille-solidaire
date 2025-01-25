@@ -112,12 +112,7 @@ class SecurityService
             );
         }
 
-        if ($this->membershipService->isExpired($user)) {
-            throw new UserAccessException(
-                'membership_expired',
-                'Annual membership has expired.'
-            );
-        }
+        // Don't throw membership exception here - let MembershipController handle it
     }
 
     /**

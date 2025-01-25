@@ -45,10 +45,11 @@ class MembershipController extends AbstractController
     #[Route('/membership/renew', name: 'app.membership.renew', methods: ['GET', 'POST'])]
     public function renew(Request $request): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
 
-        // Redirect if user already has active membership
-        if ($user->hasPaidAnnualFee()) {
+        // Only redirect to dashboard if membership is active and not expired
+        if ($user->hasPaidAnnualFee() && !$this->membershipService->isExpired($user)) {
             return $this->redirectToRoute('app.user.dashboard');
         }
 
@@ -67,6 +68,7 @@ class MembershipController extends AbstractController
             'form' => $form->createView(),
             'amount' => $this->membershipService->getRenewalAmount(),
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
+            'user' => $user,
         ]);
     }
 
