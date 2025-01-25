@@ -4,10 +4,12 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
         App\Entity\User:
             algorithm: auto
+
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
         app_user_provider:
             id: App\Security\UserProvider
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -19,12 +21,12 @@ security:
                 login_path: app.login
                 check_path: app.login
                 enable_csrf: true
+                success_handler: App\Security\AuthenticationSuccessHandler
             logout:
                 path: app.logout
                 target: app.login
 
     # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/webhook, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }

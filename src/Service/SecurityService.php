@@ -6,33 +6,22 @@ use App\Entity\User;
 use ReCaptcha\ReCaptcha;
 use Psr\Log\LoggerInterface;
 use App\Exception\UserAccessException;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
-class SecurityService
+readonly class SecurityService
 {
+    private const ADMIN_ROLES = ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
+
     public function __construct(
-        private readonly RequestStack $requestStack,
-        private readonly RateLimiterFactory $registrationLimiter,
-        private readonly string $recaptchaSecretKey,
-        private readonly LoggerInterface $logger,
-        private readonly MembershipService $membershipService,
-        private readonly Security $security,
-        private readonly UrlGeneratorInterface $urlGenerator
+        private RequestStack $requestStack,
+        private RateLimiterFactory $registrationLimiter,
+        private string $recaptchaSecretKey,
+        private LoggerInterface $logger,
+        private MembershipService $membershipService
     ) {
     }
-
-    private const ALLOWED_ROUTES_WITH_EXPIRED_MEMBERSHIP = [
-        'app.membership.renew',
-        'app.membership.check_payment',
-        'app.membership.check_payment_status',
-        'app.membership.waiting_room',
-        'app.membership.status',
-        'app.webhook.coinbase'
-    ];
 
     public function checkRegistrationThrottle(): void
     {
@@ -69,28 +58,14 @@ class SecurityService
         return true;
     }
 
-    private function getClientIp(): string
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        return $request?->getClientIp() ?? '127.0.0.1';
-    }
-
     /**
-     * Validates user status without handling redirects
+     * Validates user status and throws exceptions for any validation failures
      * @throws UserAccessException
-     * @param User $user
-     * @param bool $skipMembershipCheck Optional, defaults to false
      */
-    public function validateUserStatus(User $user, bool $skipMembershipCheck = false): void
+    public function validateUserStatus(User $user): void
     {
-        $this->validateBasicStatus($user);
-        if (!$skipMembershipCheck) $this->validateMembership($user);
-    }
-
-    private function validateBasicStatus(User $user): void
-    {
-        // Skip validation for super admin
-        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+        // Skip validation for admin users
+        if (array_intersect(self::ADMIN_ROLES, $user->getRoles())) {
             return;
         }
 
@@ -108,26 +83,25 @@ class SecurityService
             );
         }
 
-        // Check if user has a flower assigned
-        if (!$user->getCurrentFlower()) {
+        if ($this->membershipService->isExpired($user)) {
             throw new UserAccessException(
-                'pending_payment',
-                'No flower assigned. Please complete registration.');
+                'membership_expired',
+                'Annual membership has expired.'
+            );
         }
     }
 
-    private function validateMembership(User $user): void
+    private function getClientIp(): string
     {
         $request = $this->requestStack->getCurrentRequest();
-        $currentRoute = $request?->attributes->get('_route');
+        return $request?->getClientIp() ?? '127.0.0.1';
+    }
 
-        // Skip membership check for allowed routes
-        if (in_array($currentRoute, self::ALLOWED_ROUTES_WITH_EXPIRED_MEMBERSHIP)) {
-            return;
-        }
-
-        if ($this->membershipService->isExpired($user)) {
-            throw new UserAccessException('membership_expired', 'Annual membership has expired.');
-        }
+    /**
+     * Check if user has admin privileges
+     */
+    private function isAdminUser(User $user): bool
+    {
+        return (bool)array_intersect(self::ADMIN_ROLES, $user->getRoles());
     }
 }

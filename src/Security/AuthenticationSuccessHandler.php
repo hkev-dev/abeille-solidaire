@@ -3,8 +3,7 @@
 namespace App\Security;
 
 use App\Entity\User;
-use App\Service\SecurityService;
-use App\Exception\UserAccessException;
+use App\Service\MembershipService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,11 +15,10 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private readonly SecurityService $securityService,
+        private readonly MembershipService $membershipService,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
@@ -31,32 +29,40 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
             return new RedirectResponse($this->urlGenerator->generate('app.login'));
         }
 
-        // Skip all redirects for super admin
-        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
+        // Skip all checks for super admin
+        if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $user->getRoles())) {
             return new RedirectResponse($this->urlGenerator->generate('app.user.dashboard'));
         }
 
         try {
-            // Validate user status
-            $this->securityService->validateUserStatus($user);
-            return new RedirectResponse($this->urlGenerator->generate('app.user.dashboard'));
-
-        } catch (UserAccessException $e) {
-            // Handle specific redirect based on the exception
-            $redirectRoute = match ($e->getErrorCode()) {
-                'pending_payment' => 'app.registration.payment',
-                'in_waiting_room' => 'app.waiting_room',
-                'membership_expired' => 'app.membership.renew',
-                default => 'app.login'
-            };
-
-            $this->logger->info('Redirecting authenticated user based on status', [
+            return $this->determineRedirect($user);
+        } catch (\Exception $e) {
+            $this->logger->error('Authentication redirect failed', [
                 'user_id' => $user->getId(),
-                'status' => $e->getErrorCode(),
-                'redirect_to' => $redirectRoute
+                'error' => $e->getMessage()
             ]);
-
-            return new RedirectResponse($this->urlGenerator->generate($redirectRoute));
+            return new RedirectResponse($this->urlGenerator->generate('app.login'));
         }
+    }
+
+    private function determineRedirect(User $user): RedirectResponse
+    {
+        // Check registration payment status
+        if ($user->getRegistrationPaymentStatus() !== 'completed') {
+            return new RedirectResponse($this->urlGenerator->generate('app.registration.payment'));
+        }
+
+        // Check if user is in waiting room
+        if ($user->getWaitingSince() !== null) {
+            return new RedirectResponse($this->urlGenerator->generate('app.waiting_room'));
+        }
+
+        // Check membership status
+        if (!$user->hasPaidAnnualFee() || $this->membershipService->isExpired($user)) {
+            return new RedirectResponse($this->urlGenerator->generate('app.membership.renew'));
+        }
+
+        // All essential checks passed, go to dashboard
+        return new RedirectResponse($this->urlGenerator->generate('app.user.dashboard'));
     }
 }

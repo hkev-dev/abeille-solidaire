@@ -13,6 +13,8 @@ class MembershipService
     private const MEMBERSHIP_DURATION = 'P1Y'; // 1 year
     private const GRACE_PERIOD = 'P15D'; // 15 days grace period
     
+    private const ADMIN_ROLES = ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
+    
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger
@@ -50,10 +52,12 @@ class MembershipService
         string $paymentMethod,
         string $transactionId
     ): bool {
-        if (!$user->getMatrixPosition() || $user->getMatrixDepth() < 3) {
-            throw new \RuntimeException('User must have at least 4 matrix levels to renew membership');
+        // Admin roles can always renew
+        if (!$this->isAdminUser($user)) {
+            if (!$user->getMatrixPosition() || $user->getMatrixDepth() < 3) {
+                throw new \RuntimeException('User must have at least 4 matrix levels to renew membership');
+            }
         }
-
         try {
             $user->setHasPaidAnnualFee(true);
             $this->entityManager->persist($user);
@@ -107,8 +111,8 @@ class MembershipService
 
     public function isExpired(User $user): bool
     {
-        // Root user (mother account) never expires
-        if ($user->getId() === 1 || $user->getMatrixDepth() === 0) {
+        // Admin users never expire
+        if ($this->isAdminUser($user)) {
             return false;
         }
 
@@ -136,5 +140,13 @@ class MembershipService
             );
 
         return $lastMembershipDonation?->getTransactionDate();
+    }
+
+    /**
+     * Check if user has admin privileges
+     */
+    private function isAdminUser(User $user): bool
+    {
+        return (bool)array_intersect(self::ADMIN_ROLES, $user->getRoles());
     }
 }

@@ -4,48 +4,25 @@ namespace App\EventSubscriber;
 
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
-use App\Service\SecurityService;
 use App\Repository\UserRepository;
-use App\Exception\UserAccessException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class SecuritySubscriber implements EventSubscriberInterface
 {
-    private const EXCLUDED_ROUTES = [
-        'app.register',
-        'app.webhook.coinbase',
-        'app.user.dashboard',
-        'app.membership.renew',
-        'app.registration.payment',
-        'app.waiting_room',
-        'app.membership.status',
-        'app.membership.waiting_room',
-        'app.membership.check_payment',
-        'app.membership.check_payment_status',
-        '_wdt', // Web Debug Toolbar
-        '_profiler'
-    ];
-
     private const MAX_LOGIN_ATTEMPTS = 5;
     private const LOCKOUT_DURATION = 3600; // 1 hour in seconds
     private const REGISTRATION_EXPIRY_DAYS = 90; // 3 months
 
     public function __construct(
-        private readonly SecurityService $securityService,
         private readonly RequestStack $requestStack,
         private readonly LoggerInterface $logger,
-        private readonly UserRepository $userRepository,
-        private readonly UrlGeneratorInterface $urlGenerator
+        private readonly UserRepository $userRepository
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -53,133 +30,23 @@ class SecuritySubscriber implements EventSubscriberInterface
         return [
             KernelEvents::REQUEST => ['onKernelRequest', 1],
             LoginFailureEvent::class => 'onLoginFailure',
-            LogoutEvent::class => 'onLogout',
-            'security.authentication.success' => ['onAuthenticationSuccess', -10],
-            KernelEvents::RESPONSE => ['onKernelResponse', 0],
+            LogoutEvent::class => 'onLogout'
         ];
     }
 
-    private ?RedirectResponse $pendingRedirect = null;
-
     public function onKernelRequest(RequestEvent $event): void
     {
-        // if (!$event->isMainRequest()) {
-        //     return;
-        // }
-
-        // $request = $event->getRequest();
-        // $route = $request->attributes->get('_route');
-
-        // // Skip excluded routes
-        // if (in_array($route, self::EXCLUDED_ROUTES) || str_starts_with($route, '_')) {
-        //     return;
-        // }
-
-        // try {
-        //     // Clean up expired registrations
-        //     if ($route === 'app.login') {
-        //         $this->cleanupExpiredRegistrations();
-        //     }
-
-        //     if ($request->isMethod('POST')) {
-        //         // Only check registration throttle for registration route
-        //         if ($route === 'app.register') {
-        //             $this->securityService->checkRegistrationThrottle();
-        //             return; // Skip additional checks for registration
-        //         }
-
-        //         // Verify reCAPTCHA only for login
-        //         if ($route === 'app.login') {
-        //             $recaptchaResponse = $request->request->get('g-recaptcha-response');
-        //             if (!$recaptchaResponse || !$this->securityService->verifyRecaptcha($recaptchaResponse)) {
-        //                 throw new CustomUserMessageAuthenticationException('Invalid reCAPTCHA. Please try again.');
-        //             }
-        //         }
-        //     }
-        // } catch (\Exception $e) {
-        //     $this->logger->warning('Security check failed', [
-        //         'route' => $route,
-        //         'ip' => $request->getClientIp(),
-        //         'error' => $e->getMessage()
-        //     ]);
-        //     throw $e;
-        // }
-    }
-
-    public function onAuthenticationSuccess(AuthenticationSuccessEvent $event): void
-    {
-        // /** @var User $user */
-        // $user = $event->getAuthenticationToken()->getUser();
-
-        // if (!$user instanceof User) {
-        //     return;
-        // }
-
-        // // Skip all redirects for super admin
-        // if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-        //     $this->logger->info('Super admin authenticated successfully', [
-        //         'user_id' => $user->getId(),
-        //         'email' => $user->getEmail()
-        //     ]);
-        //     return;
-        // }
-
-        // try {
-        //     $this->pendingRedirect = $this->determineRedirect($user);
-            
-        //     $this->logger->info('User authenticated successfully', [
-        //         'user_id' => $user->getId(),
-        //         'status' => [
-        //             'verified' => $user->isVerified(),
-        //             'payment_status' => $user->getRegistrationPaymentStatus(),
-        //             'waiting_since' => $user->getWaitingSince()?->format('Y-m-d H:i:s'),
-        //             'redirect_to' => $this->pendingRedirect?->getTargetUrl()
-        //         ]
-        //     ]);
-
-        // } catch (\Exception $e) {
-        //     $this->logger->error('Authentication status check failed', [
-        //         'user_id' => $user->getId(),
-        //         'error' => $e->getMessage()
-        //     ]);
-        //     throw $e;
-        // }
-    }
-
-    private function determineRedirect(User $user): RedirectResponse
-    {
-        try {
-            $this->securityService->validateUserStatus($user, true); // Skip membership check on initial auth
-            
-            // If validation passes, redirect to dashboard
-            return new RedirectResponse(
-                $this->urlGenerator->generate('app.user.dashboard')
-            );
-
-        } catch (UserAccessException $e) {
-            // Handle specific redirect based on the exception
-            return match ($e->getErrorCode()) {
-                'pending_payment' => new RedirectResponse(
-                    $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
-                ),
-                'in_waiting_room' => new RedirectResponse(
-                    $this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()])
-                ),
-                'membership_expired' => new RedirectResponse(
-                    $this->urlGenerator->generate('app.membership.renew')
-                ),
-                default => new RedirectResponse(
-                    $this->urlGenerator->generate('app.login')
-                )
-            };
+        if (!$event->isMainRequest()) {
+            return;
         }
-    }
 
-    public function onKernelResponse(ResponseEvent $event): void
-    {
-        // if ($this->pendingRedirect) {
-        //     $event->setResponse($this->pendingRedirect);
-        // }
+        $request = $event->getRequest();
+        $route = $request->attributes->get('_route');
+
+        // Clean up expired registrations on login page access
+        if ($route === 'app.login') {
+            $this->cleanupExpiredRegistrations();
+        }
     }
 
     private function cleanupExpiredRegistrations(): void
@@ -205,49 +72,58 @@ class SecuritySubscriber implements EventSubscriberInterface
 
     public function onLoginFailure(LoginFailureEvent $event): void
     {
-        // $request = $event->getRequest();
-        // $email = $request->request->get('_username');
+        $request = $event->getRequest();
+        $email = $request->request->get('_username');
+        $session = $request->getSession();
 
-        // $this->logger->info('Login failure', [
-        //     'email' => $email,
-        //     'ip' => $request->getClientIp()
-        // ]);
+        // Check if account is locked
+        $lockedUntil = $session->get('login_locked_until', 0);
+        if ($lockedUntil > time()) {
+            throw new CustomUserMessageAuthenticationException(
+                'Account is locked. Please try again later.'
+            );
+        }
 
-        // // Store failed attempt in session
-        // $session = $request->getSession();
-        // $failedAttempts = $session->get('failed_login_attempts', 0) + 1;
-        // $session->set('failed_login_attempts', $failedAttempts);
+        // Handle failed attempt
+        $failedAttempts = $session->get('failed_login_attempts', 0) + 1;
+        $session->set('failed_login_attempts', $failedAttempts);
 
-        // if ($failedAttempts >= self::MAX_LOGIN_ATTEMPTS) {
-        //     $session->set('login_locked_until', time() + self::LOCKOUT_DURATION);
+        if ($failedAttempts >= self::MAX_LOGIN_ATTEMPTS) {
+            $session->set('login_locked_until', time() + self::LOCKOUT_DURATION);
             
-        //     $this->logger->alert('Account locked due to multiple failed login attempts', [
-        //         'email' => $email,
-        //         'ip' => $request->getClientIp()
-        //     ]);
+            $this->logger->alert('Account locked due to multiple failed login attempts', [
+                'email' => $email,
+                'ip' => $request->getClientIp()
+            ]);
 
-        //     throw new CustomUserMessageAuthenticationException(
-        //         'Too many failed login attempts. Please try again in 1 hour.'
-        //     );
-        // }
+            throw new CustomUserMessageAuthenticationException(
+                'Too many failed login attempts. Please try again in 1 hour.'
+            );
+        }
+
+        $this->logger->info('Login failure', [
+            'email' => $email,
+            'ip' => $request->getClientIp(),
+            'attempt' => $failedAttempts
+        ]);
     }
 
     public function onLogout(LogoutEvent $event): void
     {
-        // $request = $event->getRequest();
-        // $session = $request->getSession();
+        $request = $event->getRequest();
+        $session = $request->getSession();
 
-        // // Clear security-related session data
-        // $session->remove('failed_login_attempts');
-        // $session->remove('login_locked_until');
+        // Clear security-related session data
+        $session->remove('failed_login_attempts');
+        $session->remove('login_locked_until');
 
-        // /** @var User|null $user */
-        // $user = $event->getToken()?->getUser();
-        // if ($user instanceof User) {
-        //     $this->logger->info('User logged out', [
-        //         'user_id' => $user->getId(),
-        //         'email' => $user->getEmail()
-        //     ]);
-        // }
+        /** @var User|null $user */
+        $user = $event->getToken()?->getUser();
+        if ($user instanceof User) {
+            $this->logger->info('User logged out', [
+                'user_id' => $user->getId(),
+                'email' => $user->getEmail()
+            ]);
+        }
     }
 }
