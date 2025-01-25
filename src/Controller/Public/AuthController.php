@@ -75,7 +75,7 @@ class AuthController extends AbstractController
 
             try {
                 $user = $this->userRegistrationService->registerUser($dto);
-                
+
                 // Auto login the user right after registration
                 $this->userAuthenticator->authenticateUser(
                     $user,
@@ -104,7 +104,7 @@ class AuthController extends AbstractController
     public function paymentSelection(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         if (!$user) {
             return $this->redirectToRoute('app.login');
         }
@@ -151,7 +151,7 @@ class AuthController extends AbstractController
     public function waitingRoom(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         if (!$user) {
             return $this->redirectToRoute('app.login');
         }
@@ -178,7 +178,7 @@ class AuthController extends AbstractController
     public function checkPaymentStatus(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         if (!$user) {
             return $this->json([
                 'status' => 'error',
