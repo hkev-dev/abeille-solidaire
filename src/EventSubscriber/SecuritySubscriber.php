@@ -156,9 +156,6 @@ class SecuritySubscriber implements EventSubscriberInterface
                 'pending_payment' => new RedirectResponse(
                     $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
                 ),
-                'not_verified' => new RedirectResponse(
-                    $this->urlGenerator->generate('app.verify_email')
-                ),
                 'in_waiting_room' => new RedirectResponse(
                     $this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()])
                 ),

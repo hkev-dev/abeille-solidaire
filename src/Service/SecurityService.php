@@ -27,7 +27,6 @@ class SecurityService
         'waiting_room' => 'app.waiting_room',
         'membership_renew' => 'app.membership.renew',
         'membership_status' => 'app.membership.status',
-        'email_verify' => 'app.verify_email',
         'dashboard' => 'app.user.dashboard'
     ];
 
@@ -103,13 +102,6 @@ class SecurityService
             throw new UserAccessException(
                 'pending_payment',
                 'Registration payment is pending.'
-            );
-        }
-
-        if (!$user->isVerified()) {
-            throw new UserAccessException(
-                'not_verified',
-                'Account is not verified.'
             );
         }
 
