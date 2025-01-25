@@ -19,8 +19,6 @@ security:
                 login_path: app.login
                 check_path: app.login
                 enable_csrf: true
-                # Remove default_target_path to let SecuritySubscriber handle redirections
-                success_handler: App\Security\AuthenticationSuccessHandler
             logout:
                 path: app.logout
                 target: app.login
@@ -30,12 +28,12 @@ security:
     access_control:
         - { path: ^/webhook, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/user, roles: ROLE_USER }
+        - { path: ^/register/payment, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/register/waiting-room, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/verify-email, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/register/payment, roles: [ROLE_USER] }
-        - { path: ^/register/waiting-room, roles: [ROLE_USER] }
+        - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/user, roles: ROLE_USER }
 
 when@test:
     security:

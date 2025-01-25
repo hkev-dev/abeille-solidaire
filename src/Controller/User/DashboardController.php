@@ -9,6 +9,7 @@ use App\Repository\WithdrawalRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
@@ -20,6 +21,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/user/dashboard', name: 'app.user.dashboard')]
+    #[IsGranted('ROLE_USER')]
     public function index(): Response
     {
         /** @var User $user */
@@ -27,6 +29,11 @@ class DashboardController extends AbstractController
 
         // Get current flower first
         $currentFlower = $user->getCurrentFlower();
+        
+        // Early return if no flower is assigned yet
+        if (!$currentFlower) {
+            throw $this->createAccessDeniedException('No flower assigned yet.');
+        }
 
         // Calculate flower progress based on direct children count
         $flowerProgress = [

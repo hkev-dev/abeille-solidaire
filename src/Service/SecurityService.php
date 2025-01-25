@@ -9,7 +9,6 @@ use App\Exception\UserAccessException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
@@ -25,6 +24,15 @@ class SecurityService
         private readonly UrlGeneratorInterface $urlGenerator
     ) {
     }
+
+    private const ALLOWED_ROUTES_WITH_EXPIRED_MEMBERSHIP = [
+        'app.membership.renew',
+        'app.membership.check_payment',
+        'app.membership.check_payment_status',
+        'app.membership.waiting_room',
+        'app.membership.status',
+        'app.webhook.coinbase'
+    ];
 
     public function checkRegistrationThrottle(): void
     {
@@ -70,8 +78,16 @@ class SecurityService
     /**
      * Validates user status without handling redirects
      * @throws UserAccessException
+     * @param User $user
+     * @param bool $skipMembershipCheck Optional, defaults to false
      */
-    public function validateUserStatus(User $user): void
+    public function validateUserStatus(User $user, bool $skipMembershipCheck = false): void
+    {
+        $this->validateBasicStatus($user);
+        if (!$skipMembershipCheck) $this->validateMembership($user);
+    }
+
+    private function validateBasicStatus(User $user): void
     {
         // Skip validation for super admin
         if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
@@ -92,11 +108,26 @@ class SecurityService
             );
         }
 
-        if ($this->membershipService->isExpired($user)) {
+        // Check if user has a flower assigned
+        if (!$user->getCurrentFlower()) {
             throw new UserAccessException(
-                'membership_expired',
-                'Annual membership has expired.'
-            );
+                'pending_payment',
+                'No flower assigned. Please complete registration.');
+        }
+    }
+
+    private function validateMembership(User $user): void
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        $currentRoute = $request?->attributes->get('_route');
+
+        // Skip membership check for allowed routes
+        if (in_array($currentRoute, self::ALLOWED_ROUTES_WITH_EXPIRED_MEMBERSHIP)) {
+            return;
+        }
+
+        if ($this->membershipService->isExpired($user)) {
+            throw new UserAccessException('membership_expired', 'Annual membership has expired.');
         }
     }
 }

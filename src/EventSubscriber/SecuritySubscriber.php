@@ -24,10 +24,12 @@ class SecuritySubscriber implements EventSubscriberInterface
     private const EXCLUDED_ROUTES = [
         'app.register',
         'app.webhook.coinbase',
+        'app.user.dashboard',
+        'app.membership.renew',
         'app.registration.payment',
         'app.waiting_room',
-        'app.membership.renew',
         'app.membership.status',
+        'app.membership.waiting_room',
         'app.membership.check_payment',
         'app.membership.check_payment_status',
         '_wdt', // Web Debug Toolbar
@@ -69,7 +71,7 @@ class SecuritySubscriber implements EventSubscriberInterface
         $route = $request->attributes->get('_route');
 
         // Skip excluded routes
-        if (in_array($route, self::EXCLUDED_ROUTES)) {
+        if (in_array($route, self::EXCLUDED_ROUTES) || str_starts_with($route, '_')) {
             return;
         }
 
@@ -147,7 +149,7 @@ class SecuritySubscriber implements EventSubscriberInterface
     private function determineRedirect(User $user): RedirectResponse
     {
         try {
-            $this->securityService->validateUserStatus($user);
+            $this->securityService->validateUserStatus($user, true); // Skip membership check on initial auth
             
             // If validation passes, redirect to dashboard
             return new RedirectResponse(

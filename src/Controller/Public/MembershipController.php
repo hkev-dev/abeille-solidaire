@@ -48,8 +48,8 @@ class MembershipController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Only redirect to dashboard if membership is active and not expired
-        if ($user->hasPaidAnnualFee() && !$this->membershipService->isExpired($user)) {
+        // Only redirect to dashboard if membership is not expired
+        if (!$this->membershipService->isExpired($user)) {
             return $this->redirectToRoute('app.user.dashboard');
         }
 
@@ -147,7 +147,7 @@ class MembershipController extends AbstractController
             return $this->redirectToRoute('app.login');
         }
 
-        if ($user->hasPaidAnnualFee()) {
+        if (!$this->membershipService->isExpired($user)) {
             return $this->redirectToRoute('app.user.dashboard');
         }
 
