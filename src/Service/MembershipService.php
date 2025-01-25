@@ -107,40 +107,29 @@ class MembershipService
 
     public function isExpired(User $user): bool
     {
-        // Special case: Newly registered user with annual fee paid
-        if ($user->hasPaidAnnualFee() && $user->getAnnualFeePaidAt()) {
-            $expiryDate = $user->getAnnualFeeExpiresAt();
-            $graceDate = (clone $expiryDate)->add(new \DateInterval(self::GRACE_PERIOD));
-            return new \DateTime() > $graceDate;
+        if (!$user->hasPaidAnnualFee()) {
+            return true;
         }
 
-        // Check membership donations history
         $lastPaymentDate = $this->getLastMembershipPaymentDate($user);
         if (!$lastPaymentDate) {
-            // No membership payment history found
-            return !$user->hasPaidAnnualFee(); // Fall back to direct flag check
+            return true;
         }
 
         $expiryDate = $lastPaymentDate->add(new \DateInterval(self::MEMBERSHIP_DURATION));
-        $graceDate = (clone $expiryDate)->add(new \DateInterval(self::GRACE_PERIOD));
+        $graceDate = $expiryDate->add(new \DateInterval(self::GRACE_PERIOD));
 
         return new \DateTime() > $graceDate;
     }
 
     private function getLastMembershipPaymentDate(User $user): ?\DateTime
     {
-        // Try to get from donation history
         $lastMembershipDonation = $this->entityManager->getRepository(Donation::class)
             ->findOneBy(
                 ['donor' => $user, 'donationType' => 'membership'],
                 ['transactionDate' => 'DESC']
             );
 
-        // If no donation found, try to get from user entity
-        if (!$lastMembershipDonation) {
-            return $user->getAnnualFeePaidAt();
-        }
-
-        return $lastMembershipDonation->getTransactionDate();
+        return $lastMembershipDonation?->getTransactionDate();
     }
 }

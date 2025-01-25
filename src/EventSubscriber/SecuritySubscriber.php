@@ -24,9 +24,9 @@ class SecuritySubscriber implements EventSubscriberInterface
     private const EXCLUDED_ROUTES = [
         'app.register',
         'app.webhook.coinbase',
-        'app.registration.payment', // Updated route name
+        'app.registration.payment',
         'app.waiting_room',
-        'app.membership.renew',        // Add membership routes to excluded
+        'app.membership.renew',
         'app.membership.status',
         'app.membership.check_payment',
         'app.membership.check_payment_status',
@@ -199,15 +199,6 @@ class SecuritySubscriber implements EventSubscriberInterface
                 'error' => $e->getMessage()
             ]);
         }
-    }
-
-    private function isRegistrationExpired(User $user): bool
-    {
-        if (!$user->isVerified() && $user->getWaitingSince() !== null) {
-            $expiryDate = new \DateTime("-" . self::REGISTRATION_EXPIRY_DAYS . " days");
-            return $user->getWaitingSince() < $expiryDate;
-        }
-        return false;
     }
 
     public function onLoginFailure(LoginFailureEvent $event): void

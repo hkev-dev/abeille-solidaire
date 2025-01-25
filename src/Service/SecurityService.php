@@ -15,21 +15,6 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 class SecurityService
 {
-    private const MAX_ATTEMPTS = 10;
-    private const RATE_LIMIT_INTERVAL = '1 hour';
-    private const ACCOUNT_LOCKOUT_DURATION = 3600; // 1 hour
-    private const SESSION_EXPIRY = 7200; // 2 hours
-
-    private const ROUTES = [
-        'login' => 'app.login',
-        'register' => 'app.register',
-        'payment' => 'app.registration.payment',
-        'waiting_room' => 'app.waiting_room',
-        'membership_renew' => 'app.membership.renew',
-        'membership_status' => 'app.membership.status',
-        'dashboard' => 'app.user.dashboard'
-    ];
-
     public function __construct(
         private readonly RequestStack $requestStack,
         private readonly RateLimiterFactory $registrationLimiter,
@@ -76,11 +61,6 @@ class SecurityService
         return true;
     }
 
-    public function isAnnualMembershipExpired(User $user): bool
-    {
-        return $this->membershipService->isExpired($user);
-    }
-
     private function getClientIp(): string
     {
         $request = $this->requestStack->getCurrentRequest();
@@ -112,70 +92,11 @@ class SecurityService
             );
         }
 
-        // Don't throw membership exception here - let MembershipController handle it
-    }
-
-    /**
-     * Validates only membership status
-     * @throws UserAccessException
-     */
-    public function validateMembership(User $user): void
-    {
-        // Skip validation for super admin
-        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-            return;
-        }
-
         if ($this->membershipService->isExpired($user)) {
             throw new UserAccessException(
                 'membership_expired',
                 'Annual membership has expired.'
             );
         }
-    }
-
-    /**
-     * Simple status checks without redirection
-     */
-    public function canAccessDashboard(User $user): bool
-    {
-        try {
-            $this->validateUserStatus($user);
-            return true;
-        } catch (UserAccessException $e) {
-            $this->logger->info('Dashboard access denied', [
-                'user_id' => $user->getId(),
-                'reason' => $e->getMessage()
-            ]);
-            return false;
-        }
-    }
-
-    public function handleSessionExpiry(): void
-    {
-        $session = $this->requestStack->getSession();
-        $lastActivity = $session->get('last_activity', 0);
-
-        if (time() - $lastActivity > self::SESSION_EXPIRY) {
-            $session->invalidate();
-            throw new UserAccessException(
-                'session_expired',
-                'Your session has expired. Please log in again.',
-                ['login_url' => '/login']
-            );
-        }
-
-        $session->set('last_activity', time());
-    }
-
-    private function isAccountLocked(SessionInterface $session): bool
-    {
-        $lockedUntil = $session->get('login_locked_until', 0);
-        return $lockedUntil > time();
-    }
-
-    private function getUnlockTime(SessionInterface $session): int
-    {
-        return $session->get('login_locked_until', 0);
     }
 }
