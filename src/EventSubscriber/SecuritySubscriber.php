@@ -6,17 +6,18 @@ use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use App\Service\SecurityService;
 use App\Repository\UserRepository;
+use App\Exception\UserAccessException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class SecuritySubscriber implements EventSubscriberInterface
 {
@@ -141,36 +142,34 @@ class SecuritySubscriber implements EventSubscriberInterface
 
     private function determineRedirect(User $user): RedirectResponse
     {
-        // Check expiration first
-        if ($this->isRegistrationExpired($user)) {
-            throw new CustomUserMessageAuthenticationException('Your registration has expired. Please register again.');
-        }
-
-        // Priority 1: Pending registration payment
-        if ($user->getRegistrationPaymentStatus() === 'pending') {
+        try {
+            $this->securityService->validateUserStatus($user);
+            
+            // If validation passes, redirect to dashboard
             return new RedirectResponse(
-                $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
+                $this->urlGenerator->generate('app.user.dashboard')
             );
-        }
 
-        // Priority 2: Waiting room (only if registration is not pending)
-        if ($user->getWaitingSince() !== null && $user->getRegistrationPaymentStatus() !== 'pending') {
-            return new RedirectResponse(
-                $this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()])
-            );
+        } catch (UserAccessException $e) {
+            // Handle specific redirect based on the exception
+            return match ($e->getErrorCode()) {
+                'pending_payment' => new RedirectResponse(
+                    $this->urlGenerator->generate('app.registration.payment', ['id' => $user->getId()])
+                ),
+                'not_verified' => new RedirectResponse(
+                    $this->urlGenerator->generate('app.verify_email')
+                ),
+                'in_waiting_room' => new RedirectResponse(
+                    $this->urlGenerator->generate('app.waiting_room', ['id' => $user->getId()])
+                ),
+                'membership_expired' => new RedirectResponse(
+                    $this->urlGenerator->generate('app.membership.renew')
+                ),
+                default => new RedirectResponse(
+                    $this->urlGenerator->generate('app.login')
+                )
+            };
         }
-
-        // Priority 3: Annual membership renewal (only for verified users)
-        if ($user->isVerified() && $this->securityService->isAnnualMembershipExpired($user)) {
-            return new RedirectResponse(
-                $this->urlGenerator->generate('app.membership.renew')
-            );
-        }
-
-        // Default: Dashboard (only for verified users)
-        return new RedirectResponse(
-            $this->urlGenerator->generate('app.user.dashboard')
-        );
     }
 
     public function onKernelResponse(ResponseEvent $event): void

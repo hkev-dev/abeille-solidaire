@@ -89,7 +89,8 @@ class SecurityService
     }
 
     /**
-     * Comprehensive user status validation
+     * Validates user status without handling redirects
+     * @throws UserAccessException
      */
     public function validateUserStatus(User $user): void
     {
@@ -98,86 +99,37 @@ class SecurityService
             return;
         }
 
-        $this->validateRegistrationPayment($user);
-        $this->validateEmailVerification($user);
-        $this->validateMembership($user);
-        $this->validateAccountStatus($user);
-
-        $this->logger->info('User status validated successfully', [
-            'user_id' => $user->getId(),
-            'email' => $user->getEmail()
-        ]);
-    }
-
-    public function validateRegistrationPayment(User $user): void
-    {
         if ($user->getRegistrationPaymentStatus() === 'pending') {
             throw new UserAccessException(
                 'pending_payment',
-                'Registration payment is pending.',
-                ['payment_url' => $this->urlGenerator->generate(self::ROUTES['payment'], ['id' => $user->getId()])]
+                'Registration payment is pending.'
             );
         }
 
-        if ($user->getRegistrationPaymentStatus() === 'failed') {
-            throw new UserAccessException(
-                'payment_failed',
-                'Registration payment failed. Please try again.',
-                ['retry_url' => $this->urlGenerator->generate(self::ROUTES['payment'], ['id' => $user->getId()])]
-            );
-        }
-    }
-
-    public function validateEmailVerification(User $user): void
-    {
         if (!$user->isVerified()) {
             throw new UserAccessException(
-                'email_not_verified',
-                'Please verify your email address.',
-                ['resend_url' => $this->urlGenerator->generate(self::ROUTES['email_verify'])]
-            );
-        }
-    }
-
-    public function validateMembership(User $user): void
-    {
-        // Skip membership check for super admin
-        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-            return;
-        }
-
-        if ($this->membershipService->isExpired($user)) {
-            throw new UserAccessException(
-                'membership_expired',
-                'Your annual membership has expired.',
-                ['renewal_url' => $this->urlGenerator->generate(self::ROUTES['membership_renew'])]
-            );
-        }
-    }
-
-    public function validateAccountStatus(User $user): void
-    {
-        $session = $this->requestStack->getSession();
-
-        if ($this->isAccountLocked($session)) {
-            throw new UserAccessException(
-                'account_locked',
-                'Account temporarily locked due to multiple failed attempts.',
-                ['unlock_time' => $this->getUnlockTime($session)]
+                'not_verified',
+                'Account is not verified.'
             );
         }
 
         if ($user->getWaitingSince() !== null) {
             throw new UserAccessException(
                 'in_waiting_room',
-                'Your account is in the waiting room.',
-                ['waiting_room_url' => $this->urlGenerator->generate(self::ROUTES['waiting_room'], ['id' => $user->getId()])]
+                'Account is in waiting room.'
+            );
+        }
+
+        if ($this->membershipService->isExpired($user)) {
+            throw new UserAccessException(
+                'membership_expired',
+                'Annual membership has expired.'
             );
         }
     }
 
     /**
-     * Access Control Methods
+     * Simple status checks without redirection
      */
     public function canAccessDashboard(User $user): bool
     {
@@ -219,18 +171,5 @@ class SecurityService
     private function getUnlockTime(SessionInterface $session): int
     {
         return $session->get('login_locked_until', 0);
-    }
-
-    public function getRedirectUrl(UserAccessException $e): string
-    {
-        return match ($e->getErrorCode()) {
-            'pending_payment' => $e->getContext()['payment_url'],
-            'payment_failed' => $e->getContext()['retry_url'],
-            'email_not_verified' => $e->getContext()['resend_url'],
-            'membership_expired' => $e->getContext()['renewal_url'],
-            'in_waiting_room' => $e->getContext()['waiting_room_url'],
-            'session_expired' => $this->urlGenerator->generate(self::ROUTES['login']),
-            default => $this->urlGenerator->generate(self::ROUTES['login']),
-        };
     }
 }
