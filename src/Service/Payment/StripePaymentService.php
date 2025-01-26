@@ -2,6 +2,7 @@
 
 namespace App\Service\Payment;
 
+use App\Service\MembershipService;
 use Stripe\Stripe;
 use App\Entity\User;
 use App\Entity\Donation;
@@ -19,9 +20,10 @@ class StripePaymentService extends AbstractPaymentService
         MatrixService $matrixService,
         DonationService $donationService,
         LoggerInterface $logger,
-        ParameterBagInterface $params
+        ParameterBagInterface $params,
+        MembershipService $membershipService
     ) {
-        parent::__construct($em, $matrixService, $donationService, $logger, $params);
+        parent::__construct($em, $matrixService, $donationService, $logger, $params, $membershipService);
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
     }
 
@@ -130,14 +132,16 @@ class StripePaymentService extends AbstractPaymentService
 
             // Handle membership if included
             if ($includeMembership) {
-                $user->setHasPaidAnnualFee(true);
-                
+
                 // Create membership donation with payment info
                 $membershipDonation = $this->donationService->createMembershipDonation($user);
                 $membershipDonation
                     ->setStripePaymentIntentId($paymentIntentId)
                     ->setPaymentProvider('stripe')
                     ->setPaymentStatus('completed');
+
+                // Create initial membership
+                $this->membershipService->createInitialMembership($user, $membershipDonation);
             }
 
             // Update user status

@@ -62,10 +62,11 @@ class UserMenuComponent
     #[ExposeInTemplate]
     public function getMembershipInfo(): array
     {
+        /** @var User $user */
         $user = $this->getCurrentUser();
         return [
             'isActive' => $user->hasPaidAnnualFee(),
-            'expiresAt' => $user->getAnnualFeeExpiresAt(),
+            'expiresAt' => $user->getMembershipExpiredAt(),
             'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
         ];
     }
@@ -88,7 +89,7 @@ class UserMenuComponent
     {
         $user = $this->getCurrentUser();
         $currentFlower = $user->getCurrentFlower();
-        
+
         return [
             'depth' => $user->getMatrixDepth(),
             'position' => $user->getMatrixPosition(),

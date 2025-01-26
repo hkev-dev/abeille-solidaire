@@ -29,7 +29,7 @@ class DashboardController extends AbstractController
 
         // Get current flower first
         $currentFlower = $user->getCurrentFlower();
-        
+
         // Early return if no flower is assigned yet
         if (!$currentFlower) {
             throw $this->createAccessDeniedException('No flower assigned yet.');
@@ -47,7 +47,7 @@ class DashboardController extends AbstractController
         // Get membership info
         $membershipInfo = [
             'isActive' => $user->hasPaidAnnualFee(),
-            'expiresAt' => $user->getAnnualFeeExpiresAt(),
+            'expiresAt' => $user->getMembershipExpiredAt(),
             'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
         ];
 

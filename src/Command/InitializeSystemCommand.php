@@ -250,7 +250,6 @@ class InitializeSystemCommand extends Command
             ->setPhone($phone)
             ->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER'])
             ->setRegistrationPaymentStatus('completed')
-            ->setHasPaidAnnualFee(true)
             ->setIsKycVerified(true)
             ->setKycVerifiedAt(new \DateTimeImmutable())
             ->setCurrentFlower($violette)

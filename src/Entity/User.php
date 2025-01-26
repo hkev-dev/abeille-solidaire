@@ -99,6 +99,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Withdrawal::class, mappedBy: 'user')]
     private Collection $withdrawals;
 
+    #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $memberships;
+
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $matrixPosition = null;
 
@@ -123,22 +127,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $defaultPaymentMethodId = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $hasPaidAnnualFee = false;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $annualFeePaidAt = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $annualFeeExpiresAt = null;
-
     public function __construct()
     {
         $this->children = new ArrayCollection();
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
-        $this->hasPaidAnnualFee = false;
+        $this->memberships = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -148,7 +143,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getName(): string
     {
-        // Always generate name from firstName and lastName
         return trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
     }
 
@@ -170,12 +164,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setProject(?Project $project): self
     {
-        // unset the owning side of the relation if necessary
         if ($project === null && $this->project !== null) {
             $this->project->setCreator(null);
         }
 
-        // set the owning side of the relation if necessary
         if ($project !== null && $project->getCreator() !== $this) {
             $project->setCreator($this);
         }
@@ -215,7 +207,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
     }
 
     public function isVerified(): bool
@@ -225,7 +216,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFullName(): string
     {
-        return $this->getName(); // Use the getName method for consistency
+        return $this->getName();
     }
 
     public function getAvatarFile(): ?File
@@ -296,6 +287,95 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->children;
     }
 
+    public function getMemberships(): Collection
+    {
+        return $this->memberships;
+    }
+
+    public function getCurrentMembership(): ?Membership
+    {
+        return $this->memberships->filter(function (Membership $membership) {
+            return $membership->getStatus() === Membership::STATUS_ACTIVE;
+        })->first() ?: null;
+    }
+
+    public function hasPaidAnnualFee(): bool
+    {
+        if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles())) {
+            return true;
+        }
+
+        $currentMembership = $this->getCurrentMembership();
+        if (!$currentMembership) {
+            return false;
+        }
+
+        return !$currentMembership->isExpired();
+    }
+
+    public function getLastMembership(): ?Membership
+    {
+        return $this->memberships->first() ?: null;
+    }
+
+    public function addMembership(Membership $membership): self
+    {
+        if (!$this->memberships->contains($membership)) {
+            $this->memberships->add($membership);
+            $membership->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeMembership(Membership $membership): self
+    {
+        if ($this->memberships->removeElement($membership)) {
+            // We might want to change the status to expired instead of removing the relationship
+            // since we can't set the user to null (it's a required field)
+            $membership->setStatus(Membership::STATUS_EXPIRED);
+        }
+        return $this;
+    }
+
+    public function getAccountType(): string
+    {
+        return $this->accountType;
+    }
+
+    public function getAccountTypeLabel(): string
+    {
+        return match ($this->accountType) {
+            self::ACCOUNT_TYPE_PRIVATE => 'Private',
+            self::ACCOUNT_TYPE_ENTERPRISE => 'Enterprise',
+            self::ACCOUNT_TYPE_ASSOCIATION => 'Association',
+            default => 'Unknown'
+        };
+    }
+
+    public function getDaysUntilAnnualFeeExpiration(): ?int
+    {
+        if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles())) {
+            return null; // Admin users don't expire
+        }
+
+        $currentMembership = $this->getCurrentMembership();
+        if (!$currentMembership) {
+            return 0;
+        }
+
+        return $currentMembership->getDaysUntilExpiration();
+    }
+
+    public function getMembershipExpiredAt(): ?\DateTimeInterface
+    {
+        if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles())) {
+            return null; // Admin users don't expire
+        }
+
+        $currentMembership = $this->getCurrentMembership();
+        return $currentMembership ? $currentMembership->getEndDate() : null;
+    }
+
     public function getMatrixPosition(): ?int
     {
         return $this->matrixPosition;
@@ -303,7 +383,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setMatrixPosition(?int $position): self
     {
-        // Allow null or zero for users in waiting room
         if ($position !== null && $position < 0) {
             throw new \InvalidArgumentException('Matrix position cannot be negative');
         }
@@ -416,7 +495,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getKycVerifiedAt(): ?\DateTimeInterface
+    public function getKycVerifiedAt(): ?\DateTimeImmutable
     {
         return $this->kycVerifiedAt;
     }
@@ -425,11 +504,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->kycVerifiedAt = $kycVerifiedAt;
         return $this;
-    }
-
-    public function getMemberships(): Collection
-    {
-        return $this->memberships;
     }
 
     public function getUsername(): ?string
@@ -465,11 +539,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAccountType(): string
-    {
-        return $this->accountType;
-    }
-
     public function setAccountType(string $accountType): self
     {
         if (!in_array($accountType, self::ACCOUNT_TYPES)) {
@@ -501,6 +570,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function hasProject(): bool
+    {
+        return $this->project !== null;
+    }
+
+    // Payment-related methods
     public function getStripeCustomerId(): ?string
     {
         return $this->stripeCustomerId;
@@ -523,68 +598,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function hasPaidAnnualFee(): bool
-    {
-        if (!$this->hasPaidAnnualFee) {
-            return false;
-        }
-
-        // Check if the annual fee has expired
-        if ($this->annualFeeExpiresAt && $this->annualFeeExpiresAt < new \DateTime()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function setHasPaidAnnualFee(bool $hasPaidAnnualFee): self
-    {
-        $this->hasPaidAnnualFee = $hasPaidAnnualFee;
-        if ($hasPaidAnnualFee) {
-            $this->annualFeePaidAt = new \DateTime();
-            $this->annualFeeExpiresAt = (new \DateTime())->modify('+1 year');
-        }
-        return $this;
-    }
-
-    public function getAnnualFeePaidAt(): ?\DateTimeInterface
-    {
-        return $this->annualFeePaidAt;
-    }
-
-    public function getAnnualFeeExpiresAt(): ?\DateTimeInterface
-    {
-        return $this->annualFeeExpiresAt;
-    }
-
-    public function getDaysUntilAnnualFeeExpiration(): ?int
-    {
-        if (!$this->annualFeeExpiresAt) {
-            return null;
-        }
-
-        $now = new \DateTime();
-        $interval = $this->annualFeeExpiresAt->diff($now);
-
-
-        if ($interval->invert === 0) {
-            return 0; // Already expired
-        }
-
-        return $interval->days;
-    }
-
-    public function hasProject(): bool
-    {
-        return $this->project !== null;
-    }
-
     public function isEligibleForWithdrawal(): bool
     {
+        // Admin users bypass matrix depth check
+        $hasRequiredMatrixDepth = array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) || 
+            $this->matrixDepth >= 3;
+
         return $this->isKycVerified &&      // KYC verification completed
-               $this->hasPaidAnnualFee &&   // Annual membership is active
-               $this->matrixDepth >= 3 &&   // Has at least 4 levels in branch
-               $this->hasProject();         // Has at least one project
+            $this->hasPaidAnnualFee() &&    // Annual membership is active
+            $hasRequiredMatrixDepth &&       // Has required matrix depth
+            $this->hasProject();             // Has at least one project
     }
 
     public function getFlowerProgress(): array
@@ -613,19 +636,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $total = 0.0;
         $cycleStart = new \DateTime();
-        
+
         // Get the last solidarity donation to determine cycle start
         $lastSolidarity = $this->donationsReceived
             ->filter(fn($d) => $d->getDonationType() === 'solidarity')
             ->last();
-        
+
         if ($lastSolidarity) {
             $cycleStart = $lastSolidarity->getTransactionDate();
         }
 
         foreach ($this->donationsReceived as $donation) {
-            if ($donation->getFlower() === $this->currentFlower &&
-                $donation->getTransactionDate() > $cycleStart) {
+            if (
+                $donation->getFlower() === $this->currentFlower &&
+                $donation->getTransactionDate() > $cycleStart
+            ) {
                 $total += $donation->getAmount();
             }
         }

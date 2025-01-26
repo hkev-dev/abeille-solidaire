@@ -3,6 +3,7 @@
 namespace App\Service\Payment;
 
 use App\Entity\User;
+use App\Service\MembershipService;
 use CoinpaymentsAPI;
 use App\Entity\Donation;
 use Psr\Log\LoggerInterface;
@@ -32,9 +33,10 @@ class CoinPaymentsService extends AbstractPaymentService
         DonationService $donationService,
         LoggerInterface $logger,
         ParameterBagInterface $params,
-        RouterInterface $router
+        RouterInterface $router,
+        MembershipService $membershipService
     ) {
-        parent::__construct($em, $matrixService, $donationService, $logger, $params);
+        parent::__construct($em, $matrixService, $donationService, $logger, $params, $membershipService);
         $this->router = $router;
         
         $this->coinPayments = new CoinpaymentsAPI(
@@ -235,15 +237,16 @@ class CoinPaymentsService extends AbstractPaymentService
             }
 
             // Handle membership if included
-            if ($includeMembership) {
-                $user->setHasPaidAnnualFee(true);
-                
+            if ($includeMembership) {                
                 // Create membership donation with payment info
                 $membershipDonation = $this->donationService->createMembershipDonation($user);
                 $membershipDonation
                     ->setCoinpaymentsTransactionId($transactionId)
                     ->setPaymentProvider('coinpayments')
                     ->setPaymentStatus('completed');
+
+                // Create initial membership
+                $this->membershipService->createInitialMembership($user, $membershipDonation);
             }
 
             // Update user status

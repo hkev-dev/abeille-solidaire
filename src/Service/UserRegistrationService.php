@@ -36,8 +36,7 @@ class UserRegistrationService
                 ->setPhone($dto->phone)
                 ->setOrganizationName($dto->organizationName)
                 ->setOrganizationNumber($dto->organizationNumber)
-                ->setWalletBalance(0.0)
-                ->setHasPaidAnnualFee(false);
+                ->setWalletBalance(0.0);
 
             // Hash password
             $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->password);

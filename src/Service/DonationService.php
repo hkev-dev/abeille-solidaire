@@ -71,7 +71,7 @@ class DonationService
     public function createMembershipDonation(User $donor): ?Donation
     {
         // Find root user (matrixDepth = 0)
-        $rootUser = $this->em->getRepository(User::class)
+        $rootUser = $this->em->getRepository(className: User::class)
             ->findOneBy(['matrixDepth' => 0]);
 
         if (!$rootUser) {

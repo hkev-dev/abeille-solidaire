@@ -53,7 +53,7 @@ class FlowerController extends AbstractController
             'matrixPositions' => $matrixPositions,
             'membershipInfo' => [
                 'isActive' => $user->hasPaidAnnualFee(),
-                'expiresAt' => $user->getAnnualFeeExpiresAt(),
+                'expiresAt' => $user->getMembershipExpiredAt(),
                 'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
             ],
             'flowerProgress' => $user->getFlowerProgress(),

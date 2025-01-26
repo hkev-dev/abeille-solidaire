@@ -8,7 +8,7 @@
 					<span class="ki-duotone {{ membershipInfo.isActive ? 'ki-check text-success' : 'ki-information-3 text-warning' }} text-xl"></span>
 					<h4 class="font-medium text-gray-900">Adhésion Annuelle</h4>
 				</div>
-				{% if membershipInfo.isActive %}
+				{% if membershipInfo.isActive and (membershipInfo.daysUntilExpiration is not null and membershipInfo.expiresAt is not null)  %}
 					<div class="flex items-center space-x-2">
 						<span class="ki-duotone ki-calendar text-gray-400"></span>
 						<p class="text-sm {{ membershipInfo.daysUntilExpiration <= 30 ? 'text-warning-600' : 'text-gray-600' }}">
@@ -28,6 +28,8 @@
 							{% endif %}
 						</p>
 					</div>
+				{% elseif membershipInfo.isActive %}
+					<p class="text-sm text-gray-600">Adhésion active</p>
 				{% else %}
 					<p class="text-sm text-warning-600">Une adhésion active est requise pour accéder à toutes les fonctionnalités</p>
 				{% endif %}
@@ -39,7 +41,7 @@
 			</div>
 		</div>
 
-		{% if not membershipInfo.isActive or membershipInfo.daysUntilExpiration <= 30 %}
+		{% if not membershipInfo.isActive or (membershipInfo.daysUntilExpiration is not null and membershipInfo.daysUntilExpiration <= 30) %}
 			<a href="{{ path('app.membership.renew') }}" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900">
 				<span class="ki-duotone ki-credit-cart mr-2 text-lg"></span>
 				{{ membershipInfo.isActive ? 'Renouveler l\'adhésion' : 'Payer l\'adhésion' }}

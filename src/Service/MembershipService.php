@@ -3,150 +3,67 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\Membership;
 use App\Entity\Donation;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 class MembershipService
 {
-    public const ANNUAL_FEE = 25.0;
-    private const MEMBERSHIP_DURATION = 'P1Y'; // 1 year
-    private const GRACE_PERIOD = 'P15D'; // 15 days grace period
-    
-    private const ADMIN_ROLES = ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
-    
+    private const MEMBERSHIP_FEE = 25.0;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly DonationService $donationService,
         private readonly LoggerInterface $logger
     ) {
     }
 
-    public function processInitialMembership(
-        User $user,
-        string $paymentMethod,
-        ?string $transactionId = null
-    ): bool {
-        try {
-            $user->setHasPaidAnnualFee(true);
-            $this->entityManager->persist($user);
+    public function createInitialMembership(User $user, Donation $payment): Membership
+    {
+        $membership = new Membership();
+        $membership->setUser($user)
+            ->setPayment($payment);
+
+        $membership->activate();
+
+        $this->entityManager->persist($membership);
+        $this->entityManager->flush();
+
+        return $membership;
+    }
+
+    public function renewMembership(User $user, Donation $payment): Membership
+    {
+        $currentMembership = $user->getCurrentMembership();
+        
+        if ($currentMembership) {
+            $currentMembership->renew($payment);
             $this->entityManager->flush();
-
-            $this->logger->info('Initial membership processed', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'transaction_id' => $transactionId
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to process initial membership', [
-                'user_id' => $user->getId(),
-                'error' => $e->getMessage()
-            ]);
-            return false;
+            return $currentMembership;
         }
-    }
 
-    public function processMembershipRenewal(
-        User $user,
-        string $paymentMethod,
-        string $transactionId
-    ): bool {
-        // Admin roles can always renew
-        if (!$this->isAdminUser($user)) {
-            if (!$user->getMatrixPosition() || $user->getMatrixDepth() < 3) {
-                throw new \RuntimeException('User must have at least 4 matrix levels to renew membership');
-            }
-        }
-        try {
-            $user->setHasPaidAnnualFee(true);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            $this->logger->info('Membership renewed', [
-                'user_id' => $user->getId(),
-                'payment_method' => $paymentMethod,
-                'transaction_id' => $transactionId,
-                'matrix_position' => $user->getMatrixPosition(),
-                'matrix_depth' => $user->getMatrixDepth(),
-                'flower_level' => $user->getCurrentFlower()?->getName()
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to renew membership', [
-                'user_id' => $user->getId(),
-                'error' => $e->getMessage()
-            ]);
-            return false;
-        }
-    }
-
-    public function getLatestMembership(User $user): ?Donation
-    {
-        return $this->entityManager->getRepository(Donation::class)
-            ->findOneBy(
-                [
-                    'donor' => $user,
-                    'donationType' => 'membership'
-                ],
-                ['transactionDate' => 'DESC']
-            );
-    }
-
-    public function getRenewalAmount(): float
-    {
-        return self::ANNUAL_FEE;
-    }
-
-    public function getMembershipHistory(User $user): array
-    {
-        // Get membership-related donations from the donations table
-        return $this->entityManager->getRepository(Donation::class)
-            ->findBy(
-                ['donor' => $user, 'donationType' => 'membership'],
-                ['transactionDate' => 'DESC']
-            );
+        return $this->createInitialMembership($user, $payment);
     }
 
     public function isExpired(User $user): bool
     {
-        // Admin users never expire
-        if ($this->isAdminUser($user)) {
-            return false;
-        }
-
-        if (!$user->hasPaidAnnualFee()) {
-            return true;
-        }
-
-        $lastPaymentDate = $this->getLastMembershipPaymentDate($user);
-        if (!$lastPaymentDate) {
-            return true;
-        }
-
-        $expiryDate = $lastPaymentDate->add(new \DateInterval(self::MEMBERSHIP_DURATION));
-        $graceDate = $expiryDate->add(new \DateInterval(self::GRACE_PERIOD));
-
-        return new \DateTime() > $graceDate;
+        $currentMembership = $user->getCurrentMembership();
+        return !$currentMembership || $currentMembership->isExpired();
     }
 
-    private function getLastMembershipPaymentDate(User $user): ?\DateTime
+    public function getLatestMembership(User $user): ?Membership
     {
-        $lastMembershipDonation = $this->entityManager->getRepository(Donation::class)
-            ->findOneBy(
-                ['donor' => $user, 'donationType' => 'membership'],
-                ['transactionDate' => 'DESC']
-            );
-
-        return $lastMembershipDonation?->getTransactionDate();
+        return $user->getLastMembership();
     }
 
-    /**
-     * Check if user has admin privileges
-     */
-    private function isAdminUser(User $user): bool
+    public function getRenewalAmount(): float
     {
-        return (bool)array_intersect(self::ADMIN_ROLES, $user->getRoles());
+        return self::MEMBERSHIP_FEE;
+    }
+
+    public function getMembershipHistory(User $user): array
+    {
+        return $user->getMemberships()->toArray();
     }
 }
