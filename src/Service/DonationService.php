@@ -6,16 +6,24 @@ use App\Entity\Donation;
 use App\Entity\User;
 use App\Entity\Flower;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Event\DonationProcessedEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class DonationService
 {
     public const MEMBERSHIP_FEE = 25.00;
+    public const REGISTRATION_FEE = 25.00;
+    public const SUPPLEMENTARY_FEE = 25.00;
 
     protected EntityManagerInterface $em;
+    protected EventDispatcherInterface $eventDispatcher;
 
-    public function __construct(EntityManagerInterface $em)
-    {
+    public function __construct(
+        EntityManagerInterface $em,
+        EventDispatcherInterface $eventDispatcher
+    ) {
         $this->em = $em;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function createDonation(
@@ -39,18 +47,17 @@ class DonationService
         $this->em->persist($donation);
         $this->em->flush();
 
+        if ($paymentStatus === 'completed') {
+            $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
+        }
+
         return $donation;
     }
 
     public function createSolidarityDonation(User $donor, float $amount, ?Flower $flower = null): ?Donation
     {
-        // Find root user (Abeille Solidaire - matrixDepth = 0)
-        $rootUser = $this->em->getRepository(User::class)
-            ->findOneBy(['matrixDepth' => 0]);
-
-        if (!$rootUser) {
-            throw new \RuntimeException('Root user (Abeille Solidaire) not found');
-        }
+        // Always find the Abeille Solidaire user (root user) for solidarity donations
+        $rootUser = $this->findAbeilleSolidaireUser();
 
         $donation = $this->createDonation(
             $donor,
@@ -58,14 +65,78 @@ class DonationService
             $amount,
             Donation::TYPE_SOLIDARITY,
             $flower,
-            'completed' // Set payment status as completed immediately
+            'completed'
         );
 
-        // Set payment provider as internal since this is an automatic system transfer
         $donation->setPaymentProvider('internal');
+        
+        // Dispatch donation processed event with NAME constant
+        $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
+        
         $this->em->flush();
 
         return $donation;
+    }
+
+    public function createSupplementaryDonation(User $donor): ?Donation
+    {
+        // Find the user with fewest children
+        $recipient = $this->findUserWithFewestChildren();
+        
+        // Get the parent of that user
+        $recipientParent = $recipient->getParent();
+        
+        if (!$recipientParent) {
+            throw new \RuntimeException('Recipient parent not found for supplementary donation');
+        }
+
+        $donation = $this->createDonation(
+            $donor,
+            $recipientParent,
+            self::SUPPLEMENTARY_FEE,
+            Donation::TYPE_SUPPLEMENTARY,
+            $recipient->getCurrentFlower()
+        );
+
+        // Supplementary donations are considered completed immediately
+        $donation->setPaymentStatus('completed');
+        $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
+        $this->em->flush();
+
+        return $donation;
+    }
+
+    private function findAbeilleSolidaireUser(): User
+    {
+        $rootUser = $this->em->getRepository(User::class)
+            ->findOneBy(['matrixDepth' => 0]);
+
+        if (!$rootUser) {
+            throw new \RuntimeException('Abeille Solidaire user (root) not found');
+        }
+
+        return $rootUser;
+    }
+
+    private function findUserWithFewestChildren(): User
+    {
+        $qb = $this->em->createQueryBuilder();
+        $result = $qb->select('u')
+            ->from(User::class, 'u')
+            ->leftJoin('u.children', 'c')
+            ->where('u.registrationPaymentStatus = :status')
+            ->setParameter('status', 'completed')
+            ->groupBy('u.id')
+            ->orderBy('COUNT(c.id)', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if (!$result) {
+            throw new \RuntimeException('No eligible user found for supplementary donation');
+        }
+
+        return $result;
     }
 
     public function createMembershipDonation(User $donor): ?Donation
@@ -78,29 +149,82 @@ class DonationService
             throw new \RuntimeException('Root user not found');
         }
 
-        return $this->createDonation(
+        $donation = $this->createDonation(
             $donor,
             $rootUser,
             self::MEMBERSHIP_FEE,
             Donation::TYPE_MEMBERSHIP,
-            $donor->getCurrentFlower()
+            $donor->getCurrentFlower(),
+            'pending'  // Membership donations start as pending until payment is confirmed
         );
+
+        return $donation;
     }
 
     public function hasCompletedCycle(User $user): bool
     {
-        $donations = $this->em->createQueryBuilder()
+        // Get completed registration donations for the current flower
+        $completedDonations = $this->em->createQueryBuilder()
             ->select('COUNT(d.id)')
             ->from(Donation::class, 'd')
             ->where('d.recipient = :user')
             ->andWhere('d.flower = :flower')
             ->andWhere('d.donationType = :type')
+            ->andWhere('d.paymentStatus = :status')
             ->setParameter('user', $user)
             ->setParameter('flower', $user->getCurrentFlower())
             ->setParameter('type', Donation::TYPE_REGISTRATION)
+            ->setParameter('status', 'completed')
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $donations >= 4;
+        // Get direct children count
+        $children = $this->em->createQueryBuilder()
+            ->select('COUNT(c.id)')
+            ->from(User::class, 'c')
+            ->where('c.parent = :parent')
+            ->andWhere('c.registrationPaymentStatus = :status')
+            ->setParameter('parent', $user)
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Both conditions must be met:
+        // 1. Have 4 completed registration donations in current flower
+        // 2. Have 4 direct children with completed registration
+        return $completedDonations >= 4 && $children >= 4;
+    }
+
+    public function getCycleProgress(User $user): array
+    {
+        $completedDonations = $this->em->createQueryBuilder()
+            ->select('COUNT(d.id)')
+            ->from(Donation::class, 'd')
+            ->where('d.recipient = :user')
+            ->andWhere('d.flower = :flower')
+            ->andWhere('d.donationType = :type')
+            ->andWhere('d.paymentStatus = :status')
+            ->setParameter('user', $user)
+            ->setParameter('flower', $user->getCurrentFlower())
+            ->setParameter('type', Donation::TYPE_REGISTRATION)
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $children = $this->em->createQueryBuilder()
+            ->select('COUNT(c.id)')
+            ->from(User::class, 'c')
+            ->where('c.parent = :parent')
+            ->andWhere('c.registrationPaymentStatus = :status')
+            ->setParameter('parent', $user)
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'donations' => $completedDonations,
+            'children' => $children,
+            'isComplete' => ($completedDonations >= 4 && $children >= 4)
+        ];
     }
 }

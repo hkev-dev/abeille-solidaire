@@ -2,6 +2,7 @@
 
 namespace App\Event;
 
+use App\Entity\Donation;
 use App\Entity\User;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -10,24 +11,27 @@ class DonationProcessedEvent extends Event
     public const NAME = 'donation.processed';
 
     public function __construct(
-        private readonly User $recipient,
-        private readonly User $donor,
-        private readonly string $donationType
+        private readonly Donation $donation
     ) {
+    }
+
+    public function getDonation(): Donation
+    {
+        return $this->donation;
     }
 
     public function getRecipient(): User
     {
-        return $this->recipient;
+        return $this->donation->getRecipient();
     }
 
     public function getDonor(): User
     {
-        return $this->donor;
+        return $this->donation->getDonor();
     }
 
     public function getDonationType(): string
     {
-        return $this->donationType;
+        return $this->donation->getDonationType();
     }
 }

@@ -21,7 +21,7 @@ class Membership
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'memberships')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'memberships', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 

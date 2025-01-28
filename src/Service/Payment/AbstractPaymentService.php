@@ -3,11 +3,12 @@
 namespace App\Service\Payment;
 
 use App\Entity\User;
+use App\Entity\Donation;
+use Psr\Log\LoggerInterface;
 use App\Service\MatrixService;
 use App\Service\DonationService;
 use App\Service\MembershipService;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 abstract class AbstractPaymentService implements PaymentServiceInterface
@@ -40,14 +41,37 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
         try {
             $this->em->beginTransaction();
 
-            // Place user in matrix
+            // First update user status
+            $user->setRegistrationPaymentStatus('completed')
+                ->setIsKycVerified(false)
+                ->setWaitingSince(null);
+
+            // Now place user in matrix
             $this->matrixService->placeUserInMatrix($user);
+
+            // Get and update the registration donation
+            $registrationDonation = $this->em->getRepository(Donation::class)
+                ->findOneBy([
+                    'donor' => $user,
+                    'donationType' => 'registration'
+                ]);
+
+            if ($registrationDonation) {
+                if (str_starts_with($paymentReference, 'pi_')) {
+                    $registrationDonation->setStripePaymentIntentId($paymentReference);
+                    $registrationDonation->setPaymentProvider('stripe');
+                } else {
+                    $registrationDonation->setCoinpaymentsTransactionId($paymentReference);
+                    $registrationDonation->setPaymentProvider('coinpayments');
+                }
+                $registrationDonation->setPaymentStatus('completed');
+            }
 
             // Handle membership if included
             if ($includeMembership) {
-                // Create membership donation to root user
+                // Create membership donation
                 $membershipDonation = $this->donationService->createMembershipDonation($user);
-
+                
                 if (str_starts_with($paymentReference, 'pi_')) {
                     $membershipDonation->setStripePaymentIntentId($paymentReference);
                     $membershipDonation->setPaymentProvider('stripe');
@@ -55,17 +79,12 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
                     $membershipDonation->setCoinpaymentsTransactionId($paymentReference);
                     $membershipDonation->setPaymentProvider('coinpayments');
                 }
-
+                
                 $membershipDonation->setPaymentStatus('completed');
                 
-                // Create initial membership
-                $this->membershipService->createInitialMembership($user, $membershipDonation);
+                // Create membership
+                $this->membershipService->createMembership($user, $membershipDonation);
             }
-
-            // Update user status
-            $user->setRegistrationPaymentStatus('completed')
-                ->setIsKycVerified(false)
-                ->setWaitingSince(null);
 
             $this->em->flush();
             $this->em->commit();

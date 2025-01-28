@@ -32,7 +32,7 @@ class Donation
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'donationsMade')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'donationsMade', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private User $donor;
 
@@ -43,7 +43,7 @@ class Donation
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount;
 
-    #[ORM\ManyToOne(targetEntity: Flower::class, inversedBy: 'donations')]
+    #[ORM\ManyToOne(targetEntity: Flower::class, inversedBy: 'donations', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private Flower $flower;
 
