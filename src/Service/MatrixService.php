@@ -45,8 +45,9 @@ class MatrixService
                 ->setMatrixDepth($parent->getMatrixDepth() + 1)
                 ->setMatrixPosition($position);
 
-            // Set initial flower to same as parent's current flower
-            $user->setCurrentFlower($parent->getCurrentFlower());
+            // Set initial flower
+            $firstFlower = $this->flowerService->getFirstFlower();
+            $user->setCurrentFlower($firstFlower);
 
             // Create registration donation to parent with explicit pending status
             $this->donationService->createDonation(

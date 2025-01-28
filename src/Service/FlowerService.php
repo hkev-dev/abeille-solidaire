@@ -98,4 +98,15 @@ class FlowerService
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function getFirstFlower(): Flower
+    {
+        return $this->em->createQueryBuilder()
+            ->select('f')
+            ->from(Flower::class, 'f')
+            ->where('f.level = 1')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleResult();
+    }
 }
