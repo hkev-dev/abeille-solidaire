@@ -39,15 +39,11 @@ class Flower
     #[ORM\Column(type: 'integer')]
     private int $level;
 
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'currentFlower')]
-    private Collection $currentUsers;
-
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'flower')]
     private Collection $donations;
 
     public function __construct()
     {
-        $this->currentUsers = new ArrayCollection();
         $this->donations = new ArrayCollection();
     }
 
@@ -89,20 +85,11 @@ class Flower
         return $this;
     }
 
-    public function getCurrentUsers(): Collection
-    {
-        return $this->currentUsers;
-    }
-
     public function getDonations(): Collection
     {
         return $this->donations;
     }
 
-    public function getCycleCompletions(): Collection
-    {
-        return $this->cycleCompletions;
-    }
 
     public function getMatrixPosition(): int
     {
@@ -187,5 +174,14 @@ class Flower
                 'amount' => 12800
             ]
         ];
+    }
+
+    public function getMatrixRemainingSlots(): int
+    {
+        if ($this->getLevel() < 1) {
+            return 4;
+        }
+
+        return 4 ** $this->getLevel();
     }
 }

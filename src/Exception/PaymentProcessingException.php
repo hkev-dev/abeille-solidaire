@@ -8,11 +8,11 @@ class PaymentProcessingException extends \RuntimeException
     private ?string $transactionId;
 
     public function __construct(
-        string $message = "",
-        string $paymentMethod = null,
-        string $transactionId = null,
-        int $code = 0,
-        \Throwable $previous = null
+        ?string $message = "",
+        ?string $paymentMethod = null,
+        ?string $transactionId = null,
+        ?int $code = 0,
+        ?\Throwable $previous = null
     ) {
         parent::__construct($message, $code, $previous);
         $this->paymentMethod = $paymentMethod;

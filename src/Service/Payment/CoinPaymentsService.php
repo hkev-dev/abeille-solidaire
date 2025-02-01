@@ -43,6 +43,8 @@ class CoinPaymentsService extends AbstractPaymentService
     {
         $amount = $includeMembership ? 50.00 : 25.00;
 
+        $donation = $this->donationService->createRegistrationDonation($user);
+
         try {
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: $amount,
@@ -56,7 +58,7 @@ class CoinPaymentsService extends AbstractPaymentService
                 invoice: "INV" . '-' . $user->getId(),
                 custom: json_encode([
                     'include_membership' => $includeMembership,
-                    'user_id' => $user->getId(),
+                    'donation_id' => $donation->getId(),
                     'payment_type' => 'registration'
                 ]),
                 ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
@@ -113,10 +115,10 @@ class CoinPaymentsService extends AbstractPaymentService
     public function handlePaymentSuccess(array $paymentData): void
     {
         $customData = json_decode($paymentData['custom'], true);
-        $user = $this->em->getRepository(User::class)->find($customData['user_id']);
+        $donation = $this->em->getRepository(Donation::class)->find($customData['donation_id']);
 
-        if (!$user) {
-            throw new \Exception('User not found');
+        if (!$donation) {
+            throw new \Exception('Donation not found');
         }
 
         $paymentType = $customData['payment_type'];
@@ -126,13 +128,13 @@ class CoinPaymentsService extends AbstractPaymentService
                 $this->em->beginTransaction();
 
                 // First update payment status
-                $user->setRegistrationPaymentStatus('completed')
+                $donation->getDonor()->setRegistrationPaymentStatus('completed')
                     ->setIsKycVerified(false)
                     ->setWaitingSince(null);
                 $this->em->flush();
 
                 // Then process the payment
-                $this->processRegistrationPayment($user, $includeMembership, $paymentData['txn_id']);
+                $this->processRegistrationPayment($donation, $includeMembership, $paymentData['txn_id']);
                 
                 $this->em->commit();
             } catch (\Exception $e) {
@@ -140,7 +142,7 @@ class CoinPaymentsService extends AbstractPaymentService
                 throw $e;
             }
         } elseif ($paymentType === 'membership') {
-            $this->processMembershipPayment($user, $paymentData['txn_id']);
+            $this->processMembershipPayment($donation->getDonor(), $paymentData['txn_id']);
         }
     }
 

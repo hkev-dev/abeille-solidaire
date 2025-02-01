@@ -2,26 +2,35 @@
 
 namespace App\EventSubscriber;
 
+use App\Entity\Donation;
+use App\Event\DonationProcessParentLevelUpEvent;
+use App\Event\DonationPositionedInMatrixEvent;
 use App\Event\DonationProcessedEvent;
 use App\Service\DonationService;
+use App\Service\FlowerService;
 use App\Service\MatrixService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class DonationEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private readonly DonationService $donationService,
         private readonly MatrixService $matrixService,
+        private readonly FlowerService $flowerService,
         private readonly EntityManagerInterface $em,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {}
 
     public static function getSubscribedEvents(): array
     {
         return [
-            DonationProcessedEvent::NAME => 'onDonationProcessed'
+            DonationProcessedEvent::NAME => 'onDonationProcessed',
+            DonationProcessParentLevelUpEvent::NAME => 'processParentLevelUp',
+            DonationPositionedInMatrixEvent::NAME => 'onDonationPositionedInMatrix'
         ];
     }
 
@@ -66,5 +75,30 @@ class DonationEventSubscriber implements EventSubscriberInterface
             ]);
             throw $e;
         }
+    }
+
+    public function processParentLevelUp(DonationProcessParentLevelUpEvent $event): void
+    {
+        $donation = $event->getDonation();
+
+        if ($donation->canLevelUp()){
+            $donation->setFlower($this->flowerService->getNextFlower($donation->getFlower()));
+            $this->em->persist($donation);
+            $this->em->flush();
+
+        }
+
+        if ($donation->getParent()){
+            $event = new DonationProcessParentLevelUpEvent($donation->getParent());
+            $this->eventDispatcher->dispatch($event, $event::NAME);
+        }
+
+        $this->em->flush();
+    }
+
+    public function onDonationPositionedInMatrix(DonationPositionedInMatrixEvent $event): void
+    {
+        $donation = $event->getDonation();
+        $this->donationService->calculateEarnings($donation, $donation->getAmount());
     }
 }

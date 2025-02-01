@@ -53,22 +53,6 @@ class MembershipService
         return $membership;
     }
 
-    public function canParticipateInMatrix(User $user): bool
-    {
-        // Admins can always participate
-        if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $user->getRoles())) {
-            return true;
-        }
-
-        $currentMembership = $user->getCurrentMembership();
-        return $currentMembership && !$currentMembership->isExpired();
-    }
-
-    public function canProgressInFlowers(User $user): bool
-    {
-        return $this->canParticipateInMatrix($user);
-    }
-
     public function checkExpirationWarnings(): array
     {
         $warnings = [];

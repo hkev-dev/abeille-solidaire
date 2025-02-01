@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Event\DonationProcessParentLevelUpEvent;
+use App\Event\DonationPositionedInMatrixEvent;
 use App\Event\ParentFlowerUpdateEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -18,13 +20,14 @@ class MatrixService
     protected MembershipService $membershipService;
 
     public function __construct(
-        EntityManagerInterface $em,
-        DonationService $donationService,
-        FlowerService $flowerService,
+        EntityManagerInterface     $em,
+        DonationService            $donationService,
+        FlowerService              $flowerService,
         MatrixVisualizationService $matrixVisualization,
-        EventDispatcherInterface $eventDispatcher,
-        MembershipService $membershipService
-    ) {
+        EventDispatcherInterface   $eventDispatcher,
+        MembershipService          $membershipService
+    )
+    {
         $this->em = $em;
         $this->donationService = $donationService;
         $this->flowerService = $flowerService;
@@ -33,38 +36,30 @@ class MatrixService
         $this->membershipService = $membershipService;
     }
 
-    public function placeUserInMatrix(User $user): void
+    public function placeDonationInMatrix(Donation $donation): void
     {
         try {
             // Find available parent
             $parent = $this->findAvailableParent();
-            $position = $this->calculatePosition($parent);
+            $position = $this->getNextPosition();
 
             // Set matrix position and parent
-            $user->setParent($parent)
+            $donation->setParent($parent)
+                ->setPaymentStatus('completed')
+                ->setPaymentCompletedAt(new \DateTimeImmutable())
                 ->setMatrixDepth($parent->getMatrixDepth() + 1)
                 ->setMatrixPosition($position);
 
-            // Set initial flower
-            $firstFlower = $this->flowerService->getFirstFlower();
-            $user->setCurrentFlower($firstFlower);
-
-            // Create registration donation to parent with explicit pending status
-            $this->donationService->createDonation(
-                $user,
-                $parent,
-                25.00,
-                Donation::TYPE_REGISTRATION,
-                $parent->getCurrentFlower(),
-                'pending' // Explicitly set as pending until payment is confirmed
-            );
-
             $this->em->flush();
 
-            // Process parent's cycle completion if needed
-            if ($this->donationService->hasCompletedCycle($parent)) {
-                $this->processUserCycleCompletion($parent);
-            }
+            // Dispatch donation level up event
+            $event = new DonationPositionedInMatrixEvent($donation);
+            $this->eventDispatcher->dispatch($event, $event::NAME);
+
+            // Dispatch donation level up event
+            $event = new DonationProcessParentLevelUpEvent($donation);
+            $this->eventDispatcher->dispatch($event, $event::NAME);
+
         } catch (\Exception $e) {
             throw $e;
         }
@@ -110,83 +105,59 @@ class MatrixService
         }
     }
 
-    protected function findAvailableParent(): User
+    protected function findAvailableParent(): Donation
     {
         // Get root user (depth 0)
-        $rootUser = $this->em->getRepository(User::class)
-            ->findOneBy(['matrixDepth' => 0]);
+        $rootDonation = $this->em->getRepository(Donation::class)
+            ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
 
-        if (!$rootUser) {
-            throw new \RuntimeException('Root user not found');
+        if (!$rootDonation) {
+            throw new \RuntimeException('Root Donation not found');
         }
 
         // Find first available parent using BFS with level validation
         $qb = $this->em->createQueryBuilder();
-        $result = $qb->select('u, COUNT(c.id) as childCount')
-            ->from(User::class, 'u')
-            ->leftJoin('u.children', 'c')
-            ->where('u.registrationPaymentStatus = :status')
-            ->setParameter('status', 'completed')
-            ->groupBy('u.id')
+        $result = $qb->select('donation, COUNT(c.id) as childCount')
+            ->from(Donation::class, 'donation')
+            ->leftJoin('donation.childrens', 'c')
+            ->where('donation.paymentStatus = :status')
+            ->andWhere('donation.paymentCompletedAt IS NOT NULL')
+            ->groupBy('donation.id')
             ->having($qb->expr()->lt('COUNT(c.id)', ':maxChildren'))
-            ->orderBy('u.matrixDepth', 'ASC')
-            ->addOrderBy('u.id', 'ASC')
+            ->orderBy('donation.paymentCompletedAt', 'ASC')
             ->setParameter('maxChildren', 4)
+            ->setParameter('status', 'completed')
+            ->setMaxResults(1)
             ->getQuery()
             ->getResult();
 
         if (empty($result)) {
             // If no valid parent found, validate if root user can accept new children
-            if (count($rootUser->getChildren()) < 4 && 
-                $this->membershipService->canParticipateInMatrix($rootUser)) {
-                return $rootUser;
+            if (
+                count($rootDonation->getChildrens()) < 4
+            ) {
+                return $rootDonation;
             }
             throw new \RuntimeException('Matrix is currently full');
         }
 
-        // Validate matrix level filling and membership
-        foreach ($result as $row) {
-            $parent = $row[0];
-            if ($this->matrixVisualization->validateMatrixStructure($parent) &&
-                $this->membershipService->canParticipateInMatrix($parent)) {
-                return $parent;
-            }
-        }
-
-        throw new \RuntimeException('No available parent found with valid matrix structure');
+        return $result[0][0];
     }
 
-    protected function calculatePosition(User $parent): int
+    protected function getNextPosition(): int
     {
-        return $this->em->createQueryBuilder()
-            ->select('COUNT(u.id)')
-            ->from(User::class, 'u')
-            ->where('u.parent = :parent')
-            ->setParameter('parent', $parent)
+        $lastDonation = $this->em->createQueryBuilder()
+            ->select('donation')
+            ->from(Donation::class, 'donation')
+            ->where('donation.paymentStatus = :status')
+            ->andWhere('donation.paymentCompletedAt IS NOT NULL')
+            ->andWhere('donation.matrixPosition IS NOT NULL')
+            ->orderBy('donation.matrixPosition', 'DESC')
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->setMaxResults(1)
             ->getQuery()
-            ->getSingleScalarResult() + 1;
-    }
+            ->getSingleResult();
 
-    public function getMatrixVisualization(User $user): array
-    {
-        return $this->matrixVisualization->getMatrixStructure($user);
-    }
-
-    public function validateUserMatrixDepth(User $user): bool
-    {
-        if (!$this->membershipService->canParticipateInMatrix($user)) {
-            return false;
-        }
-
-        return $user->getMatrixDepth() >= 3 && 
-               $this->matrixVisualization->validateMatrixStructure($user);
-    }
-
-    public function validateUserForWithdrawal(User $user): bool
-    {
-        return $user->isKycVerified() &&
-               $this->membershipService->canParticipateInMatrix($user) &&
-               $this->validateUserMatrixDepth($user) &&
-               $user->hasProject();
+        return $lastDonation->getMatrixPosition() + 1;
     }
 }

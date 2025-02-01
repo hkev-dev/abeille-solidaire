@@ -38,10 +38,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $firstName = null;
+    private ?string $firstName = "";
 
     #[ORM\Column(length: 255)]
-    private ?string $lastName = null;
+    private ?string $lastName = "";
 
     #[ORM\Column]
     private array $roles = [];
@@ -59,10 +59,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $username = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $phone = null;
+    private ?string $phone = "";
 
     #[ORM\Column(length: 2)]
-    private ?string $country = null;
+    private ?string $country = "";
 
     #[ORM\Column(length: 20)]
     private string $accountType = self::ACCOUNT_TYPE_PRIVATE;
@@ -79,17 +79,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $walletBalance = 0.0;
 
-    #[ORM\ManyToOne(targetEntity: Flower::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Flower $currentFlower = null;
-
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?self $parent = null;
-
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $children;
-
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
     private Collection $donationsMade;
 
@@ -102,12 +91,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Membership::class, mappedBy: 'user')]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $memberships;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $matrixPosition = null;
-
-    #[ORM\Column(type: 'integer')]
-    private int $matrixDepth = 0;
 
     #[ORM\Column(length: 20)]
     private string $registrationPaymentStatus = 'pending';
@@ -129,7 +112,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->children = new ArrayCollection();
         $this->donationsMade = new ArrayCollection();
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
@@ -245,7 +227,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getWalletBalance(): float
     {
-        return $this->walletBalance;
+        $balance = 0.0;
+
+        foreach ($this->donationsMade as $donation) {
+            $balance += $donation->getEarnings();
+        }
+
+        return $balance;
     }
 
     public function setWalletBalance(float $walletBalance): self
@@ -262,29 +250,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getCurrentFlower(): ?Flower
     {
-        return $this->currentFlower;
+        return $this->getMainDonation()?->getFlower();
     }
 
     public function setCurrentFlower(?Flower $flower): self
     {
-        $this->currentFlower = $flower;
         return $this;
-    }
-
-    public function getParent(): ?self
-    {
-        return $this->parent;
-    }
-
-    public function setParent(?self $parent): self
-    {
-        $this->parent = $parent;
-        return $this;
-    }
-
-    public function getChildren(): Collection
-    {
-        return $this->children;
     }
 
     public function getMemberships(): Collection
@@ -374,49 +345,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         $currentMembership = $this->getCurrentMembership();
         return $currentMembership ? $currentMembership->getEndDate() : null;
-    }
-
-    public function getMatrixPosition(): ?int
-    {
-        return $this->matrixPosition;
-    }
-
-    public function setMatrixPosition(?int $position): self
-    {
-        if ($position !== null && $position < 0) {
-            throw new \InvalidArgumentException('Matrix position cannot be negative');
-        }
-        $this->matrixPosition = $position;
-        return $this;
-    }
-
-    public function getMatrixDepth(): int
-    {
-        return $this->matrixDepth;
-    }
-
-    public function setMatrixDepth(int $depth): self
-    {
-        if ($depth < 0) {
-            throw new \InvalidArgumentException('Matrix depth cannot be negative');
-        }
-        $this->matrixDepth = $depth;
-        return $this;
-    }
-
-    public function hasAvailableMatrixSlot(): bool
-    {
-        return $this->children->count() < 4;
-    }
-
-    public function getMatrixLevel(): int
-    {
-        return $this->matrixDepth + 1;
-    }
-
-    public function getMatrixChildrenCount(): int
-    {
-        return $this->children->count();
     }
 
     public function getDonationsMade(): Collection
@@ -602,7 +530,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // Admin users bypass matrix depth check
         $hasRequiredMatrixDepth = array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) || 
-            $this->matrixDepth >= 3;
+            $this->getMainDonation()?->getMatrixDepth() >= 3;
 
         return $this->isKycVerified &&      // KYC verification completed
             $this->hasPaidAnnualFee() &&    // Annual membership is active
@@ -625,7 +553,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $total = 0.0;
         foreach ($this->donationsReceived as $donation) {
-            if ($donation->getFlower() === $this->currentFlower) {
+            if ($donation->getFlower() === $this->getCurrentFlower()) {
                 $total += $donation->getAmount();
             }
         }
@@ -648,12 +576,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         foreach ($this->donationsReceived as $donation) {
             if (
-                $donation->getFlower() === $this->currentFlower &&
+                $donation->getFlower() === $this->getCurrentFlower() &&
                 $donation->getTransactionDate() > $cycleStart
             ) {
                 $total += $donation->getAmount();
             }
         }
         return $total;
+    }
+
+    public function getMainDonation(): ?Donation
+    {
+        return $this->getDonationsMade()->first() ?: null;
+    }
+
+    public function getMatrixDepth(): int
+    {
+        return $this->getMainDonation()->getMatrixDepth();
+    }
+
+    public function getMatrixPosition(): ?int
+    {
+        return $this->getMainDonation()->getMatrixPosition();
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->getMainDonation()->getParent()?->getDonor();
+    }
+
+    public function getChildren(): Collection
+    {
+        $children = $this->getMainDonation()->getChildrens()->toArray();
+
+        usort($children, fn($a, $b) => $a->getMatrixPosition() <=> $b->getMatrixPosition());
+
+        return new ArrayCollection($children);
+    }
+
+    public function getMatrixChildrenCount(): int
+    {
+        if ($this->getMainDonation()->getPaymentStatus() === Donation::PAYMENT_COMPLETED) {
+            return $this->getMainDonation()->countAllChildrens();
+        }
+
+        return 0;
     }
 }

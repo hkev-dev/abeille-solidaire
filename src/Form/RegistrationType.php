@@ -158,7 +158,8 @@ class RegistrationType extends AbstractType
                 'attr' => [
                     'class' => 'custom-control-input'
                 ],
-                'row_attr' => ['class' => 'login-register__checkbox']
+                'row_attr' => ['class' => 'login-register__checkbox'],
+                'data' => true
             ])
             ->add('recaptcha', HiddenType::class, [
                 'attr' => [

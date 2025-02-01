@@ -36,41 +36,34 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
         $this->membershipService = $membershipService;
     }
 
-    protected function processRegistrationPayment(User $user, bool $includeMembership, string $paymentReference): void
+    protected function processRegistrationPayment(Donation $donation, bool $includeMembership, string $paymentReference): void
     {
         try {
             $this->em->beginTransaction();
 
             // First update user status
-            $user->setRegistrationPaymentStatus('completed')
+            $donation->getDonor()
+                ->setRegistrationPaymentStatus('completed')
                 ->setIsKycVerified(false)
                 ->setWaitingSince(null);
 
             // Now place user in matrix
-            $this->matrixService->placeUserInMatrix($user);
+            $this->matrixService->placeDonationInMatrix($donation);
 
-            // Get and update the registration donation
-            $registrationDonation = $this->em->getRepository(Donation::class)
-                ->findOneBy([
-                    'donor' => $user,
-                    'donationType' => 'registration'
-                ]);
-
-            if ($registrationDonation) {
-                if (str_starts_with($paymentReference, 'pi_')) {
-                    $registrationDonation->setStripePaymentIntentId($paymentReference);
-                    $registrationDonation->setPaymentProvider('stripe');
-                } else {
-                    $registrationDonation->setCoinpaymentsTransactionId($paymentReference);
-                    $registrationDonation->setPaymentProvider('coinpayments');
-                }
-                $registrationDonation->setPaymentStatus('completed');
+            if (str_starts_with($paymentReference, 'pi_')) {
+                $donation->setStripePaymentIntentId($paymentReference)
+                    ->setPaymentProvider('stripe');
+            } else {
+                $donation->setCoinpaymentsTransactionId($paymentReference)
+                    ->setPaymentProvider('coinpayments');
             }
+
+            $donation->setPaymentStatus('completed');
 
             // Handle membership if included
             if ($includeMembership) {
                 // Create membership donation
-                $membershipDonation = $this->donationService->createMembershipDonation($user);
+                $membershipDonation = $this->donationService->createMembershipDonation($donation->getDonor());
                 
                 if (str_starts_with($paymentReference, 'pi_')) {
                     $membershipDonation->setStripePaymentIntentId($paymentReference);
@@ -83,7 +76,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
                 $membershipDonation->setPaymentStatus('completed');
                 
                 // Create membership
-                $this->membershipService->createMembership($user, $membershipDonation);
+                $this->membershipService->createMembership($donation->getDonor(), $membershipDonation);
             }
 
             $this->em->flush();

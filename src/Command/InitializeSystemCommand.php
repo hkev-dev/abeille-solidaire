@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Donation;
 use App\Entity\User;
 use App\Entity\Flower;
 use App\Repository\UserRepository;
@@ -252,13 +253,24 @@ class InitializeSystemCommand extends Command
             ->setRegistrationPaymentStatus('completed')
             ->setIsKycVerified(true)
             ->setKycVerifiedAt(new \DateTimeImmutable())
-            ->setCurrentFlower($violette)
             ->setWalletBalance(0.0)
-            ->setCountry('FR')
-            // Matrix-specific initialization
-            ->setMatrixDepth(0) // Root node has depth 0
-            ->setMatrixPosition(1); // First position in the matrix
+            ->setCountry('FR'); // First position in the matrix
 
+        $donation = new Donation();
+        $donation
+            ->setDonor($admin)
+            ->setRecipient($admin)
+            ->setAmount(0)
+            ->setDonationType(Donation::TYPE_REGISTRATION)
+            ->setFlower($violette)
+            ->setMatrixDepth(0) // Root node has depth 0
+            ->setMatrixPosition(1) // First position in the matrix
+            ->setPaymentStatus("completed")
+            ->setTransactionDate(new \DateTimeImmutable())
+            ->setPaymentCompletedAt(new \DateTimeImmutable());
+        ;
+
+        $this->entityManager->persist($donation);
         $this->entityManager->persist($admin);
         return $admin;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Controller\User;
 
+use App\Entity\Donation;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Repository\DonationRepository;
@@ -38,9 +39,9 @@ class DashboardController extends AbstractController
         // Calculate flower progress based on direct children count
         $flowerProgress = [
             'received' => $user->getMatrixChildrenCount(),
-            'total' => 4, // Always need 4 direct children to complete a flower
+            'total' => $user->getCurrentFlower()->getMatrixRemainingSlots(),
             'percentage' => 0,
-            'remainingSlots' => max(0, 4 - $user->getMatrixChildrenCount())
+            'remainingSlots' => max(0, $user->getCurrentFlower()->getMatrixRemainingSlots() - $user->getMatrixChildrenCount())
         ];
         $flowerProgress['percentage'] = ($flowerProgress['received'] / $flowerProgress['total']) * 100;
 
@@ -100,6 +101,20 @@ class DashboardController extends AbstractController
                 'status' => $this->formatPaymentStatus($donation->getPaymentStatus()),
                 'statusColor' => $this->getPaymentStatusColor($donation->getPaymentStatus())
             ];
+
+            foreach ($donation->getChildrens() as $child) {
+                $isDonor = $child->getDonor() === $user;
+                $activities[] = [
+                    'type' => $this->formatDonationType($child->getDonationType()),
+                    'icon' => $this->getDonationIcon($child->getDonationType(), $isDonor),
+                    'color' => $this->getDonationColor($child->getDonationType(), $isDonor),
+                    'description' => $this->formatDonationDescription($child, $isDonor),
+                    'amount' => $isDonor ? -$child->getAmount() : $child->getAmount(),
+                    'date' => $child->getTransactionDate(),
+                    'status' => $this->formatPaymentStatus($child->getPaymentStatus()),
+                    'statusColor' => $this->getPaymentStatusColor($child->getPaymentStatus())
+                ];
+            }
         }
 
         // Get recent withdrawals
@@ -180,7 +195,7 @@ class DashboardController extends AbstractController
         };
     }
 
-    private function formatDonationDescription(object $donation, bool $isDonor): string
+    private function formatDonationDescription(Donation $donation, bool $isDonor): string
     {
         $otherParty = $isDonor ? $donation->getRecipient() : $donation->getDonor();
         $action = $isDonor ? 'à' : 'de';
@@ -189,7 +204,7 @@ class DashboardController extends AbstractController
             '%s %s %s',
             $this->formatDonationType($donation->getDonationType()),
             $action,
-            $otherParty->getFullName()
+            $otherParty?->getFullName()
         );
     }
 

@@ -80,7 +80,7 @@ class UserMenuComponent
             'hasKyc' => $user->isKycVerified(),
             'hasAnnualFee' => $user->hasPaidAnnualFee(),
             'hasProject' => $user->hasProject(),
-            'hasMinimumMatrixDepth' => $user->getMatrixDepth() >= 3
+            'hasMinimumMatrixDepth' => $user->getMainDonation()->getMatrixDepth() >= 3
         ];
     }
 
@@ -91,9 +91,9 @@ class UserMenuComponent
         $currentFlower = $user->getCurrentFlower();
 
         return [
-            'depth' => $user->getMatrixDepth(),
-            'position' => $user->getMatrixPosition(),
-            'childrenCount' => $user->getMatrixChildrenCount(),
+            'depth' => $user->getMainDonation()->getMatrixDepth(),
+            'position' => $user->getMainDonation()->getMatrixPosition(),
+            'childrenCount' => $user->getMainDonation()->getMatrixChildrenCount(),
             'totalReceived' => $currentFlower ? $user->getTotalReceivedInFlower() : 0,
             'currentCycleReceived' => $currentFlower ? $user->getTotalReceivedInCurrentCycle() : 0
         ];

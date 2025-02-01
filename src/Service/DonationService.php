@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Donation;
 use App\Entity\User;
 use App\Entity\Flower;
+use App\Repository\FlowerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Event\DonationProcessedEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -17,13 +18,15 @@ class DonationService
 
     protected EntityManagerInterface $em;
     protected EventDispatcherInterface $eventDispatcher;
+    private FlowerRepository $flowerRepository;
 
     public function __construct(
-        EntityManagerInterface $em,
-        EventDispatcherInterface $eventDispatcher
+        EntityManagerInterface   $em,
+        EventDispatcherInterface $eventDispatcher, FlowerRepository $flowerRepository
     ) {
         $this->em = $em;
         $this->eventDispatcher = $eventDispatcher;
+        $this->flowerRepository = $flowerRepository;
     }
 
     public function createDonation(
@@ -50,6 +53,25 @@ class DonationService
         if ($paymentStatus === 'completed') {
             $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
         }
+
+        return $donation;
+    }
+
+    public function createRegistrationDonation(User $user): Donation
+    {
+        $flower = $this->flowerRepository->findOneBy(['level' => 1]);
+
+        $donation = new Donation();
+        $donation
+            ->setDonor($user)
+            ->setAmount(DonationService::REGISTRATION_FEE)
+            ->setDonationType(Donation::TYPE_REGISTRATION)
+            ->setFlower($flower)
+            ->setPaymentStatus('pending')
+            ->setTransactionDate(new \DateTimeImmutable());
+
+        $this->em->persist($donation);
+        $this->em->flush();
 
         return $donation;
     }
@@ -142,16 +164,16 @@ class DonationService
     public function createMembershipDonation(User $donor): ?Donation
     {
         // Find root user (matrixDepth = 0)
-        $rootUser = $this->em->getRepository(className: User::class)
-            ->findOneBy(['matrixDepth' => 0]);
+        $rootDonation = $this->em->getRepository(className: Donation::class)
+            ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
 
-        if (!$rootUser) {
-            throw new \RuntimeException('Root user not found');
+        if (!$rootDonation) {
+            throw new \RuntimeException('Root Donation not found');
         }
 
         $donation = $this->createDonation(
             $donor,
-            $rootUser,
+            $rootDonation,
             self::MEMBERSHIP_FEE,
             Donation::TYPE_MEMBERSHIP,
             $donor->getCurrentFlower(),
@@ -226,5 +248,23 @@ class DonationService
             'children' => $children,
             'isComplete' => ($completedDonations >= 4 && $children >= 4)
         ];
+    }
+
+    public function calculateEarnings(Donation $donation, float $amount): void
+    {
+        $rootDonation = $this->em->getRepository(Donation::class)
+            ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
+
+        if ($donation->getParent()) {
+            $share = $amount * Donation::PAYMENT_SHARE;
+            $donation->getParent()->addEarnings($share);
+
+            $this->calculateEarnings($donation->getParent(), $share); // Recursive call for the parent
+        } else {
+            // If no parent, the first member gets the remaining amount
+            if ($donation->getId() === $rootDonation->getId()) {
+                $donation->addEarnings($amount);
+            }
+        }
     }
 }

@@ -43,25 +43,19 @@ class FlowerService
             ->getSingleScalarResult();
     }
 
-    public function canProgressToNextFlower(User $user): bool
+    public function canProgressToNextFlower(Donation $donation): bool
     {
-        $currentFlower = $user->getCurrentFlower();
-        $cycleIterations = $this->getUserCycleIterations($user, $currentFlower);
+//        $currentFlower = $donation->getCurrentFlower();
+//        $cycleIterations = $this->getUserCycleIterations($user, $currentFlower);
         
-        return $cycleIterations < self::MAX_CYCLE_ITERATIONS;
+//        return $cycleIterations < self::MAX_CYCLE_ITERATIONS;
+
+        return true;
     }
 
-    public function validateFlowerProgression(User $user): bool
+    public function validateFlowerProgression(Donation $donation): bool
     {
-        if (!$user->isKycVerified()) {
-            return false;
-        }
-
-        if (!$this->membershipService->canProgressInFlowers($user)) {
-            return false;
-        }
-
-        return $this->canProgressToNextFlower($user);
+        return $this->canProgressToNextFlower($donation);
     }
 
     public function getCurrentCycleCount(User $user): int
@@ -87,13 +81,13 @@ class FlowerService
         return $cycleCount >= 10;
     }
 
-    public function getNextFlower(Flower $current): ?Flower
+    public function getNextFlower(Flower $flower): ?Flower
     {
         return $this->em->createQueryBuilder()
             ->select('f')
             ->from(Flower::class, 'f')
             ->where('f.level = :level')
-            ->setParameter('level', $current->getLevel() + 1)
+            ->setParameter('level', $flower->getLevel() + 1)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

@@ -2,6 +2,7 @@
 
 namespace App\RemoteEvent;
 
+use App\Repository\DonationRepository;
 use App\Service\Payment\StripePaymentService;
 use Psr\Log\LoggerInterface;
 use App\Repository\UserRepository;
@@ -14,9 +15,10 @@ use Symfony\Component\RemoteEvent\Attribute\AsRemoteEventConsumer;
 final class StripeWebhookConsumer implements ConsumerInterface
 {
     public function __construct(
-        private readonly LoggerInterface $logger,
+        private readonly LoggerInterface      $logger,
         private readonly StripePaymentService $paymentService,
-        private readonly UserRepository $userRepository
+        private readonly UserRepository       $userRepository,
+        private readonly DonationRepository $donationRepository
     ) {
     }
 
@@ -42,13 +44,13 @@ final class StripeWebhookConsumer implements ConsumerInterface
     {
         $metadata = $paymentIntent['metadata'];
 
-        if (!isset($metadata['user_id'])) {
-            throw new WebhookException('Missing user ID in payment metadata');
+        if (!isset($metadata['donation_id'])) {
+            throw new WebhookException('Missing Donation ID in payment metadata');
         }
 
-        $user = $this->userRepository->find($metadata['user_id']);
-        if (!$user) {
-            throw new WebhookException('User not found');
+        $donation = $this->donationRepository->find($metadata['donation_id']);
+        if (!$donation) {
+            throw new WebhookException('Donation not found');
         }
 
         $paymentType = $metadata['payment_type'] ?? 'registration';
@@ -65,7 +67,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
 
             $this->logger->info('Payment processed successfully', [
                 'type' => $paymentType,
-                'user_id' => $user->getId(),
+                'donation_id' => $donation->getId(),
                 'payment_intent' => $paymentIntent['id']
             ]);
 
@@ -78,7 +80,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
         } catch (\Exception $e) {
             $this->logger->error('Payment processing failed', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->getId(),
+                'donation_id' => $donation->getId(),
                 'payment_intent' => $paymentIntent['id']
             ]);
             throw $e;
@@ -90,14 +92,14 @@ final class StripeWebhookConsumer implements ConsumerInterface
         $metadata = $paymentIntent['metadata'];
         $paymentType = $metadata['payment_type'] ?? 'registration';
 
-        if (!isset($metadata['user_id'])) {
-            $this->logger->warning('Missing user ID in failed payment metadata', [
+        if (!isset($metadata['donation_id'])) {
+            $this->logger->warning('Missing Donation ID in failed payment metadata', [
                 'payment_intent' => $paymentIntent['id'],
                 'payment_type' => $paymentType
             ]);
             return [
                 'status' => 'ignored',
-                'reason' => 'missing_user_id'
+                'reason' => 'missing_donation_id'
             ];
         }
 

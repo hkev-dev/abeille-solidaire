@@ -4,9 +4,14 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\DonationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: DonationRepository::class)]
+#[UniqueEntity(fields: ['matrixPosition'], message: 'Matrix position is already taken')]
 #[ORM\HasLifecycleCallbacks]
 class Donation
 {
@@ -26,6 +31,8 @@ class Donation
         self::PROVIDER_COINPAYMENTS,
         self::PROVIDER_INTERNAL
     ];
+    public const PAYMENT_SHARE = 0.5; // 50%
+    public const PAYMENT_COMPLETED = "completed";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -37,8 +44,8 @@ class Donation
     private User $donor;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'donationsReceived')]
-    #[ORM\JoinColumn(nullable: false)]
-    private User $recipient;
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $recipient = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount;
@@ -68,6 +75,30 @@ class Donation
     #[ORM\Column(length: 20)]
     private string $paymentStatus = 'pending';
 
+    #[ORM\Column(type: 'integer', unique: true, nullable: true)]
+    private ?int $matrixPosition = null;
+
+    #[ORM\Column(type: 'integer')]
+    private int $matrixDepth = 0;
+
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'childrens')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?self $parent = null;
+
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    private Collection $childrens;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paymentCompletedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $earnings = null;
+
+    public function __construct()
+    {
+        $this->childrens = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -84,12 +115,12 @@ class Donation
         return $this;
     }
 
-    public function getRecipient(): User
+    public function getRecipient(): ?User
     {
         return $this->recipient;
     }
 
-    public function setRecipient(User $recipient): self
+    public function setRecipient(?User $recipient = null): self
     {
         $this->recipient = $recipient;
         return $this;
@@ -217,17 +248,142 @@ class Donation
         return $this->donationType;
     }
 
+    public function getMatrixPosition(): ?int
+    {
+        return $this->matrixPosition;
+    }
+
+    public function setMatrixPosition(?int $position): self
+    {
+        if ($position !== null && $position < 0) {
+            throw new \InvalidArgumentException('Matrix position cannot be negative');
+        }
+
+        $this->matrixPosition = $position;
+        return $this;
+    }
+
+    public function getMatrixDepth(): int
+    {
+        return $this->matrixDepth;
+    }
+
+    public function setMatrixDepth(int $depth): self
+    {
+        if ($depth < 0) {
+            throw new \InvalidArgumentException('Matrix depth cannot be negative');
+        }
+        $this->matrixDepth = $depth;
+        return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): self
+    {
+        $this->parent = $parent;
+        return $this;
+    }
+
+    public function getChildrens(): Collection
+    {
+        return $this->childrens;
+    }
+
+    public function hasAvailableMatrixSlot(): bool
+    {
+        return $this->childrens->count() < 4;
+    }
+
+    public function getMatrixLevel(): int
+    {
+        return $this->matrixDepth + 1;
+    }
+
+    public function getMatrixChildrenCount(): int
+    {
+        return $this->childrens->count();
+    }
+
     /**
      * Get a human-readable label for the donation type
      */
     public function getTypeLabel(): string
     {
-        return match($this->donationType) {
+        return match ($this->donationType) {
             self::TYPE_REGISTRATION => "Inscription",
             self::TYPE_SOLIDARITY => "Solidarité",
             self::TYPE_SUPPLEMENTARY => "Supplémentaire",
             self::TYPE_MEMBERSHIP => "Adhésion",
             default => "Inconnu"
         };
+    }
+
+    public function getCurrentFlower(): Flower
+    {
+        return $this->getFlower();
+    }
+
+    public function getPaymentCompletedAt(): ?\DateTimeInterface
+    {
+        return $this->paymentCompletedAt;
+    }
+
+    public function setPaymentCompletedAt(?\DateTimeInterface $paymentCompletedAt): static
+    {
+        $this->paymentCompletedAt = $paymentCompletedAt;
+
+        return $this;
+    }
+
+    public function canLevelUp(): bool
+    {
+        if ($this->getChildrens()->count() < 4){
+            return false;
+        }
+
+        // Check if all children are completed
+        /** @var Donation $child */
+        foreach ($this->getChildrens() as $child) {
+            if ($child->getFlower()->getLevel() < $this->getFlower()->getLevel()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function getEarnings(): ?float
+    {
+        return $this->earnings;
+    }
+
+    public function setEarnings(?float $earnings): static
+    {
+        $this->earnings = $earnings;
+
+        return $this;
+    }
+
+    public function addEarnings(float $amount): void
+    {
+        $this->earnings += $amount;
+    }
+
+    public function countAllChildrens(): int
+    {
+        $childrensCount = 0;
+
+        foreach ($this->getChildrens() as $child) {
+            if ($child->getPaymentStatus() === Donation::PAYMENT_COMPLETED) {
+                $childrensCount++;
+                $childrensCount += $child->countAllChildrens();
+            }
+        }
+
+        return $childrensCount;
     }
 }

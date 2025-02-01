@@ -2,6 +2,7 @@
 
 namespace App\Service\Payment;
 
+use App\Repository\FlowerRepository;
 use App\Service\MembershipService;
 use Stripe\Stripe;
 use App\Entity\User;
@@ -17,11 +18,11 @@ class StripePaymentService extends AbstractPaymentService
 {
     public function __construct(
         EntityManagerInterface $em,
-        MatrixService $matrixService,
-        DonationService $donationService,
-        LoggerInterface $logger,
-        ParameterBagInterface $params,
-        MembershipService $membershipService
+        MatrixService          $matrixService,
+        DonationService        $donationService,
+        LoggerInterface        $logger,
+        ParameterBagInterface  $params,
+        MembershipService      $membershipService
     ) {
         parent::__construct($em, $matrixService, $donationService, $logger, $params, $membershipService);
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
@@ -31,11 +32,13 @@ class StripePaymentService extends AbstractPaymentService
     {
         $amount = $includeMembership ? 5000 : 2500; // In cents (25€ or 50€)
 
+        $donation = $this->donationService->createRegistrationDonation($user);
+
         $paymentIntent = PaymentIntent::create([
             'amount' => $amount,
             'currency' => 'eur',
             'metadata' => [
-                'user_id' => $user->getId(),
+                'donation_id' => $donation->getId(),
                 'include_membership' => $includeMembership ? 'true' : 'false',
                 'payment_type' => 'registration'
             ]
@@ -71,10 +74,10 @@ class StripePaymentService extends AbstractPaymentService
     public function handlePaymentSuccess(array $paymentData): void
     {
         $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
-        $user = $this->em->getRepository(User::class)->find($paymentIntent->metadata['user_id']);
+        $donation = $this->em->getRepository(Donation::class)->find($paymentIntent->metadata['donation_id']);
         
-        if (!$user) {
-            throw new \Exception('User not found');
+        if (!$donation) {
+            throw new \Exception('Donation not found');
         }
 
         $paymentType = $paymentIntent->metadata['payment_type'];
@@ -84,13 +87,13 @@ class StripePaymentService extends AbstractPaymentService
                 $this->em->beginTransaction();
 
                 // First update payment status
-                $user->setRegistrationPaymentStatus('completed')
+                $donation->getDonor()->setRegistrationPaymentStatus('completed')
                     ->setIsKycVerified(false)
                     ->setWaitingSince(null);
                 $this->em->flush();
 
                 // Then process the payment
-                $this->processRegistrationPayment($user, $includeMembership, $paymentIntent->id);
+                $this->processRegistrationPayment($donation, $includeMembership, $paymentIntent->id);
                 
                 $this->em->commit();
             } catch (\Exception $e) {
@@ -98,12 +101,12 @@ class StripePaymentService extends AbstractPaymentService
                 throw $e;
             }
         } elseif ($paymentType === 'membership') {
-            $this->processMembershipPayment($user, $paymentIntent->id);
+            $this->processMembershipPayment($donation->getDonor(), $paymentIntent->id);
         }
 
         // Set Stripe customer ID if available
         if ($paymentIntent->customer) {
-            $user->setStripeCustomerId($paymentIntent->customer);
+            $donation->getDonor()->setStripeCustomerId($paymentIntent->customer);
             $this->em->flush();
         }
     }

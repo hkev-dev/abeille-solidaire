@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Donation;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -55,11 +56,11 @@ class MatrixVisualizationService
         ];
     }
 
-    public function validateMatrixStructure(User $user): bool
+    public function validateMatrixStructure(Donation $donation): bool
     {
         // Get all descendants grouped by depth
-        $descendants = $this->getAllDescendants($user);
-        if (empty($descendants)) {
+        $childrens = $donation->getChildrens();
+        if (empty($childrens)) {
             return true; // No descendants yet is valid
         }
 
@@ -88,20 +89,5 @@ class MatrixVisualizationService
         }
 
         return true;
-    }
-
-    private function getAllDescendants(User $user): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->where('u.matrixDepth > :parentDepth')
-            ->andWhere('u.registrationPaymentStatus = :status')
-            ->setParameter('parentDepth', $user->getMatrixDepth())
-            ->setParameter('status', 'completed')
-            ->orderBy('u.matrixDepth', 'ASC')
-            ->addOrderBy('u.createdAt', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 }
