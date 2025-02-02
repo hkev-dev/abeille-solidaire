@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\FlowerRepository;
+use App\Service\DonationService;
+use App\Service\FlowerService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -42,9 +44,16 @@ class Flower
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'flower')]
     private Collection $donations;
 
+    /**
+     * @var Collection<int, Earning>
+     */
+    #[ORM\OneToMany(targetEntity: Earning::class, mappedBy: 'flower')]
+    private Collection $earnings;
+
     public function __construct()
     {
         $this->donations = new ArrayCollection();
+        $this->earnings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -176,12 +185,48 @@ class Flower
         ];
     }
 
-    public function getMatrixRemainingSlots(): int
+    public function getNumberOfSlots(): int
     {
-        if ($this->getLevel() < 1) {
-            return 4;
+        return FlowerService::getNumberOfSlotByLevel($this->getLevel());
+    }
+
+    public function getTotalAmountExpected(): float
+    {
+        return FlowerService::getLevelTotalAmountExpected($this->getLevel());
+    }
+
+    public function getExpectedEarning(): float
+    {
+        return FlowerService::getLevelExpectedEarning($this->getLevel());
+    }
+
+    /**
+     * @return Collection<int, Earning>
+     */
+    public function getEarnings(): Collection
+    {
+        return $this->earnings;
+    }
+
+    public function addEarning(Earning $earning): static
+    {
+        if (!$this->earnings->contains($earning)) {
+            $this->earnings->add($earning);
+            $earning->setFlower($this);
         }
 
-        return 4 ** $this->getLevel();
+        return $this;
+    }
+
+    public function removeEarning(Earning $earning): static
+    {
+        if ($this->earnings->removeElement($earning)) {
+            // set the owning side to null (unless already changed)
+            if ($earning->getFlower() === $this) {
+                $earning->setFlower(null);
+            }
+        }
+
+        return $this;
     }
 }

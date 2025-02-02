@@ -1,0 +1,242 @@
+{
+    "1": {
+        "id": 1,
+        "name": "Lafatra",
+        "level": 3,
+        "affiliates": [
+            2,
+            3,
+            4,
+            5
+        ],
+        "parent": null,
+        "earnings": 331.25
+    },
+    "2": {
+        "id": 2,
+        "name": "Sandra",
+        "level": 2,
+        "affiliates": [
+            6,
+            7,
+            8,
+            9
+        ],
+        "parent": 1,
+        "earnings": 81.25
+    },
+    "3": {
+        "id": 3,
+        "name": "Fanaperana",
+        "level": 2,
+        "affiliates": [
+            10,
+            11,
+            12,
+            13
+        ],
+        "parent": 1,
+        "earnings": 50
+    },
+    "4": {
+        "id": 4,
+        "name": "Kanto",
+        "level": 2,
+        "affiliates": [
+            14,
+            15,
+            16,
+            17
+        ],
+        "parent": 1,
+        "earnings": 50
+    },
+    "5": {
+        "id": 5,
+        "name": "Neny",
+        "level": 2,
+        "affiliates": [
+            18,
+            19,
+            20,
+            21
+        ],
+        "parent": 1,
+        "earnings": 50
+    },
+    "6": {
+        "id": 6,
+        "name": "Dada",
+        "level": 2,
+        "affiliates": [
+            22,
+            23,
+            24,
+            25
+        ],
+        "parent": 2,
+        "earnings": 50
+    },
+    "7": {
+        "id": 7,
+        "name": "Sandrinah",
+        "level": 1,
+        "affiliates": [
+            26
+        ],
+        "parent": 2,
+        "earnings": 12.5
+    },
+    "8": {
+        "id": 8,
+        "name": "Sandrio",
+        "level": 1,
+        "affiliates": [],
+        "parent": 2,
+        "earnings": 0
+    },
+    "9": {
+        "id": 9,
+        "name": "Angel",
+        "level": 1,
+        "affiliates": [],
+        "parent": 2,
+        "earnings": 0
+    },
+    "10": {
+        "id": 10,
+        "name": "Fikajy",
+        "level": 1,
+        "affiliates": [],
+        "parent": 3,
+        "earnings": 0
+    },
+    "11": {
+        "id": 11,
+        "name": "Mikajy",
+        "level": 1,
+        "affiliates": [],
+        "parent": 3,
+        "earnings": 0
+    },
+    "12": {
+        "id": 12,
+        "name": "Era lia",
+        "level": 1,
+        "affiliates": [],
+        "parent": 3,
+        "earnings": 0
+    },
+    "13": {
+        "id": 13,
+        "name": "Antsaniera",
+        "level": 1,
+        "affiliates": [],
+        "parent": 3,
+        "earnings": 0
+    },
+    "14": {
+        "id": 14,
+        "name": "Antsaniera",
+        "level": 1,
+        "affiliates": [],
+        "parent": 4,
+        "earnings": 0
+    },
+    "15": {
+        "id": 15,
+        "name": "Kanto",
+        "level": 1,
+        "affiliates": [],
+        "parent": 4,
+        "earnings": 0
+    },
+    "16": {
+        "id": 16,
+        "name": "Fanaperana",
+        "level": 1,
+        "affiliates": [],
+        "parent": 4,
+        "earnings": 0
+    },
+    "17": {
+        "id": 17,
+        "name": "Angel",
+        "level": 1,
+        "affiliates": [],
+        "parent": 4,
+        "earnings": 0
+    },
+    "18": {
+        "id": 18,
+        "name": "Angel",
+        "level": 1,
+        "affiliates": [],
+        "parent": 5,
+        "earnings": 0
+    },
+    "19": {
+        "id": 19,
+        "name": "NEny",
+        "level": 1,
+        "affiliates": [],
+        "parent": 5,
+        "earnings": 0
+    },
+    "20": {
+        "id": 20,
+        "name": "Fanaperana",
+        "level": 1,
+        "affiliates": [],
+        "parent": 5,
+        "earnings": 0
+    },
+    "21": {
+        "id": 21,
+        "name": "Sandrinah",
+        "level": 1,
+        "affiliates": [],
+        "parent": 5,
+        "earnings": 0
+    },
+    "22": {
+        "id": 22,
+        "name": "Lafatra",
+        "level": 1,
+        "affiliates": [],
+        "parent": 6,
+        "earnings": 0
+    },
+    "23": {
+        "id": 23,
+        "name": "XXXX",
+        "level": 1,
+        "affiliates": [],
+        "parent": 6,
+        "earnings": 0
+    },
+    "24": {
+        "id": 24,
+        "name": "polisy",
+        "level": 1,
+        "affiliates": [],
+        "parent": 6,
+        "earnings": 0
+    },
+    "25": {
+        "id": 25,
+        "name": "rasta",
+        "level": 1,
+        "affiliates": [],
+        "parent": 6,
+        "earnings": 0
+    },
+    "26": {
+        "id": 26,
+        "name": "koko",
+        "level": 1,
+        "affiliates": [],
+        "parent": 7,
+        "earnings": 0
+    }
+}

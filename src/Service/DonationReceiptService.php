@@ -15,7 +15,7 @@ class DonationReceiptService
             'receipt_number' => $this->generateReceiptNumber($donation),
             'donation_date' => $donation->getTransactionDate(),
             'donor' => $donation->getDonor()->getFullName(),
-            'recipient' => $donation->getRecipient()->getFullName(),
+            'recipient' => $donation->getBeneficiariesName(),
             'amount' => $donation->getAmount(),
             'flower_name' => $donation->getFlower()->getName(),
         ];

@@ -7,6 +7,7 @@ use App\Entity\Flower;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;
+use App\Service\FlowerService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,8 +16,8 @@ class FlowerController extends AbstractController
 {
     public function __construct(
         private readonly DonationRepository $donationRepository,
-        private readonly FlowerRepository $flowerRepository,
-        private readonly UserRepository $userRepository,
+        private readonly FlowerRepository   $flowerRepository,
+        private readonly UserRepository     $userRepository, private readonly FlowerService $flowerService,
     ) {
     }
 
@@ -31,18 +32,6 @@ class FlowerController extends AbstractController
             return $this->redirectToRoute('app.user.dashboard');
         }
 
-        // Initialize matrix positions with null values
-        $matrixPositions = array_fill(1, 4, null);
-
-        // Get direct children in the matrix
-        $children = $user->getChildren();
-        foreach ($children as $child) {
-            $position = $child->getMatrixPosition();
-            if ($position >= 1 && $position <= 4) {
-                $matrixPositions[$position] = $child;
-            }
-        }
-
         $data = [
             'user' => $user,
             'flower' => $currentFlower,
@@ -50,14 +39,14 @@ class FlowerController extends AbstractController
             'walletBalance' => $user->getWalletBalance(),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
-            'matrixPositions' => $matrixPositions,
+            'matrixPositions' => array_pad($user->getChildren()->toArray(), 4, null),
             'membershipInfo' => [
                 'isActive' => $user->hasPaidAnnualFee(),
                 'expiresAt' => $user->getMembershipExpiredAt(),
                 'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
             ],
             'flowerProgress' => $user->getFlowerProgress(),
-            'totalReceivedInFlower' => $this->donationRepository->getTotalReceivedInFlower($user, $currentFlower),
+            'totalReceivedInFlower' => $this->flowerService->getReceivedAmount($user->getMainDonation(), $user->getCurrentFlower()),
             'userLevel' => $user->getMatrixLevel(),    // Add this for proper level display
             'userDepth' => $user->getMatrixDepth(),    // Add this to fix the missing variable
             'completedCycles' => $this->donationRepository->countCompletedCycles($user, $currentFlower),

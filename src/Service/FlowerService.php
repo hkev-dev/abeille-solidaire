@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Flower;
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Repository\EarningRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -15,15 +16,17 @@ class FlowerService
     protected EntityManagerInterface $em;
     protected EventDispatcherInterface $eventDispatcher;
     protected MembershipService $membershipService;
+    private EarningRepository $earningRepository;
 
     public function __construct(
-        EntityManagerInterface $em,
+        EntityManagerInterface   $em,
         EventDispatcherInterface $eventDispatcher,
-        MembershipService $membershipService
+        MembershipService        $membershipService, EarningRepository $earningRepository
     ) {
         $this->em = $em;
         $this->eventDispatcher = $eventDispatcher;
         $this->membershipService = $membershipService;
+        $this->earningRepository = $earningRepository;
     }
 
     public function getUserCycleIterations(User $user, Flower $flower): int
@@ -102,5 +105,39 @@ class FlowerService
             ->setMaxResults(1)
             ->getQuery()
             ->getSingleResult();
+    }
+
+    public static function getNumberOfSlotByLevel($level): int
+    {
+        if ($level < 1) {
+            return 0;
+        }
+
+        return 4 ** $level;
+    }
+
+    public static function getLevelExpectedEarning(int $level): float
+    {
+        $expextedEarning = DonationService::REGISTRATION_FEE;
+
+        for($i = 0; $i < $level; $i++) {
+            $expextedEarning = $expextedEarning / 2;
+        }
+
+        return $expextedEarning;
+    }
+
+    public static function getLevelTotalAmountExpected(int $level): float
+    {
+        return self::getNumberOfSlotByLevel($level) * self::getLevelExpectedEarning($level);
+    }
+
+    public function getReceivedAmount(Donation $donation, Flower $flower): float
+    {
+        $earnings = $this->earningRepository->findBy(['beneficiary' => $donation, 'flower' => $flower]);
+
+        return array_reduce($earnings, function($carry, $item) {
+            return $carry + $item->getAmount();
+        }, 0.0);
     }
 }

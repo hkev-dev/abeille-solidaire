@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
+use App\Service\FlowerService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -160,7 +161,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     public function getRoles(): array
@@ -229,8 +230,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $balance = 0.0;
 
+        /** @var Donation $donation */
         foreach ($this->donationsMade as $donation) {
-            $balance += $donation->getEarnings();
+            $balance += $donation->getEarningsAmount();
         }
 
         return $balance;
@@ -529,7 +531,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isEligibleForWithdrawal(): bool
     {
         // Admin users bypass matrix depth check
-        $hasRequiredMatrixDepth = array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) || 
+        $hasRequiredMatrixDepth = array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) ||
             $this->getMainDonation()?->getMatrixDepth() >= 3;
 
         return $this->isKycVerified &&      // KYC verification completed
@@ -540,13 +542,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFlowerProgress(): array
     {
-        $childrenCount = $this->getMatrixChildrenCount();
+        $flowerReceived = $this->countCurrentFlowerChildren();
+        $flowerNumberOfSlot = $this->getCurrentFlower()->getNumberOfSlots();
         return [
-            'received' => $childrenCount,
-            'total' => 4,
-            'percentage' => ($childrenCount / 4) * 100,
-            'remaining' => 4 - $childrenCount
+            'received' => $flowerReceived,
+            'total' => $flowerNumberOfSlot,
+            'percentage' => ($flowerReceived / $flowerNumberOfSlot) * 100,
+            'remaining' => max(0, $flowerNumberOfSlot - $flowerReceived)
         ];
+    }
+
+    public function countCurrentFlowerChildren(): int
+    {
+        return $this->getMatrixChildrenCount() - FlowerService::getNumberOfSlotByLevel($this->getCurrentFlower()->getLevel() - 1);
     }
 
     public function getTotalReceivedInFlower(): float
@@ -557,6 +565,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $total += $donation->getAmount();
             }
         }
+        return $total;
+    }
+
+    public function getReceivedAmountInCurrentFlower(): float
+    {
+        $total = 0.0;
+        /** @var Donation $donation */
+        foreach ($this->getDonationsMade() as $donation) {
+            $total = $donation->getEarnings()->filter(function (Earning $earning) {
+                return $earning->getFlower() === $this->getCurrentFlower();
+            })->reduce(function (float $carry, Earning $earning) use ($total) {
+                return $carry + $earning->getAmount();
+            }, $total);
+        }
+
         return $total;
     }
 
@@ -595,6 +618,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getMainDonation()->getMatrixDepth();
     }
 
+    public function getMatrixLevel(): int
+    {
+        return $this->getMainDonation()->getMatrixLevel();
+    }
+
     public function getMatrixPosition(): ?int
     {
         return $this->getMainDonation()->getMatrixPosition();
@@ -607,11 +635,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getChildren(): Collection
     {
-        $children = $this->getMainDonation()->getChildrens()->toArray();
+        $childrens = $this->getMainDonation()->getChildrens()->toArray();
 
-        usort($children, fn($a, $b) => $a->getMatrixPosition() <=> $b->getMatrixPosition());
+        usort($childrens, fn(Donation $a, Donation $b) => $a->getMatrixPosition() <=> $b->getMatrixPosition());
 
-        return new ArrayCollection($children);
+        return (new ArrayCollection($childrens))->map(function (Donation $donation) {
+            return $donation->getDonor();
+        });
     }
 
     public function getMatrixChildrenCount(): int

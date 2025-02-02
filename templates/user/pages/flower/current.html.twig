@@ -77,13 +77,6 @@
                                                                    isNext ? 'text-warning' : 'text-gray-600' }}">
                                         {{ f.name }}
                                     </h3>
-                                    <div class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium
-                                                                {{ isActive ? 'bg-primary/10 text-primary' :
-                                                                   isCompleted ? 'bg-success/10 text-success' :
-                                                                   isNext ? 'bg-warning/10 text-warning' : 'bg-gray-100 text-gray-500' }}">
-                                        {{ f.donationAmount|number_format(2) }}
-                                        €
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -106,27 +99,18 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-semibold text-gray-900">Mes Filleuls Directs</h3>
-                                <p class="text-sm text-gray-500 mt-1">{{ flower.name }} - Niveau {{ userLevel }}</p>
-                                <div class="flex items-center gap-2 mt-2">
-                                    {% for i in 1..flowerProgress.received %}
-                                        <div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
-                                    {% endfor %}
-                                    {% for i in 1..flowerProgress.remaining %}
-                                        <div class="w-2.5 h-2.5 rounded-full bg-gray-200"></div>
-                                    {% endfor %}
-                                </div>
                             </div>
                         </div>
 
                         {# Right Side - Quick Stats #}
                         <div class="flex flex-wrap items-center gap-4">
-                            <div class="px-4 py-2 bg-success/10 rounded-lg flex items-center gap-2">
-                                <span class="ki-duotone ki-dollar text-success"></span>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-gray-600">Total Reçu</span>
-                                    <span class="text-lg font-bold text-success">{{ totalReceivedInFlower|format_currency('EUR') }}</span>
-                                </div>
-                            </div>
+{#                            <div class="px-4 py-2 bg-success/10 rounded-lg flex items-center gap-2">#}
+{#                                <span class="ki-duotone ki-dollar text-success"></span>#}
+{#                                <div class="flex flex-col">#}
+{#                                    <span class="text-sm font-medium text-gray-600">Total Reçu</span>#}
+{#                                    <span class="text-lg font-bold text-success">{{ totalReceivedInFlower|format_currency('EUR') }}</span>#}
+{#                                </div>#}
+{#                            </div>#}
                             <div class="px-4 py-2 bg-primary/10 rounded-lg flex items-center gap-2">
                                 <span class="ki-duotone ki-abstract-26 text-primary"></span>
                                 <div class="flex flex-col">
@@ -148,8 +132,7 @@
                 {# Enhanced Matrix Grid #}
                 <div class="p-6">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {% for position in 1..4 %}
-                            {% set child = matrixPositions[position] %}
+                        {% for child in matrixPositions %}
                             <div class="relative group">
                                 <div class="absolute inset-0 bg-gradient-to-br rounded-xl transition-all duration-300
                                                             {{ child ? 'from-success/5 to-success/10 opacity-0 group-hover:opacity-100' : 'from-gray-50 to-gray-100' }}"></div>
@@ -163,18 +146,17 @@
                                         <div class="absolute -top-3 -right-3">
                                             <div class="w-8 h-8 rounded-full bg-success shadow-lg
                                                                         flex items-center justify-center text-sm font-bold text-white">
-                                                {{ position }}
+                                                {{ child.matrixPosition }}
                                             </div>
                                         </div>
 
                                         {# Current Flower Badge #}
-                                        <div class="absolute -top-3 -left-3 z-10">
-                                            <div class="px-3 py-1 rounded-full bg-primary shadow-lg
-                                                flex items-center gap-1 text-xs font-medium text-white">
-                                                <span class="ki-duotone ki-abstract-46 text-xs"></span>
-                                                {{ child.currentFlower.name }}
-                                            </div>
-                                        </div>
+{#                                        <div class="absolute -top-3 -left-3 z-10">#}
+{#                                            <div class="px-3 py-1 rounded-full bg-primary shadow-lg#}
+{#                                                flex items-center gap-1 text-xs font-medium text-white">#}
+{#                                                Position {{ child.matrixPosition }}#}
+{#                                            </div>#}
+{#                                        </div>#}
 
                                         {# User Avatar with Progress Ring #}
                                         <div class="relative w-20 h-20">
@@ -221,18 +203,19 @@
                                         <div class="flex flex-col items-center gap-1 mt-2">
                                             <div class="flex items-center gap-2 text-sm text-gray-500">
                                                 <span class="ki-solid ki-arrow-up text-xs"></span>
-                                                Niveau {{ child.matrixDepth + 1 }}
+                                                {{ child.currentFlower.name }}
+                                                <span class="ki-duotone ki-abstract-46 text-xs"></span>
                                             </div>
-                                            <div class="flex items-center gap-1">
-                                                {% for i in 1..child.flowerProgress.received %}
-                                                    <div class="w-2 h-2 rounded-full bg-success"></div>
-                                                {% endfor %}
-                                                {% for i in 1..child.flowerProgress.remaining %}
-                                                    <div class="w-2 h-2 rounded-full bg-gray-200"></div>
-                                                {% endfor %}
-                                            </div>
+{#                                            <div class="flex items-center gap-1">#}
+{#                                                {% for i in 1..child.flowerProgress.received %}#}
+{#                                                    <div class="w-2 h-2 rounded-full bg-success"></div>#}
+{#                                                {% endfor %}#}
+{#                                                {% for i in 1..child.flowerProgress.remaining %}#}
+{#                                                    <div class="w-2 h-2 rounded-full bg-gray-200"></div>#}
+{#                                                {% endfor %}#}
+{#                                            </div>#}
                                             <span class="text-xs text-success font-medium">
-                                                {{ child.flowerProgress.received }}/4 Filleuls
+                                                {{ child.flowerProgress.received }}/{{ child.currentFlower.numberOfSlots }} Filleuls
                                             </span>
                                         </div>
 
@@ -241,7 +224,7 @@
                                             <div class="flex justify-between items-center text-xs">
                                                 <span class="text-gray-500">Total reçu:</span>
                                                 <span class="font-medium text-gray-900">
-                                                    {{ child.totalReceivedInFlower|format_currency('EUR') }}
+                                                    {{ child.receivedAmountInCurrentFlower|format_currency('EUR') }}
                                                 </span>
                                             </div>
                                         </div>
@@ -251,7 +234,7 @@
                                                                     flex items-center justify-center mb-4">
                                             <span class="ki-duotone ki-plus text-gray-400 text-3xl"></span>
                                         </div>
-                                        <span class="text-sm font-medium text-gray-400">Position Disponible</span>
+                                        <span class="text-sm font-medium text-gray-400">Emplacement Disponible</span>
                                         {% if flowerProgress.remaining > 0 %}
                                             <span class="text-xs text-gray-400 mt-1">En attente d'inscription</span>
                                         {% endif %}
@@ -281,8 +264,8 @@
                                 <div class="flex items-center gap-2">
                                     <span class="ki-duotone ki-trophy text-success text-xl"></span>
                                     <div>
-                                        <span class="text-sm text-gray-600">Niveau Actuel</span>
-                                        <div class="text-lg font-bold text-success">{{ userLevel }}</div>
+                                        <span class="text-sm text-gray-600">Niveau </span>
+                                        <span class="text-lg font-bold text-success">{{ userLevel }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -322,7 +305,7 @@
                                     <div class="bg-gradient-to-br from-success/5 to-success/10 rounded-xl p-4">
                                         <div class="flex items-center gap-3 mb-3">
                                             <span class="ki-duotone ki-wallet text-success text-xl"></span>
-                                            <span class="text-sm font-medium text-gray-600">Balance Wallet</span>
+                                            <span class="text-sm font-medium text-gray-600">Portefeuille</span>
                                         </div>
                                         <div class="text-2xl font-bold text-success">
                                             {{ walletBalance|format_currency('EUR') }}
@@ -391,7 +374,7 @@
                                             </div>
                                             <a href="#" 
                                                class="mt-2 ms-2 text-xs text-primary hover:text-primary-600">
-                                                Renouveler maintenant →
+                                                Proceder au paiement →
                                             </a>
                                         {% endif %}
                                     </div>

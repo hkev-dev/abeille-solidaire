@@ -3,10 +3,13 @@
 namespace App\Controller\User;
 
 use App\Entity\Donation;
+use App\Entity\Earning;
 use App\Entity\User;
+use App\Repository\EarningRepository;
 use App\Repository\UserRepository;
 use App\Repository\DonationRepository;
 use App\Repository\WithdrawalRepository;
+use App\Service\FlowerService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,9 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     public function __construct(
-        private readonly DonationRepository $donationRepository,
-        private readonly UserRepository $userRepository,
+        private readonly DonationRepository   $donationRepository,
+        private readonly UserRepository       $userRepository,
         private readonly WithdrawalRepository $withdrawalRepository,
+        private readonly EarningRepository $earningRepository,
     ) {
     }
 
@@ -36,14 +40,7 @@ class DashboardController extends AbstractController
             throw $this->createAccessDeniedException('No flower assigned yet.');
         }
 
-        // Calculate flower progress based on direct children count
-        $flowerProgress = [
-            'received' => $user->getMatrixChildrenCount(),
-            'total' => $user->getCurrentFlower()->getMatrixRemainingSlots(),
-            'percentage' => 0,
-            'remainingSlots' => max(0, $user->getCurrentFlower()->getMatrixRemainingSlots() - $user->getMatrixChildrenCount())
-        ];
-        $flowerProgress['percentage'] = ($flowerProgress['received'] / $flowerProgress['total']) * 100;
+        $flowerProgress = $user->getFlowerProgress();
 
         // Get membership info
         $membershipInfo = [
@@ -88,33 +85,37 @@ class DashboardController extends AbstractController
         $activities = [];
 
         // Get recent donations (received and made)
-        $recentDonations = $this->donationRepository->findRecentByUser($user, 10);
-        foreach ($recentDonations as $donation) {
-            $isDonor = $donation->getDonor() === $user;
+        $recentEarnings = $this->earningRepository->findEarned($user);
+        /** @var Earning $earning */
+        foreach ($recentEarnings as $earning) {
+            $donor = $earning->getDonor();
+            $activities[] = [
+                'type' => $this->formatDonationType($donor->getDonationType()),
+                'icon' => $this->getDonationIcon($donor->getDonationType(), false),
+                'color' => $this->getDonationColor($donor->getDonationType(), false),
+                'description' => $this->formatEarningDescription($earning),
+                'amount' => $earning->getAmount(),
+                'date' => $earning->getCreatedAt(),
+                'status' => $this->formatPaymentStatus("completed"),
+                'statusColor' => $this->getPaymentStatusColor("completed")
+            ];
+        }
+        /** @var Donation $donation */
+        foreach ($user->getDonationsMade() as $donation) {
+            if ($donation->getAmount() <= 0) {
+                continue;
+            }
+
             $activities[] = [
                 'type' => $this->formatDonationType($donation->getDonationType()),
-                'icon' => $this->getDonationIcon($donation->getDonationType(), $isDonor),
-                'color' => $this->getDonationColor($donation->getDonationType(), $isDonor),
-                'description' => $this->formatDonationDescription($donation, $isDonor),
-                'amount' => $isDonor ? -$donation->getAmount() : $donation->getAmount(),
+                'icon' => $this->getDonationIcon($donation->getDonationType(), true),
+                'color' => $this->getDonationColor($donation->getDonationType(), true),
+                'description' => $this->formatDonationDescription($donation, true),
+                'amount' => -$donation->getAmount(),
                 'date' => $donation->getTransactionDate(),
                 'status' => $this->formatPaymentStatus($donation->getPaymentStatus()),
                 'statusColor' => $this->getPaymentStatusColor($donation->getPaymentStatus())
             ];
-
-            foreach ($donation->getChildrens() as $child) {
-                $isDonor = $child->getDonor() === $user;
-                $activities[] = [
-                    'type' => $this->formatDonationType($child->getDonationType()),
-                    'icon' => $this->getDonationIcon($child->getDonationType(), $isDonor),
-                    'color' => $this->getDonationColor($child->getDonationType(), $isDonor),
-                    'description' => $this->formatDonationDescription($child, $isDonor),
-                    'amount' => $isDonor ? -$child->getAmount() : $child->getAmount(),
-                    'date' => $child->getTransactionDate(),
-                    'status' => $this->formatPaymentStatus($child->getPaymentStatus()),
-                    'statusColor' => $this->getPaymentStatusColor($child->getPaymentStatus())
-                ];
-            }
         }
 
         // Get recent withdrawals
@@ -197,13 +198,21 @@ class DashboardController extends AbstractController
 
     private function formatDonationDescription(Donation $donation, bool $isDonor): string
     {
-        $otherParty = $isDonor ? $donation->getRecipient() : $donation->getDonor();
-        $action = $isDonor ? 'à' : 'de';
+
 
         return sprintf(
-            '%s %s %s',
-            $this->formatDonationType($donation->getDonationType()),
-            $action,
+            'Donation pour %s',
+            $donation->getBeneficiariesName()
+        );
+    }
+
+
+    private function formatEarningDescription(Earning $earning): string
+    {
+        $otherParty = $earning->getDonor()->getDonor();
+
+        return sprintf(
+            'Donation de %s',
             $otherParty?->getFullName()
         );
     }

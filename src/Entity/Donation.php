@@ -91,12 +91,23 @@ class Donation
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $paymentCompletedAt = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?float $earnings = null;
+    /**
+     * @var Collection<int, Earning>
+     */
+    #[ORM\OneToMany(targetEntity: Earning::class, mappedBy: 'beneficiary', cascade: ['persist'])]
+    private Collection $earnings;
+
+    /**
+     * @var Collection<int, Earning>
+     */
+    #[ORM\OneToMany(targetEntity: Earning::class, mappedBy: 'donor')]
+    private Collection $beneficiaries;
 
     public function __construct()
     {
         $this->childrens = new ArrayCollection();
+        $this->earnings = new ArrayCollection();
+        $this->beneficiaries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -356,23 +367,6 @@ class Donation
         return true;
     }
 
-    public function getEarnings(): ?float
-    {
-        return $this->earnings;
-    }
-
-    public function setEarnings(?float $earnings): static
-    {
-        $this->earnings = $earnings;
-
-        return $this;
-    }
-
-    public function addEarnings(float $amount): void
-    {
-        $this->earnings += $amount;
-    }
-
     public function countAllChildrens(): int
     {
         $childrensCount = 0;
@@ -385,5 +379,81 @@ class Donation
         }
 
         return $childrensCount;
+    }
+
+    /**
+     * @return Collection<int, Earning>
+     */
+    public function getEarnings(): Collection
+    {
+        return $this->earnings;
+    }
+
+    public function addEarning(Earning $earning): static
+    {
+        if (!$this->earnings->contains($earning)) {
+            $this->earnings->add($earning);
+            $earning->setBeneficiary($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEarning(Earning $earning): static
+    {
+        if ($this->earnings->removeElement($earning)) {
+            // set the owning side to null (unless already changed)
+            if ($earning->getBeneficiary() === $this) {
+                $earning->setBeneficiary(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getEarningsAmount(): float
+    {
+        return array_reduce($this->getEarnings()->toArray(), function($carry, $item) {
+            return $carry + $item->getAmount();
+        }, 0.0);
+    }
+
+    /**
+     * @return Collection<int, Earning>
+     */
+    public function getBeneficiaries(): Collection
+    {
+        return $this->beneficiaries;
+    }
+
+    public function addBeneficiary(Earning $givedTo): static
+    {
+        if (!$this->beneficiaries->contains($givedTo)) {
+            $this->beneficiaries->add($givedTo);
+            $givedTo->setDonor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBeneficiary(Earning $givedTo): static
+    {
+        if ($this->beneficiaries->removeElement($givedTo)) {
+            // set the owning side to null (unless already changed)
+            if ($givedTo->getDonor() === $this) {
+                $givedTo->setDonor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getBeneficiariesName(): string
+    {
+        $otherParties = $this->getBeneficiaries()->map(function(Earning $earning) {
+            return $earning->getBeneficiary()->getDonor()->getFullName();
+        })->toArray();
+
+        return implode(', ', $otherParties);
     }
 }

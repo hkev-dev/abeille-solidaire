@@ -2,8 +2,14 @@
 
 namespace App\Controller\User;
 
+use App\Entity\Donation;
+use App\Entity\Earning;
+use App\Entity\User;
 use App\Repository\DonationRepository;
+use App\Repository\EarningRepository;
 use App\Service\DonationReceiptService;
+use App\Service\DonationService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,20 +20,26 @@ use Symfony\Component\HttpFoundation\Request;
 class DonationController extends AbstractController
 {
     public function __construct(
-        private readonly DonationRepository $donationRepository,
+        private readonly DonationRepository     $donationRepository,
         private readonly DonationReceiptService $receiptService,
-        private readonly PaginatorInterface $paginator,
-    ) {
+        private readonly PaginatorInterface     $paginator,
+        private readonly EntityManagerInterface $em, private readonly EarningRepository $earningRepository,
+    )
+    {
     }
 
     #[Route('/received', name: 'app.user.donations.received')]
     public function received(Request $request): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
-        $query = $this->donationRepository->createQueryBuilder('d')
-            ->where('d.recipient = :user')
+        $query = $this->em->createQueryBuilder()
+            ->select('e')
+            ->from(Earning::class, 'e')
+            ->leftJoin('e.beneficiary', 'beneficiary')
+            ->where('beneficiary.donor = :user')
             ->setParameter('user', $user)
-            ->orderBy('d.transactionDate', 'DESC');
+            ->orderBy('e.createdAt', 'DESC');
 
         $pagination = $this->paginator->paginate(
             $query,
@@ -36,11 +48,8 @@ class DonationController extends AbstractController
         );
 
         $stats = [
-            'totalReceived' => $this->donationRepository->getTotalReceivedByUser($user),
-            'currentFlowerReceived' => $this->donationRepository->getTotalReceivedInFlower(
-                $user,
-                $user->getCurrentFlower()
-            ),
+            'totalReceived' => $this->earningRepository->getTotalReceivedByUser($user),
+            'currentFlowerReceived' => $user->getReceivedAmountInCurrentFlower(),
             'flowerProgress' => $user->getFlowerProgress(),
         ];
 
@@ -108,13 +117,11 @@ class DonationController extends AbstractController
     }
 
     #[Route('/receipt/{id}', name: 'app.user.donations.receipt')]
-    public function receipt(int $id): Response
+    public function receipt(int $id, DonationService $donationService): Response
     {
         $donation = $this->donationRepository->find($id);
-        
-        if (!$donation || 
-            ($donation->getDonor() !== $this->getUser() && 
-             $donation->getRecipient() !== $this->getUser())) {
+
+        if (!$donation || ($donation->getDonor() !== $this->getUser() && !$donationService->isUserBeneficiary($donation, $this->getUser()))) {
             throw $this->createNotFoundException('Donation not found');
         }
 
@@ -127,25 +134,24 @@ class DonationController extends AbstractController
     }
 
     #[Route('/download-receipt/{id}', name: 'app.user.donations.download_receipt')]
-    public function downloadReceipt(int $id): Response
+    public function downloadReceipt(int $id,DonationService $donationService): Response
     {
         $donation = $this->donationRepository->find($id);
-        
-        if (!$donation || 
-            ($donation->getDonor() !== $this->getUser() && 
-             $donation->getRecipient() !== $this->getUser())) {
+
+        if (!$donation || ($donation->getDonor() !== $this->getUser() && !$donationService->isUserBeneficiary($donation, $this->getUser()))) {
             throw $this->createNotFoundException('Donation not found');
         }
 
         $receipt = $this->receiptService->generateReceipt($donation);
-        
+
         $html = $this->renderView('user/pages/donations/receipt_pdf.html.twig', [
             'receipt' => $receipt,
             'donation' => $donation
         ]);
 
         // You'll need to configure a PDF generation service like Dompdf or wkhtmltopdf
-        $pdf = /* Generate PDF from HTML */null;
+        $pdf = /* Generate PDF from HTML */
+            null;
 
         return new Response(
             $pdf,

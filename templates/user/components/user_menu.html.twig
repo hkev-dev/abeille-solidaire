@@ -17,13 +17,18 @@
                 icon: 'ki-duotone ki-abstract-36',
                 route: 'app.user.flower.current',
                 badge: {
-                    text: flowerProgress.received ~ '/4',
-                    class: flowerProgress.received == 4 ? 'badge-success' : 'badge-primary'
+                    text: flowerProgress.received ~ '/' ~ flowerProgress.total,
+                    class: flowerProgress.received == flowerProgress.total ? 'badge-success' : 'badge-primary'
                 }
             }) }}
 		{% endif %}
 
 		{# Donations Management #}
+		{#                     badge: unreadDonations|length > 0 ? {
+                        text: unreadDonations|length,
+                        class: 'badge-success'
+                    } : null
+		#}
 		{{ menuItem.render({
             label: 'Dons',
             icon: 'ki-duotone ki-heart',
@@ -32,10 +37,6 @@
                 {
                     label: 'Dons Reçus',
                     route: 'app.user.donations.received',
-                    badge: unreadDonations|length > 0 ? {
-                        text: unreadDonations|length,
-                        class: 'badge-success'
-                    } : null
                 },
                 {
                     label: 'Dons Envoyés',

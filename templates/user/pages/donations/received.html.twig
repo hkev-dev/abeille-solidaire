@@ -63,7 +63,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for donation in pagination %}
+                            {% for earning in pagination %}
+                                {% set donation = earning.donor %}
                                 <tr>
                                     <td>{{ donation.transactionDate|date('d/m/Y H:i') }}</td>
                                     <td>{{ donation.donor.fullName }}</td>
@@ -78,8 +79,8 @@
                                             <span class="badge badge-secondary">{{ donation.donationType|title }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ donation.flower.name }}</td>
-                                    <td>€{{ donation.amount|number_format(2) }}</td>
+                                    <td>{{ earning.flower.name }}</td>
+                                    <td>€{{ earning.amount|number_format(2) }}</td>
                                     <td>
                                         <div class="flex items-center gap-2">
                                             <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}" 

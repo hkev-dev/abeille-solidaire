@@ -3,8 +3,10 @@
 namespace App\Service;
 
 use App\Entity\Donation;
+use App\Entity\Earning;
 use App\Entity\User;
 use App\Entity\Flower;
+use App\Repository\EarningRepository;
 use App\Repository\FlowerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Event\DonationProcessedEvent;
@@ -22,21 +24,24 @@ class DonationService
 
     public function __construct(
         EntityManagerInterface   $em,
-        EventDispatcherInterface $eventDispatcher, FlowerRepository $flowerRepository
-    ) {
+        EventDispatcherInterface $eventDispatcher,
+        FlowerRepository $flowerRepository
+    )
+    {
         $this->em = $em;
         $this->eventDispatcher = $eventDispatcher;
         $this->flowerRepository = $flowerRepository;
     }
 
     public function createDonation(
-        User $donor,
-        User $recipient,
-        float $amount,
-        string $donationType,
+        User    $donor,
+        User    $recipient,
+        float   $amount,
+        string  $donationType,
         ?Flower $flower = null,
-        string $paymentStatus = 'pending'
-    ): Donation {
+        string  $paymentStatus = 'pending'
+    ): Donation
+    {
         $donation = new Donation();
         $donation
             ->setDonor($donor)
@@ -91,10 +96,10 @@ class DonationService
         );
 
         $donation->setPaymentProvider('internal');
-        
+
         // Dispatch donation processed event with NAME constant
         $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
-        
+
         $this->em->flush();
 
         return $donation;
@@ -104,10 +109,10 @@ class DonationService
     {
         // Find the user with fewest children
         $recipient = $this->findUserWithFewestChildren();
-        
+
         // Get the parent of that user
         $recipientParent = $recipient->getParent();
-        
+
         if (!$recipientParent) {
             throw new \RuntimeException('Recipient parent not found for supplementary donation');
         }
@@ -250,21 +255,50 @@ class DonationService
         ];
     }
 
-    public function calculateEarnings(Donation $donation, float $amount): void
+    public function calculateEarnings(Donation $donation, float $amount, ?Earning $earningSource = null): void
     {
+        $earning = new Earning();
+
+        $earning->setDonor($donation)
+            ->setFlower($donation->getFlower());
+
         $rootDonation = $this->em->getRepository(Donation::class)
             ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
 
         if ($donation->getParent()) {
             $share = $amount * Donation::PAYMENT_SHARE;
-            $donation->getParent()->addEarnings($share);
+            $earning->setAmount($share);
 
-            $this->calculateEarnings($donation->getParent(), $share); // Recursive call for the parent
+            $donation->getParent()->addEarning($earning);
+
+            $this->calculateEarnings($donation->getParent(), $share, $earningSource ?? $earning); // Recursive call for the parent
         } else {
             // If no parent, the first member gets the remaining amount
             if ($donation->getId() === $rootDonation->getId()) {
-                $donation->addEarnings($amount);
+                $earning->setAmount($amount);
+
+                if ($earningSource) {
+                    $earning->setDonor($earningSource->getDonor());
+                }
+
+                $donation->addEarning($earning);
             }
         }
+    }
+
+    public function isUserBeneficiary(Donation $donation, User $user): bool
+    {
+        $earning = $this->em->createQueryBuilder()
+            ->select('e')
+            ->from(Earning::class, 'e')
+            ->leftJoin('e.beneficiary', 'beneficiary')
+            ->where('e.donor = :donation')
+            ->andWhere('beneficiary.donor = :user')
+            ->setParameter('donation', $donation)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $earning !== null;
     }
 }
