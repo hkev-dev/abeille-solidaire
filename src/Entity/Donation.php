@@ -85,7 +85,7 @@ class Donation
     #[ORM\JoinColumn(nullable: true)]
     private ?self $parent = null;
 
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', fetch: 'EAGER')]
     private Collection $childrens;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -379,6 +379,11 @@ class Donation
         }
 
         return $childrensCount;
+    }
+
+    public function countDirectChildrens(): int
+    {
+        return $this->getChildrens()->count();
     }
 
     /**

@@ -35,7 +35,7 @@
                 <div class="text-gray-400">Enfants Directs</div>
                 <div class="flex items-center text-end">
                     <span class="ki-duotone ki-people text-primary mr-1.5"></span>
-                    <span class="text-primary-300 font-medium">{{ user.getMatrixChildrenCount() }}/4 membres</span>
+                    <span class="text-primary-300 font-medium">{{ user.countDirectChildrens }}/4 membres</span>
                 </div>
             </div>
 
@@ -43,19 +43,19 @@
                 <div class="text-gray-400">Fleur Actuelle</div>
                 <div class="flex items-center text-end">
                     <span class="ki-duotone ki-flower2 text-success mr-1.5"></span>
-                    <span class="text-success-300 font-medium">{{ user.currentFlower.name }}</span>
+                    <span class="text-success-300 font-medium">{{ user.currentFlower.name }} ({{ user.countCurrentFlowerChildren }}/{{ user.currentFlower.numberOfSlots }})</span>
                 </div>
             </div>
 
-            <div class="flex justify-between items-baseline">
-                <div class="text-gray-400">Statut KYC</div>
-                <div class="flex items-center text-end">
-                    <span class="ki-duotone {{ user.isKycVerified ? 'ki-shield-tick text-success' : 'ki-shield-cross text-danger' }} mr-1.5"></span>
-                    <span class="{{ user.isKycVerified ? 'text-success-300' : 'text-danger-300' }} font-medium">
-                        {{ user.isKycVerified ? 'Vérifié' : 'Non Vérifié' }}
-                    </span>
-                </div>
-            </div>
+{#            <div class="flex justify-between items-baseline">#}
+{#                <div class="text-gray-400">Statut KYC</div>#}
+{#                <div class="flex items-center text-end">#}
+{#                    <span class="ki-duotone {{ user.isKycVerified ? 'ki-shield-tick text-success' : 'ki-shield-cross text-danger' }} mr-1.5"></span>#}
+{#                    <span class="{{ user.isKycVerified ? 'text-success-300' : 'text-danger-300' }} font-medium">#}
+{#                        {{ user.isKycVerified ? 'Vérifié' : 'Non Vérifié' }}#}
+{#                    </span>#}
+{#                </div>#}
+{#            </div>#}
         </div>
     </div>
 </div>

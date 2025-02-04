@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
+use App\Service\DonationService;
 use App\Service\FlowerService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -554,7 +555,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function countCurrentFlowerChildren(): int
     {
-        return $this->getMatrixChildrenCount() - FlowerService::getNumberOfSlotByLevel($this->getCurrentFlower()->getLevel() - 1);
+        $previousChildren = 0;
+        for ($i = 1; $i < $this->getCurrentFlower()->getLevel(); $i++) {
+            $previousChildren += FlowerService::getNumberOfSlotByLevel($i);
+        }
+
+        return $this->getMatrixChildrenCount() - $previousChildren;
+    }
+
+    public function countDirectChildrens(): int
+    {
+        return $this->getMainDonation()->countDirectChildrens();
     }
 
     public function getTotalReceivedInFlower(): float
@@ -610,7 +621,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getMainDonation(): ?Donation
     {
-        return $this->getDonationsMade()->first() ?: null;
+        return $this->getDonationsMade()->filter(function(Donation $donation) {
+            return $donation->getPaymentStatus() === Donation::PAYMENT_COMPLETED;
+        })->first() ?: null;
     }
 
     public function getMatrixDepth(): int

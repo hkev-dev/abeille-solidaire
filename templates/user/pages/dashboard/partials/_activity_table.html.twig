@@ -22,7 +22,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="text-sm font-medium {{ activity.amount >= 0 ? 'text-success' : 'text-danger' }}">
-                        {{ activity.amount >= 0 ? '+' : '' }}€{{ activity.amount|number_format(2) }}
+                        {{ activity.amount >= 0 ? '+' : '-' }}€{{ activity.amount|abs }}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
