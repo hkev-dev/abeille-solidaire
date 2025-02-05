@@ -2,7 +2,9 @@
 
 namespace App\Controller\Public;
 
+use App\Entity\Membership;
 use App\Entity\User;
+use App\Repository\MembershipRepository;
 use App\Service\SecurityService;
 use App\Form\PaymentSelectionType;
 use App\Service\MembershipService;
@@ -66,7 +68,7 @@ class MembershipController extends AbstractController
 
         return $this->render('public/pages/membership/renew.html.twig', [
             'form' => $form->createView(),
-            'amount' => $this->membershipService->getRenewalAmount(),
+            'amount' => MembershipService::MEMBERSHIP_FEE,
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
             'user' => $user,
         ]);
@@ -87,8 +89,8 @@ class MembershipController extends AbstractController
             // Store payment info in session
             $session = $request->getSession();
             $session->set('payment_method', $paymentMethod);
-            if (isset($paymentData['txn_id'])) {
-                $session->set('txn_id', $paymentData['txn_id']);
+            if (isset($paymentData['payment_reference']) || isset($paymentData['txn_id'])) {
+                $request->getSession()->set('payment_reference', $paymentData['payment_reference'] ?? $paymentData['txn_id']);
             }
 
             return $this->json($paymentData);
@@ -139,7 +141,7 @@ class MembershipController extends AbstractController
     }
 
     #[Route('/membership/waiting-room', name: 'app.membership.waiting_room')]
-    public function waitingRoom(Request $request): Response
+    public function waitingRoom(Request $request, MembershipRepository $membershipRepository): Response
     {
         $user = $this->getUser();
         
@@ -147,12 +149,18 @@ class MembershipController extends AbstractController
             return $this->redirectToRoute('app.login');
         }
 
+        $membership = $membershipRepository->find($request->query->get('id'));
+
+        if (!$membership) {
+            throw $this->createNotFoundException('Membership not found');
+        }
+
         if (!$this->membershipService->isExpired($user)) {
             return $this->redirectToRoute('app.user.dashboard');
         }
 
         // If payment failed, redirect back to payment page
-        if ($user->getRegistrationPaymentStatus() === 'failed') {
+        if ($membership->getPaymentStatus() === 'failed') {
             return $this->redirectToRoute('app.membership.renew');
         }
 
@@ -162,13 +170,14 @@ class MembershipController extends AbstractController
             'user' => $user,
             'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.membership.renew'),
-            'txn_id' => $request->getSession()->get('txn_id'),
-            'context' => 'membership' // Add this to differentiate from registration in template
+            'payment_reference' => $request->getSession()->get('payment_reference'),
+            'context' => 'membership', // Add this to differentiate from registration in template
+            'membership' => $membership
         ]);
     }
 
-    #[Route('/membership/check-payment', name: 'app.membership.check_payment')]
-    public function checkPayment(): Response
+    #[Route('/membership/check-payment/{id}', name: 'app.membership.check_payment')]
+    public function checkPayment(Request $request, Membership $membership): Response
     {
         $user = $this->getUser();
         

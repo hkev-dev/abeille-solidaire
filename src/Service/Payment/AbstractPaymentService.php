@@ -2,17 +2,28 @@
 
 namespace App\Service\Payment;
 
+use App\Entity\Membership;
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Service\ObjectService;
+use DateMalformedStringException;
+use DateTimeImmutable;
+use Exception;
 use Psr\Log\LoggerInterface;
 use App\Service\MatrixService;
 use App\Service\DonationService;
 use App\Service\MembershipService;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 abstract class AbstractPaymentService implements PaymentServiceInterface
 {
+    const PAYMENT_TYPE_REGISTRATION = Donation::TYPE_REGISTRATION;
+    const PAYMENT_TYPE_MEMBERSHIP = 'membership';
+    const PAYMENT_TYPE_SUPPLEMENTARY = Donation::TYPE_SUPPLEMENTARY;
+
     protected EntityManagerInterface $em;
     protected MatrixService $matrixService;
     protected DonationService $donationService;
@@ -22,12 +33,13 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
 
     public function __construct(
         EntityManagerInterface $em,
-        MatrixService $matrixService,
-        DonationService $donationService,
-        LoggerInterface $logger,
-        ParameterBagInterface $params,
-        MembershipService $membershipService
-    ) {
+        MatrixService          $matrixService,
+        DonationService        $donationService,
+        LoggerInterface        $logger,
+        ParameterBagInterface  $params,
+        MembershipService      $membershipService
+    )
+    {
         $this->em = $em;
         $this->matrixService = $matrixService;
         $this->donationService = $donationService;
@@ -36,87 +48,80 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
         $this->membershipService = $membershipService;
     }
 
-    protected function processRegistrationPayment(Donation $donation, bool $includeMembership, string $paymentReference): void
+    /**
+     * @throws DateMalformedStringException
+     * @throws Exception
+     */
+    protected function processPaymentType(Donation $donation, string $paymentType, string $paymentReference, ?bool $includeMembership = false): void
     {
+        if ($paymentType === self::PAYMENT_TYPE_REGISTRATION) {
+            $this->processDonationPayment($donation, $paymentReference);
+
+            if ($includeMembership){
+                $membership = $this->membershipService->createMembership($donation->getDonor());
+                $this->processMembershipPayment($membership, $paymentReference);
+            }
+        } elseif ($paymentType === self::PAYMENT_TYPE_SUPPLEMENTARY) {
+            $this->processDonationPayment($donation, $paymentReference);
+        }
+    }
+
+    /**
+     * @throws DateMalformedStringException
+     * @throws \ReflectionException
+     */
+    protected function processDonationPayment(Donation $donation, string $paymentReference): void
+    {
+        $callerClass = ObjectService::getCallerClass(PaymentServiceInterface::class);
+
+        if (!$callerClass) {
+            throw new RuntimeException('Donation Payment processing can only be called from a PaymentServiceInterface implementation');
+        }
+
+        /** @var PaymentServiceInterface $callerClass */
+
         try {
             $this->em->beginTransaction();
 
-            // First update user status
-            $donation->getDonor()
-                ->setRegistrationPaymentStatus('completed')
-                ->setIsKycVerified(false)
-                ->setWaitingSince(null);
+            $donation->setPaymentStatus('completed')
+                ->setPaymentProvider($callerClass::getProvider())
+                ->setPaymentReference($paymentReference)
+                ->setPaymentCompletedAt(new DateTimeImmutable());
+
+            $donation->getDonor()->setWaitingSince(null);
 
             // Now place user in matrix
             $this->matrixService->placeDonationInMatrix($donation);
 
-            if (str_starts_with($paymentReference, 'pi_')) {
-                $donation->setStripePaymentIntentId($paymentReference)
-                    ->setPaymentProvider('stripe');
-            } else {
-                $donation->setCoinpaymentsTransactionId($paymentReference)
-                    ->setPaymentProvider('coinpayments');
-            }
-
-            $donation->setPaymentStatus('completed');
-
-            // Handle membership if included
-            if ($includeMembership) {
-                // Create membership donation
-                $membershipDonation = $this->donationService->createMembershipDonation($donation->getDonor());
-                
-                if (str_starts_with($paymentReference, 'pi_')) {
-                    $membershipDonation->setStripePaymentIntentId($paymentReference);
-                    $membershipDonation->setPaymentProvider('stripe');
-                } else {
-                    $membershipDonation->setCoinpaymentsTransactionId($paymentReference);
-                    $membershipDonation->setPaymentProvider('coinpayments');
-                }
-                
-                $membershipDonation->setPaymentStatus('completed');
-                
-                // Create membership
-                $this->membershipService->createMembership($donation->getDonor(), $membershipDonation);
-            }
-
             $this->em->flush();
             $this->em->commit();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->em->rollback();
             $this->logger->error('Failed to process registration payment: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    protected function processMembershipPayment(User $user, string $paymentReference): void
+    /**
+     * @throws Exception
+     */
+    protected function processMembershipPayment(Membership $membership, string $paymentReference): void
     {
         try {
             $this->em->beginTransaction();
 
-            // Create membership donation record
-            $membershipDonation = $this->donationService->createMembershipDonation($user);
-            
-            if (str_starts_with($paymentReference, 'pi_')) {
-                $membershipDonation->setStripePaymentIntentId($paymentReference);
-                $membershipDonation->setPaymentProvider('stripe');
-            } else {
-                $membershipDonation->setCoinpaymentsTransactionId($paymentReference);
-                $membershipDonation->setPaymentProvider('coinpayments');
-            }
-            
-            $membershipDonation->setPaymentStatus('completed');
-
-            // Process membership renewal
-            $this->membershipService->renewMembership($user, $membershipDonation);
+            $this->membershipService->activateMembership($membership, $paymentReference);
 
             $this->em->flush();
             $this->em->commit();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->em->rollback();
             $this->logger->error('Failed to process membership payment: ' . $e->getMessage());
             throw $e;
         }
     }
+
+    abstract public static function getProvider(): string;
 }

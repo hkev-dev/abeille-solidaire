@@ -10,11 +10,15 @@ interface PaymentServiceInterface
      * Create a payment for user registration (and optionally membership)
      */
     public function createRegistrationPayment(User $user, bool $includeMembership): array;
+    /**
+     * Create a payment for user registration (and optionally membership)
+     */
+    public function createSupplementaryDonationPayment(User $user): array;
 
     /**
      * Handle successful payment callback
      */
-    public function handlePaymentSuccess(array $paymentData): void;
+    public function handlePaymentSuccess(array $paymentData): PayableInterface;
 
     /**
      * Handle failed payment callback
@@ -30,4 +34,6 @@ interface PaymentServiceInterface
      * Create a payment for membership renewal
      */
     public function createMembershipPayment(User $user): array;
+
+    public static function getProvider(): string;
 }

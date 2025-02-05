@@ -2,21 +2,27 @@
 
 namespace App\Service\Payment;
 
+use App\Entity\Membership;
 use App\Entity\User;
 use App\Entity\Donation;
 use App\Service\MembershipService;
 use CoinpaymentsAPI;
+use DateMalformedStringException;
+use Exception;
 use Psr\Log\LoggerInterface;
 use App\Service\MatrixService;
 use App\Service\DonationService;
 use App\Exception\WebhookException;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class CoinPaymentsService extends AbstractPaymentService
 {
+    const PAYMENT_PROVIDER = 'coinpayments';
+
     protected $coinPayments;
     protected $router;
 
@@ -65,11 +71,12 @@ class CoinPaymentsService extends AbstractPaymentService
             );
 
             if ($result['error'] !== 'ok') {
-                throw new \RuntimeException($result['error']);
+                throw new RuntimeException($result['error']);
             }
 
+            $result['result']['entityId'] = $donation->getId();
             return $result['result'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('CoinPayments transaction creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->getId()
@@ -81,6 +88,8 @@ class CoinPaymentsService extends AbstractPaymentService
     public function createMembershipPayment(User $user): array
     {
         try {
+            $membership = $this->membershipService->createMembership($user);
+
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: 25.00,
                 currency1: 'EUR',
@@ -92,18 +101,19 @@ class CoinPaymentsService extends AbstractPaymentService
                 item_number: "M_{$user->getId()}",
                 invoice: "MEM-" . uniqid(),
                 custom: json_encode([
-                    'user_id' => $user->getId(),
+                    'membership_id' => $membership->getId(),
                     'payment_type' => 'membership'
                 ]),
                 ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {
-                throw new \RuntimeException($result['error']);
+                throw new RuntimeException($result['error']);
             }
 
+            $result['result']['entityId'] = $membership->getId();
             return $result['result'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('CoinPayments membership transaction creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->getId()
@@ -112,38 +122,32 @@ class CoinPaymentsService extends AbstractPaymentService
         }
     }
 
-    public function handlePaymentSuccess(array $paymentData): void
+    /**
+     * @throws DateMalformedStringException
+     * @throws Exception
+     */
+    public function handlePaymentSuccess(array $paymentData): PayableInterface
     {
         $customData = json_decode($paymentData['custom'], true);
-        $donation = $this->em->getRepository(Donation::class)->find($customData['donation_id']);
+        if ($customData['payment_type'] === self::PAYMENT_TYPE_MEMBERSHIP) {
+            $payableObject = $membership = $this->em->getRepository(Membership::class)->find($customData['membership_id']);
 
-        if (!$donation) {
-            throw new \Exception('Donation not found');
-        }
-
-        $paymentType = $customData['payment_type'];
-        if ($paymentType === 'registration') {
-            $includeMembership = $customData['include_membership'] ?? false;
-            try {
-                $this->em->beginTransaction();
-
-                // First update payment status
-                $donation->getDonor()->setRegistrationPaymentStatus('completed')
-                    ->setIsKycVerified(false)
-                    ->setWaitingSince(null);
-                $this->em->flush();
-
-                // Then process the payment
-                $this->processRegistrationPayment($donation, $includeMembership, $paymentData['txn_id']);
-                
-                $this->em->commit();
-            } catch (\Exception $e) {
-                $this->em->rollback();
-                throw $e;
+            if (!$membership) {
+                throw new Exception('Membership not found');
             }
-        } elseif ($paymentType === 'membership') {
-            $this->processMembershipPayment($donation->getDonor(), $paymentData['txn_id']);
+
+            $this->processMembershipPayment($membership, $paymentData['txn_id']);
+        }else{
+            $payableObject = $donation = $this->em->getRepository(Donation::class)->find($customData['donation_id']);
+
+            if (!$donation) {
+                throw new Exception('Donation not found');
+            }
+
+            $this->processPaymentType($donation, $customData['payment_type'], $paymentData['txn_id'], $customData['include_membership'] ?? false);
         }
+
+        return $payableObject;
     }
 
     public function handlePaymentFailure(array $paymentData): void
@@ -187,7 +191,7 @@ class CoinPaymentsService extends AbstractPaymentService
             $result = $this->coinPayments->GetRates();
 
             if ($result['error'] !== 'ok') {
-                throw new \Exception($result['error'] ?? 'Failed to fetch rates');
+                throw new Exception($result['error'] ?? 'Failed to fetch rates');
             }
 
             $accepted = [];
@@ -217,11 +221,55 @@ class CoinPaymentsService extends AbstractPaymentService
             }
 
             return $accepted;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('Failed to fetch accepted cryptocurrencies', [
                 'error' => $e->getMessage()
             ]);
             return [];
+        }
+    }
+
+    public static function getProvider(): string
+    {
+        return self::PAYMENT_PROVIDER;
+    }
+
+    public function createSupplementaryDonationPayment(User $user): array
+    {
+        $amount = DonationService::SUPPLEMENTARY_FEE;
+
+        $donation = $this->donationService->createSupplementaryDonation($user);
+
+        try {
+            $result = $this->coinPayments->CreateComplexTransaction(
+                amount: $amount,
+                currency1: 'EUR',
+                currency2: 'BTC',
+                buyer_email: $user->getEmail(),
+                address: "",
+                buyer_name: $user->getFullName(),
+                item_name: 'Don supplémentaire',
+                item_number: "_{$user->getId()}",
+                invoice: "INV" . '-' . $user->getId(),
+                custom: json_encode([
+                    'donation_id' => $donation->getId(),
+                    'payment_type' => 'supplementary'
+                ]),
+                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            );
+
+            if ($result['error'] !== 'ok') {
+                throw new RuntimeException($result['error']);
+            }
+
+            $result['result']['entityId'] = $donation->getId();
+            return $result['result'];
+        } catch (Exception $e) {
+            $this->logger->error('CoinPayments transaction creation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->getId()
+            ]);
+            throw $e;
         }
     }
 }

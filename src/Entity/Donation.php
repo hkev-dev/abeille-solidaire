@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\DonationRepository;
+use App\Service\Payment\PayableInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -13,15 +14,13 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: DonationRepository::class)]
 #[UniqueEntity(fields: ['matrixPosition'], message: 'Matrix position is already taken')]
 #[ORM\HasLifecycleCallbacks]
-class Donation
+class Donation implements PayableInterface
 {
     use TimestampableTrait;
 
     public const TYPE_SOLIDARITY = 'solidarity';
     public const TYPE_REGISTRATION = 'registration';
     public const TYPE_SUPPLEMENTARY = 'supplementary';
-    public const TYPE_MEMBERSHIP = 'membership';
-
     public const PROVIDER_STRIPE = 'stripe';
     public const PROVIDER_COINPAYMENTS = 'coinpayments';
     public const PROVIDER_INTERNAL = 'internal';
@@ -61,12 +60,6 @@ class Donation
     private string $donationType;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $stripePaymentIntentId = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $coinpaymentsTransactionId = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     private ?string $cryptoWithdrawalTransactionId = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -84,6 +77,9 @@ class Donation
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'childrens')]
     #[ORM\JoinColumn(nullable: true)]
     private ?self $parent = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $paymentReference = null;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', fetch: 'EAGER')]
     private Collection $childrens;
@@ -180,35 +176,12 @@ class Donation
         if (!in_array($donationType, [
             self::TYPE_SOLIDARITY,
             self::TYPE_REGISTRATION,
-            self::TYPE_SUPPLEMENTARY,
-            self::TYPE_MEMBERSHIP
+            self::TYPE_SUPPLEMENTARY
         ])) {
             throw new \InvalidArgumentException('Invalid donation type');
         }
 
         $this->donationType = $donationType;
-        return $this;
-    }
-
-    public function getStripePaymentIntentId(): ?string
-    {
-        return $this->stripePaymentIntentId;
-    }
-
-    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
-    {
-        $this->stripePaymentIntentId = $stripePaymentIntentId;
-        return $this;
-    }
-
-    public function getCoinpaymentsTransactionId(): ?string
-    {
-        return $this->coinpaymentsTransactionId;
-    }
-
-    public function setCoinpaymentsTransactionId(?string $coinpaymentsTransactionId): self
-    {
-        $this->coinpaymentsTransactionId = $coinpaymentsTransactionId;
         return $this;
     }
 
@@ -328,7 +301,6 @@ class Donation
             self::TYPE_REGISTRATION => "Inscription",
             self::TYPE_SOLIDARITY => "Solidarité",
             self::TYPE_SUPPLEMENTARY => "Supplémentaire",
-            self::TYPE_MEMBERSHIP => "Adhésion",
             default => "Inconnu"
         };
     }
@@ -460,5 +432,17 @@ class Donation
         })->toArray();
 
         return implode(', ', $otherParties);
+    }
+
+    public function getPaymentReference(): ?string
+    {
+        return $this->paymentReference;
+    }
+
+    public function setPaymentReference(?string $paymentReference): static
+    {
+        $this->paymentReference = $paymentReference;
+
+        return $this;
     }
 }

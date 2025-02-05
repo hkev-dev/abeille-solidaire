@@ -5,10 +5,12 @@ namespace App\Controller\User;
 use App\Entity\Donation;
 use App\Entity\Earning;
 use App\Entity\User;
+use App\Form\PaymentSelectionType;
 use App\Repository\DonationRepository;
 use App\Repository\EarningRepository;
 use App\Service\DonationReceiptService;
 use App\Service\DonationService;
+use App\Service\Payment\PaymentFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
 class DonationController extends AbstractController
 {
     public function __construct(
+        private readonly PaymentFactory $paymentFactory,
         private readonly DonationRepository     $donationRepository,
         private readonly DonationReceiptService $receiptService,
         private readonly PaginatorInterface     $paginator,
@@ -161,5 +164,87 @@ class DonationController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="receipt-' . $donation->getId() . '.pdf"'
             ]
         );
+    }
+
+    #[Route('/make-supplementary', name: 'app.user.donations.make_supplementary', methods: ['GET', 'POST'])]
+    public function makeSupplementary(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Handle AJAX payment creation requests
+        if ($request->isXmlHttpRequest() && $request->getContent()) {
+            return $this->handleAjaxPayment($request, $user);
+        }
+
+        // Display payment form
+        $form = $this->createForm(PaymentSelectionType::class, null, [
+            'show_annual_membership' => false,
+            'action' => $this->generateUrl('app.user.donations.make_supplementary'),
+        ]);
+
+        return $this->render('public/pages/membership/make-supplementary-donation.html.twig', [
+            'form' => $form->createView(),
+            'amount' => DonationService::SUPPLEMENTARY_FEE,
+            'stripe_public_key' => $this->getParameter('stripe.public_key'),
+            'user' => $user,
+        ]);
+    }
+
+    #[Route('/make-supplementary/waiting-room', name: 'app.user.donations.make_supplementary.waiting_room')]
+    public function waitingRoom(Request $request, DonationRepository $donationRepository): Response
+    {
+        $donation = $donationRepository->find($request->query->get('id'));
+        if (!$donation) {
+            throw $this->createNotFoundException('Donation not found');
+        }
+
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('app.login');
+        }
+
+        // If payment failed, redirect back to payment page
+        if ($donation->getPaymentStatus() === 'failed') {
+            return $this->redirectToRoute('app.membership.renew');
+        }
+
+        return $this->render('public/pages/auth/waiting-room.html.twig', [
+            'user' => $user,
+            'payment_method' => $request->getSession()->get('payment_method', 'stripe'),
+            'payment_url' => $this->generateUrl('app.user.donations.make_supplementary'),
+            'payment_reference' => $request->getSession()->get('payment_reference'),
+            'donation' => $donation,
+            'context' => 'supplementary'
+        ]);
+    }
+
+    /**
+     * Handle AJAX payment creation request
+     */
+    private function handleAjaxPayment(Request $request, User $user): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $paymentMethod = $data['payment_method'] ?? 'stripe';
+
+            $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+            $paymentData = $paymentService->createSupplementaryDonationPayment($user);
+
+            // Store payment info in session
+            $session = $request->getSession();
+            $session->set('payment_method', $paymentMethod);
+            if (isset($paymentData['payment_reference']) || isset($paymentData['txn_id'])) {
+                $request->getSession()->set('payment_reference', $paymentData['payment_reference'] ?? $paymentData['txn_id']);
+            }
+
+            return $this->json($paymentData);
+        } catch (\Exception $e) {
+            return $this->json(
+                ['error' => $e->getMessage()],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
     }
 }

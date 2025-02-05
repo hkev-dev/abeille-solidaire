@@ -107,27 +107,18 @@ class DonationService
 
     public function createSupplementaryDonation(User $donor): ?Donation
     {
-        // Find the user with fewest children
-        $recipient = $this->findUserWithFewestChildren();
+        $flower = $this->flowerRepository->findOneBy(['level' => 1]);
 
-        // Get the parent of that user
-        $recipientParent = $recipient->getParent();
+        $donation = new Donation();
+        $donation
+            ->setDonor($donor)
+            ->setAmount(DonationService::REGISTRATION_FEE)
+            ->setDonationType(Donation::TYPE_SUPPLEMENTARY)
+            ->setFlower($flower)
+            ->setPaymentStatus('pending')
+            ->setTransactionDate(new \DateTimeImmutable());
 
-        if (!$recipientParent) {
-            throw new \RuntimeException('Recipient parent not found for supplementary donation');
-        }
-
-        $donation = $this->createDonation(
-            $donor,
-            $recipientParent,
-            self::SUPPLEMENTARY_FEE,
-            Donation::TYPE_SUPPLEMENTARY,
-            $recipient->getCurrentFlower()
-        );
-
-        // Supplementary donations are considered completed immediately
-        $donation->setPaymentStatus('completed');
-        $this->eventDispatcher->dispatch(new DonationProcessedEvent($donation), DonationProcessedEvent::NAME);
+        $this->em->persist($donation);
         $this->em->flush();
 
         return $donation;
@@ -164,28 +155,6 @@ class DonationService
         }
 
         return $result;
-    }
-
-    public function createMembershipDonation(User $donor): ?Donation
-    {
-        // Find root user (matrixDepth = 0)
-        $rootDonation = $this->em->getRepository(className: Donation::class)
-            ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
-
-        if (!$rootDonation) {
-            throw new \RuntimeException('Root Donation not found');
-        }
-
-        $donation = $this->createDonation(
-            $donor,
-            $rootDonation,
-            self::MEMBERSHIP_FEE,
-            Donation::TYPE_MEMBERSHIP,
-            $donor->getCurrentFlower(),
-            'pending'  // Membership donations start as pending until payment is confirmed
-        );
-
-        return $donation;
     }
 
     public function hasCompletedCycle(User $user): bool

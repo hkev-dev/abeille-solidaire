@@ -2,8 +2,11 @@
 
 namespace App\Service\Payment;
 
-use App\Repository\FlowerRepository;
+use App\Entity\Membership;
 use App\Service\MembershipService;
+use DateMalformedStringException;
+use Exception;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use App\Entity\User;
 use App\Entity\Donation;
@@ -16,6 +19,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class StripePaymentService extends AbstractPaymentService
 {
+    const PAYMENT_PROVIDER = 'stripe';
+
     public function __construct(
         EntityManagerInterface $em,
         MatrixService          $matrixService,
@@ -45,70 +50,98 @@ class StripePaymentService extends AbstractPaymentService
         ]);
 
         return [
+            'entityId' => $donation->getId(),
             'clientSecret' => $paymentIntent->client_secret,
             'amount' => $amount / 100,
-            'paymentIntentId' => $paymentIntent->id
+            'paymentIntentId' => $paymentIntent->id,
+            'payment_reference' => $paymentIntent->id
         ];
     }
 
-    public function createMembershipPayment(User $user): array
+    public function createSupplementaryDonationPayment(User $user): array
     {
-        $amount = 2500; // 25€ in cents
+        $amount = DonationService::REGISTRATION_FEE * 100; // In cents (25€)
+
+        $donation = $this->donationService->createSupplementaryDonation($user);
 
         $paymentIntent = PaymentIntent::create([
             'amount' => $amount,
             'currency' => 'eur',
             'metadata' => [
-                'user_id' => $user->getId(),
-                'payment_type' => 'membership'
+                'donation_id' => $donation->getId(),
+                'payment_type' => 'supplementary'
             ]
         ]);
 
         return [
+            'entityId' => $donation->getId(),
             'clientSecret' => $paymentIntent->client_secret,
             'amount' => $amount / 100,
             'paymentIntentId' => $paymentIntent->id
         ];
     }
 
-    public function handlePaymentSuccess(array $paymentData): void
+
+    public function createMembershipPayment(User $user): array
+    {
+        $amount = 2500; // 25€ in cents
+
+        $membership = $this->membershipService->createMembership($user);
+
+        $paymentIntent = PaymentIntent::create([
+            'amount' => $amount,
+            'currency' => 'eur',
+            'metadata' => [
+                'membership_id' => $membership->getId(),
+                'payment_type' => 'membership'
+            ]
+        ]);
+
+        return [
+            'entityId' => $membership->getId(),
+            'clientSecret' => $paymentIntent->client_secret,
+            'amount' => $amount / 100,
+            'paymentIntentId' => $paymentIntent->id,
+            'payment_reference' => $paymentIntent->id,
+        ];
+    }
+
+    /**
+     * @throws DateMalformedStringException
+     * @throws ApiErrorException
+     * @throws Exception
+     */
+    public function handlePaymentSuccess(array $paymentData): PayableInterface
     {
         $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
-        $donation = $this->em->getRepository(Donation::class)->find($paymentIntent->metadata['donation_id']);
-        
-        if (!$donation) {
-            throw new \Exception('Donation not found');
-        }
 
-        $paymentType = $paymentIntent->metadata['payment_type'];
-        if ($paymentType === 'registration') {
-            $includeMembership = $paymentIntent->metadata['include_membership'] === 'true';
-            try {
-                $this->em->beginTransaction();
+        if ($paymentIntent->metadata['payment_type'] === self::PAYMENT_TYPE_MEMBERSHIP) {
+            $payableObject = $membership = $this->em->getRepository(Membership::class)->find($paymentIntent->metadata['membership_id']);
 
-                // First update payment status
-                $donation->getDonor()->setRegistrationPaymentStatus('completed')
-                    ->setIsKycVerified(false)
-                    ->setWaitingSince(null);
-                $this->em->flush();
-
-                // Then process the payment
-                $this->processRegistrationPayment($donation, $includeMembership, $paymentIntent->id);
-                
-                $this->em->commit();
-            } catch (\Exception $e) {
-                $this->em->rollback();
-                throw $e;
+            if (!$membership) {
+                throw new Exception('Membership not found');
             }
-        } elseif ($paymentType === 'membership') {
-            $this->processMembershipPayment($donation->getDonor(), $paymentIntent->id);
+
+            $user = $membership->getUser();
+            $this->processMembershipPayment($membership, $paymentIntent->id);
+        }else{
+            $payableObject = $donation = $this->em->getRepository(Donation::class)->find($paymentIntent->metadata['donation_id']);
+
+            if (!$donation) {
+                throw new Exception('Donation not found');
+            }
+
+            $user = $donation->getDonor();
+            $this->processPaymentType($donation, $paymentIntent->metadata['payment_type'], $paymentIntent->id, $paymentIntent->metadata['include_membership'] === 'true');
         }
 
         // Set Stripe customer ID if available
-        if ($paymentIntent->customer) {
-            $donation->getDonor()->setStripeCustomerId($paymentIntent->customer);
+        if ($paymentIntent->customer && $user) {
+            $user->setStripeCustomerId($paymentIntent->customer);
             $this->em->flush();
         }
+
+        return $payableObject;
     }
 
     public function handlePaymentFailure(array $paymentData): void
@@ -125,5 +158,10 @@ class StripePaymentService extends AbstractPaymentService
     public function verifyPaymentCallback(array $data, string $signature): bool
     {
         return true; // No verification needed for Stripe
+    }
+
+    public static function getProvider(): string
+    {
+        return self::PAYMENT_PROVIDER;
     }
 }

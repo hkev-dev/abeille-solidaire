@@ -8,11 +8,13 @@ use App\Service\DonationService;
 use App\Service\FlowerService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
-use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\File;use Doctrine\Common\Collections\Criteria;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -268,9 +270,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getCurrentMembership(): ?Membership
     {
-        return $this->memberships->filter(function (Membership $membership) {
-            return $membership->getStatus() === Membership::STATUS_ACTIVE;
-        })->first() ?: null;
+        $now = new \DateTime();
+
+        $criteria = Criteria::create()
+            ->where(Criteria::expr()->eq('status', Membership::STATUS_ACTIVE))
+            ->andWhere(Criteria::expr()->lte('startDate', $now))
+            ->andWhere(Criteria::expr()->gt('endDate', $now))
+            ->orderBy(['startDate' => Order::Descending]);
+
+        return $this->memberships->matching($criteria)->first() ?: null;
     }
 
     public function hasPaidAnnualFee(): bool
@@ -621,9 +629,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getMainDonation(): ?Donation
     {
-        return $this->getDonationsMade()->filter(function(Donation $donation) {
+        $results = $this->getDonationsMade()->filter(function(Donation $donation) {
             return $donation->getPaymentStatus() === Donation::PAYMENT_COMPLETED;
-        })->first() ?: null;
+        })
+            ->matching(
+                Criteria::create()->orderBy(['paymentCompletedAt' => Order::Ascending]) // Ou DESC selon le besoin
+            );
+
+        return $results->first() ?: null;
     }
 
     public function getMatrixDepth(): int

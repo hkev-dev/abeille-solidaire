@@ -44,20 +44,15 @@ final class StripeWebhookConsumer implements ConsumerInterface
     {
         $metadata = $paymentIntent['metadata'];
 
-        if (!isset($metadata['donation_id'])) {
-            throw new WebhookException('Missing Donation ID in payment metadata');
-        }
-
-        $donation = $this->donationRepository->find($metadata['donation_id']);
-        if (!$donation) {
-            throw new WebhookException('Donation not found');
+        if (!isset($metadata['donation_id']) && !isset($metadata['membership_id'])) {
+            throw new WebhookException('Missing Donation ID || MembershipId in payment metadata');
         }
 
         $paymentType = $metadata['payment_type'] ?? 'registration';
 
         try {
             // Handle different payment types
-            $this->paymentService->handlePaymentSuccess([
+            $payableObject = $this->paymentService->handlePaymentSuccess([
                 'payment_intent_id' => $paymentIntent['id'],
                 'metadata' => $metadata,
                 'amount' => $paymentIntent['amount'],
@@ -67,7 +62,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
 
             $this->logger->info('Payment processed successfully', [
                 'type' => $paymentType,
-                'donation_id' => $donation->getId(),
+                'donation_id' => $payableObject->getId(),
                 'payment_intent' => $paymentIntent['id']
             ]);
 
@@ -80,7 +75,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
         } catch (\Exception $e) {
             $this->logger->error('Payment processing failed', [
                 'error' => $e->getMessage(),
-                'donation_id' => $donation->getId(),
+                'payable_object_id' => $metadata['donation_id'] ?? $metadata['membership_id'],
                 'payment_intent' => $paymentIntent['id']
             ]);
             throw $e;

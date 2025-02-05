@@ -47,8 +47,8 @@
                             <p>Votre paiement par carte est en cours de traitement. Cette page se mettra à jour automatiquement.</p>
                         {% else %}
                             <p>En attente de confirmation de la transaction cryptomonnaie. Cela peut prendre quelques minutes.</p>
-                            {% if txn_id %}
-                                <p class="text-muted small">ID Transaction: {{ txn_id }}</p>
+                            {% if payment_reference %}
+                                <p class="text-muted small">ID Transaction: {{ payment_reference }}</p>
                             {% endif %}
                         {% endif %}
 
@@ -85,8 +85,8 @@
         const checkPaymentStatus = async () => {
             try {
                 const response = await fetch('{{ context is defined and context == "membership" 
-                    ? path("app.membership.check_payment") 
-                    : path("app.check_payment_status") 
+                    ? path("app.membership.check_payment", {id: app.request.query.get('id')})
+                    : path("app.check_payment_status", {id: app.request.query.get('id')})
                 }}');
                 const data = await response.json();
 

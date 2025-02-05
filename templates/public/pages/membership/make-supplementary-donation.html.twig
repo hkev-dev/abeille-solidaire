@@ -1,6 +1,6 @@
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Renouvellement d'Adhésion - Abeilles Solidaires{% endblock %}
+{% block title %}Don supplémentaire - Abeilles Solidaires{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -37,11 +37,11 @@
 
 {% block content %}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Renouvellement d\'Adhésion',
+        title: 'Don Supplementaire',
         breadcrumbs: [
             {label: 'Accueil', path: 'landing.home'},
             {label: 'Mon Compte', path: 'app.user.dashboard'},
-            {label: 'Renouvellement', path: null}
+            {label: 'Don supplémentaire', path: null}
         ]
     } %}
 
@@ -71,8 +71,8 @@
                     {% include 'public/components/flash-messages.html.twig' %}
 
                     <div class="text-center mb-4">
-                        <h3 class="login-register__title">Renouveler Votre Adhésion Annuelle</h3>
-                        <p>Veuillez sélectionner votre mode de paiement pour renouveler votre adhésion</p>
+                        <h3 class="login-register__title">Faire un don supplémentaire</h3>
+                        <p>Veuillez sélectionner votre mode de paiement pour faire un don supplémentaire</p>
                     </div>
 
                     <div class="card card-body mb-4">
@@ -84,7 +84,7 @@
                             <div class="d-flex align-items-center mb-3">
                                 <h4 class="mb-0">Récapitulatif du Paiement</h4>
                                 <div class="ms-auto">
-                                    <span class="badge bg-warning text-dark">Renouvellement</span>
+                                    <span class="badge bg-warning text-dark">Don supplémentaire</span>
                                 </div>
                             </div>
 
@@ -97,7 +97,7 @@
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <i class="fas fa-star me-2 text-warning"></i>
-                                                        Adhésion annuelle
+                                                        Don supplémentaire
                                                         <i class="fas fa-info-circle ms-2 text-muted"
                                                            data-bs-toggle="tooltip"
                                                            title="Permet d'accéder aux fonctionnalités premium pendant 1 an"></i>
@@ -254,8 +254,8 @@
             environment: '{{ app.environment }}',
             amount: 25,
             userEmail: '{{ app.user.email }}',
-            returnUrl: '{{ path("app.membership.waiting_room") }}',
-            createIntentUrl: '{{ path("app.membership.renew") }}',
+            returnUrl: '{{ path("app.user.donations.make_supplementary.waiting_room") }}',
+            createIntentUrl: '{{ path("app.user.donations.make_supplementary") }}',
             currenciesUrl: '{{ path("app.registration.crypto.currencies") }}',
             csrf: {
                 stripeToken: '{{ csrf_token('stripe_payment') }}',

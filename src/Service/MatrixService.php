@@ -45,8 +45,6 @@ class MatrixService
 
             // Set matrix position and parent
             $donation->setParent($parent)
-                ->setPaymentStatus('completed')
-                ->setPaymentCompletedAt(new \DateTimeImmutable())
                 ->setMatrixDepth($parent->getMatrixDepth() + 1)
                 ->setMatrixPosition($position);
 

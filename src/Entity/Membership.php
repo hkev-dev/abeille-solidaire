@@ -4,11 +4,17 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\MembershipRepository;
+use App\Service\Payment\PayableInterface;
+use DateTime;
+use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
+use LogicException;
 
 #[ORM\Entity(repositoryClass: MembershipRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-class Membership
+class Membership implements PayableInterface
 {
     use TimestampableTrait;
 
@@ -21,31 +27,33 @@ class Membership
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'memberships', cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: User::class, cascade: ['persist'], inversedBy: 'memberships')]
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $startDate;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTimeInterface $startDate = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $endDate;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTimeInterface $endDate = null;
 
     #[ORM\Column(length: 20)]
     private string $status = self::STATUS_PENDING;
 
-    #[ORM\OneToOne(targetEntity: Donation::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Donation $payment;
-
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $activatedAt = null;
+    private ?DateTimeInterface $activatedAt = null;
 
-    public function __construct()
-    {
-        $this->startDate = new \DateTime();
-        $this->endDate = (new \DateTime())->modify('+1 year');
-    }
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $paymentProvider = null;
+
+    #[ORM\Column(length: 20)]
+    private string $paymentStatus = 'pending';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $paymentReference = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paymentCompletedAt = null;
 
     public function getId(): ?int
     {
@@ -63,23 +71,23 @@ class Membership
         return $this;
     }
 
-    public function getStartDate(): \DateTimeInterface
+    public function getStartDate(): DateTimeInterface
     {
         return $this->startDate;
     }
 
-    public function setStartDate(\DateTimeInterface $startDate): self
+    public function setStartDate(DateTimeInterface $startDate): self
     {
         $this->startDate = $startDate;
         return $this;
     }
 
-    public function getEndDate(): \DateTimeInterface
+    public function getEndDate(): DateTimeInterface
     {
         return $this->endDate;
     }
 
-    public function setEndDate(\DateTimeInterface $endDate): self
+    public function setEndDate(DateTimeInterface $endDate): self
     {
         $this->endDate = $endDate;
         return $this;
@@ -93,41 +101,27 @@ class Membership
     public function setStatus(string $status): self
     {
         if (!in_array($status, [self::STATUS_ACTIVE, self::STATUS_EXPIRED, self::STATUS_PENDING])) {
-            throw new \InvalidArgumentException('Invalid membership status');
+            throw new InvalidArgumentException('Invalid membership status');
         }
         $this->status = $status;
         return $this;
     }
 
-    public function getPayment(): Donation
-    {
-        return $this->payment;
-    }
-
-    public function setPayment(Donation $payment): self
-    {
-        if ($payment->getDonationType() !== Donation::TYPE_MEMBERSHIP) {
-            throw new \InvalidArgumentException('Invalid donation type for membership payment');
-        }
-        $this->payment = $payment;
-        return $this;
-    }
-
-    public function getActivatedAt(): ?\DateTimeInterface
+    public function getActivatedAt(): ?DateTimeInterface
     {
         return $this->activatedAt;
     }
 
     public function activate(): void
     {
-        if ($this->status !== self::STATUS_PENDING) {
-            throw new \LogicException('Can only activate pending memberships');
+        if ($this->status === self::STATUS_ACTIVE) {
+            throw new LogicException('Can only activate active memberships');
         }
         
         $this->status = self::STATUS_ACTIVE;
-        $this->activatedAt = new \DateTime();
-        $this->startDate = new \DateTime();
-        $this->endDate = (new \DateTime())->modify('+1 year');
+        $this->activatedAt = new DateTime();
+        $this->startDate = new DateTime();
+        $this->endDate = (new DateTime())->modify('+1 year');
     }
 
     public function isExpired(): bool
@@ -140,7 +134,7 @@ class Membership
             return false;
         }
 
-        return $this->endDate < new \DateTime();
+        return $this->endDate < new DateTime();
     }
 
     public function getDaysUntilExpiration(): ?int
@@ -149,7 +143,7 @@ class Membership
             return null;
         }
 
-        $now = new \DateTime();
+        $now = new DateTime();
         $interval = $this->endDate->diff($now);
 
         if ($interval->invert === 0) {
@@ -157,6 +151,31 @@ class Membership
         }
 
         return $interval->days;
+    }
+
+    public function getPaymentProvider(): ?string
+    {
+        return $this->paymentProvider;
+    }
+
+    public function setPaymentProvider(?string $paymentProvider): self
+    {
+        $this->paymentProvider = $paymentProvider;
+        return $this;
+    }
+
+    public function getPaymentStatus(): string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(string $paymentStatus): self
+    {
+        if (!in_array($paymentStatus, ['pending', 'completed', 'failed'])) {
+            throw new InvalidArgumentException('Invalid payment status');
+        }
+        $this->paymentStatus = $paymentStatus;
+        return $this;
     }
 
     #[ORM\PrePersist]
@@ -168,16 +187,27 @@ class Membership
         }
     }
 
-    public function renew(Donation $payment): void 
+    public function getPaymentReference(): ?string
     {
-        if ($payment->getDonationType() !== Donation::TYPE_MEMBERSHIP) {
-            throw new \InvalidArgumentException('Invalid donation type for membership renewal');
-        }
+        return $this->paymentReference;
+    }
 
-        $this->payment = $payment;
-        $this->startDate = new \DateTime();
-        $this->endDate = (clone $this->startDate)->modify('+1 year');
-        $this->status = self::STATUS_ACTIVE;
-        $this->activatedAt = new \DateTime();
+    public function setPaymentReference(?string $paymentReference): static
+    {
+        $this->paymentReference = $paymentReference;
+
+        return $this;
+    }
+
+    public function getPaymentCompletedAt(): ?DateTimeInterface
+    {
+        return $this->paymentCompletedAt;
+    }
+
+    public function setPaymentCompletedAt(?DateTimeInterface $paymentCompletedAt): static
+    {
+        $this->paymentCompletedAt = $paymentCompletedAt;
+
+        return $this;
     }
 }

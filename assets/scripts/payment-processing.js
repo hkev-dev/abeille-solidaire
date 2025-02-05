@@ -159,7 +159,7 @@ export class PaymentProcessor {
             }
 
             // Payment successful, redirect to waiting room
-            window.location.href = this.config.returnUrl;
+            window.location.href = this.config.returnUrl + "?id=" + data.entityId;
 
         } catch (error) {
             this.handlePaymentError(error);

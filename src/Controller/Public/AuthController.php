@@ -2,8 +2,10 @@
 
 namespace App\Controller\Public;
 
+use App\Entity\Donation;
 use App\Entity\User;
 use App\DTO\RegistrationDTO;
+use App\Repository\DonationRepository;
 use Psr\Log\LoggerInterface;
 use App\Form\RegistrationType;
 use App\Service\SecurityService;
@@ -127,8 +129,8 @@ class AuthController extends AbstractController
                 $request->getSession()->set('payment_method', $paymentMethod);
                 $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
 
-                if (isset($paymentData['txn_id'])) {
-                    $request->getSession()->set('txn_id', $paymentData['txn_id']);
+                if (isset($paymentData['payment_reference']) || isset($paymentData['txn_id'])) {
+                    $request->getSession()->set('payment_reference', $paymentData['payment_reference'] ?? $paymentData['txn_id']);
                 }
 
                 return $this->json($paymentData);
@@ -148,7 +150,7 @@ class AuthController extends AbstractController
     }
 
     #[Route('/register/waiting-room', name: 'app.waiting_room')]
-    public function waitingRoom(Request $request): Response
+    public function waitingRoom(Request $request, DonationRepository $donationRepository): Response
     {
         $user = $this->getUser();
 
@@ -156,26 +158,29 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('app.login');
         }
 
-        if ($user->getRegistrationPaymentStatus() === 'completed') {
-            return $this->redirectToRoute('app.user.dashboard');
+        $donation = $donationRepository->find($request->query->get('id'));
+
+        if (!$donation) {
+            throw $this->createNotFoundException('Donation not found');
         }
 
-        if ($user->getRegistrationPaymentStatus() === 'failed') {
+        if ($donation->getPaymentStatus() === 'completed') {
+            return $this->redirectToRoute('app.user.dashboard');
+        } else if ($donation->getPaymentStatus() === 'failed') {
             return $this->redirectToRoute('app.registration.payment');
         }
 
-        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
-
         return $this->render('public/pages/auth/waiting-room.html.twig', [
             'user' => $user,
-            'payment_method' => $paymentMethod,
+            'payment_method' => $request->getSession()->get('payment_method', 'stripe'),
             'payment_url' => $this->generateUrl('app.registration.payment'),
-            'txn_id' => $request->getSession()->get('txn_id')
+            'payment_reference' => $request->getSession()->get('payment_reference'),
+            'donation' => $donation
         ]);
     }
 
-    #[Route('/register/check-payment-status', name: 'app.check_payment_status')]
-    public function checkPaymentStatus(Request $request): Response
+    #[Route('/register/check-payment-status/{id}', name: 'app.check_payment_status')]
+    public function checkPaymentStatus(Request $request, Donation $donation): Response
     {
         $user = $this->getUser();
 
@@ -186,7 +191,7 @@ class AuthController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $status = $user->getRegistrationPaymentStatus();
+        $status = $donation->getPaymentStatus();
 
         if ($status === 'completed') {
             return $this->json([
