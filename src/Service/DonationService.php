@@ -249,4 +249,31 @@ class DonationService
 
         return $earning !== null;
     }
+
+    public function canLevelUp(Donation $donation): bool
+    {
+        /** @var Donation[] $childrens */
+        $childrens = $this->em->createQueryBuilder()
+            ->select('donation')
+            ->from(Donation::class, 'donation')
+            ->where('donation.parent = :parent')
+            ->andWhere('donation.paymentStatus = :status')
+            ->setParameter('parent', $donation)
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->getQuery()
+            ->getResult();
+
+        if (count($childrens) < 4){
+            return false;
+        }
+
+        // Check if all children are completed
+        foreach ($childrens as $child) {
+            if ($child->getFlower()->getLevel() < $donation->getFlower()->getLevel()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

@@ -48,6 +48,7 @@ class MatrixService
                 ->setMatrixDepth($parent->getMatrixDepth() + 1)
                 ->setMatrixPosition($position);
 
+            $this->em->persist($donation);
             $this->em->flush();
 
             // Dispatch donation level up event

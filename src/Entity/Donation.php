@@ -32,6 +32,7 @@ class Donation implements PayableInterface
     ];
     public const PAYMENT_SHARE = 0.5; // 50%
     public const PAYMENT_COMPLETED = "completed";
+    public const PAYMENT_PENDING = "pending";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -320,23 +321,6 @@ class Donation implements PayableInterface
         $this->paymentCompletedAt = $paymentCompletedAt;
 
         return $this;
-    }
-
-    public function canLevelUp(): bool
-    {
-        if ($this->getChildrens()->count() < 4){
-            return false;
-        }
-
-        // Check if all children are completed
-        /** @var Donation $child */
-        foreach ($this->getChildrens() as $child) {
-            if ($child->getFlower()->getLevel() < $this->getFlower()->getLevel()) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public function countAllChildrens(): int

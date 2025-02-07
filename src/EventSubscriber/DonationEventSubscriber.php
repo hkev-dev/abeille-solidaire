@@ -81,11 +81,10 @@ class DonationEventSubscriber implements EventSubscriberInterface
     {
         $donation = $event->getDonation();
 
-        if ($donation->canLevelUp()){
+        if ($this->donationService->canLevelUp($donation)){
             $donation->setFlower($this->flowerService->getNextFlower($donation->getFlower()));
             $this->em->persist($donation);
             $this->em->flush();
-
         }
 
         if ($donation->getParent()){
