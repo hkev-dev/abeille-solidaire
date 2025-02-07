@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -7,13 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin')]
+#[Route('/admin/project', name: 'app.admin.project.')]
 #[IsGranted('ROLE_ADMIN')]
-class AdminController extends AbstractController
+class ProjectController extends AbstractController
 {
-    #[Route('', name: 'admin')]
+    #[Route('', name: 'index')]
     public function index(): Response
     {
-        return $this->render('admin/index.html.twig');
+        return $this->render('admin/pages/dashboard/index.html.twig');
     }
 }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html class="h-full" {{ block('html_attributes') }} lang="en">
+	<head>
+		{% block head %}
+			{% include 'admin/partials/head.html.twig' %}
+		{% endblock %}
+	</head>
+	<body class="antialiased flex h-full text-base text-gray-700 [--tw-page-bg:#F6F6F9] [--tw-page-bg-dark:var(--tw-coal-200)] [--tw-content-bg:var(--tw-light)] [--tw-content-bg-dark:var(--tw-coal-500)] [--tw-content-scrollbar-color:#e8e8e8] [--tw-header-height:60px] [--tw-sidebar-width:320px] bg-[--tw-page-bg] dark:bg-[--tw-page-bg-dark] lg:overflow-hidden">
+
+		{% include 'admin/partials/theme_mode.html.twig' %}
+
+		<div class="flex flex-col grow">
+			{% block page %}
+				{% block header %}
+					{% include 'admin/partials/header.html.twig' %}
+				{% endblock %}
+
+				<div class="flex grow flex-col pt-[--tw-header-height] lg:pt-0">
+					{% block sidebar %}
+						{% include 'admin/partials/sidebar/main.html.twig' %}
+					{% endblock %}
+
+					{% block main %}{% endblock %}
+				</div>
+			{% endblock %}
+		</div>
+
+		{% block modals %}{% endblock %}
+
+		{% block javascripts %}
+			<script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+			<script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+		{% endblock %}
+	</body>
+</html>

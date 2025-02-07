@@ -1,0 +1,20 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block html_attributes %}
+	data-theme="true" data-theme-mode="light"
+{% endblock %}
+
+{% block main %}
+	<main class="scrollable-y-auto [scrollbar-width:auto] [--tw-scrollbar-thumb-color:var(--tw-content-scrollbar-color)] flex flex-col grow items-stretch rounded-xl bg-[--tw-content-bg] dark:bg-[--tw-content-bg-dark] border border-gray-300 dark:border-gray-200 lg:ms-[--tw-sidebar-width] pt-5 mt-0 lg:mt-[15px] m-[15px]" data-scrollable="true" data-scrollable-height="false|lg:auto" data-scrollable-offset="40px" role="content">
+
+		{% block toolbar %}
+			{% include 'admin/partials/toolbar.html.twig' %}
+		{% endblock %}
+
+		{% block content %}{% endblock %}
+
+		{% block footer %}
+			{% include 'admin/partials/footer.html.twig' %}
+		{% endblock %}
+	</main>
+{% endblock %}

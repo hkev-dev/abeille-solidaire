@@ -1,0 +1,19 @@
+{% import "admin/components/menu-item.html.twig" as menuItem %}
+
+<div {{ attributes }}>
+	<div
+		class="menu flex flex-col w-full gap-1.5 px-3.5" data-menu="true" data-menu-accordion-expand-all="false" id="sidebar_primary_menu">
+		{# Dashboard #}
+		{{ menuItem.render({
+            label: 'Tableau de bord',
+            icon: 'ki-duotone ki-element-11',
+            route: 'app.admin.dashboard'
+        }) }}
+
+		{{ menuItem.render({
+            label: 'Projets',
+            icon: 'ki-duotone ki-heart',
+			route: 'app.admin.project.index'
+        }) }}
+	</div>
+</div>

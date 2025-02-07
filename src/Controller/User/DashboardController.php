@@ -5,14 +5,13 @@ namespace App\Controller\User;
 use App\Entity\Donation;
 use App\Entity\Earning;
 use App\Entity\User;
+use App\Repository\DonationRepository;
 use App\Repository\EarningRepository;
 use App\Repository\UserRepository;
-use App\Repository\DonationRepository;
 use App\Repository\WithdrawalRepository;
-use App\Service\FlowerService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController

@@ -31,7 +31,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
 
         // Skip all checks for super admin
         if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $user->getRoles())) {
-            return new RedirectResponse($this->urlGenerator->generate('app.user.dashboard'));
+            return new RedirectResponse($this->urlGenerator->generate('app.admin.dashboard'));
         }
 
         try {

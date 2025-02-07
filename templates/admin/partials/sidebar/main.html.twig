@@ -1,0 +1,16 @@
+<div
+	class="fixed top-0 bottom-0 z-20 hidden lg:flex flex-col shrink-0 w-[--tw-sidebar-width] bg-[--tw-page-bg] dark:bg-[--tw-page-bg-dark]" data-drawer="true" data-drawer-class="drawer drawer-start flex top-0 bottom-0" data-drawer-enable="true|lg:false" id="sidebar">
+
+	{# Sidebar Header #}
+	{% include 'admin/partials/sidebar/header.html.twig' %}
+
+	{# Sidebar Menu #}
+	<div class="flex items-stretch grow shrink-0 justify-center my-5" id="sidebar_menu">
+		<div class="scrollable-y-auto light:[--tw-scrollbar-thumb-color:var(--tw-content-scrollbar-color)] grow" data-scrollable="true" data-scrollable-dependencies="#sidebar_header, #sidebar_footer" data-scrollable-height="auto" data-scrollable-offset="0px" data-scrollable-wrappers="#sidebar_menu">
+			<twig:admin:menu/>
+		</div>
+	</div>
+
+	{# Sidebar Footer #}
+	{% include 'admin/partials/sidebar/footer.html.twig' %}
+</div>

@@ -1,0 +1,34 @@
+{# Dropdown Menu Component 
+   Parameters:
+   - menu_items: array of {label: string, icon: string, url: string, action?: string, target?: string}
+#}
+
+<div class="menu" data-menu="true">
+	<div class="menu-item" data-menu-item-offset="0, 10px" data-menu-item-placement="bottom-end" data-menu-item-toggle="dropdown" data-menu-item-trigger="click|lg:hover">
+
+		<button class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+			<i class="ki-filled ki-dots-vertical"></i>
+		</button>
+
+		<div class="menu-dropdown menu-default w-full max-w-[200px]" data-menu-dismiss="true">
+			{% for item in menu_items %}
+				<div class="menu-item">
+					<a class="menu-link" 
+					   href="{{ item.url|default('#') }}"
+					   {% if item.action is defined and item.action == 'modal' %}
+						   data-modal-toggle="{{ item.target }}"
+					   {% endif %}>
+						<span class="menu-icon">
+							<i class="ki-filled {{ item.icon }}"></i>
+						</span>
+						<span class="menu-title">{{ item.label }}</span>
+					</a>
+				</div>
+
+				{% if not loop.last and item.separator|default(false) %}
+					<div class="menu-separator"></div>
+				{% endif %}
+			{% endfor %}
+		</div>
+	</div>
+</div>
