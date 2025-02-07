@@ -31,45 +31,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    public function countActiveMembers(): int
-    {
-        $result = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->andWhere('u.registrationPaymentStatus = :status')
-            ->setParameter('status', 'completed')
-            ->getQuery()
-            ->getSingleScalarResult();
-        return (int) $result ?? 0;
-    }
-
-    public function getMatrixPositionsForFlower(Flower $flower): array
-    {
-        return $this->createQueryBuilder('u')
-            ->select([
-                'u.id as user_id',
-                'u.firstName as first_name',
-                'u.lastName as last_name',
-                'u.matrixPosition as matrix_position',
-                'u.matrixDepth as matrix_depth',
-                'IDENTITY(u.parent) as parent_id'
-            ])
-            ->where('u.currentFlower = :flower')
-            ->andWhere('u.registrationPaymentStatus = :status')
-            ->setParameter('flower', $flower)
-            ->setParameter('status', 'completed')
-            ->orderBy('u.matrixDepth', 'ASC')
-            ->addOrderBy('u.matrixPosition', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
-    }
-
     /**
      * Find users with expired registrations (unverified and waiting for more than specified days)
      */
     public function findByExpiredRegistration(\DateTime $expiryDate): array
     {
         return $this->createQueryBuilder('u')
-            ->where('u.registrationPaymentStatus = :status')
             ->andWhere('u.isKycVerified = :kyc')
             ->andWhere('u.waitingSince IS NOT NULL')
             ->andWhere('u.waitingSince < :expiryDate')

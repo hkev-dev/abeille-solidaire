@@ -48,7 +48,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
     private function determineRedirect(User $user): RedirectResponse
     {
         // Check registration payment status
-        if ($user->getRegistrationPaymentStatus() !== 'completed') {
+        if ($user->getMainDonation()->getPaymentStatus() !== 'completed') {
             return new RedirectResponse($this->urlGenerator->generate('app.registration.payment'));
         }
 

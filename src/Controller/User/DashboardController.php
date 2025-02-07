@@ -72,7 +72,6 @@ class DashboardController extends AbstractController
                 'parent' => $user->getParent()
             ],
             'isKycVerified' => $user->isKycVerified(),
-            'totalMembers' => $this->userRepository->countActiveMembers(),
             'recentActivity' => $recentActivity,
             'canWithdraw' => $canWithdraw && $user->getWalletBalance() >= 50.0,
         ];

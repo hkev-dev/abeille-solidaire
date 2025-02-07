@@ -250,7 +250,6 @@ class InitializeSystemCommand extends Command
             ->setLastName($lastName)
             ->setPhone($phone)
             ->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER'])
-            ->setRegistrationPaymentStatus('completed')
             ->setIsKycVerified(true)
             ->setKycVerifiedAt(new \DateTimeImmutable())
             ->setWalletBalance(0.0)

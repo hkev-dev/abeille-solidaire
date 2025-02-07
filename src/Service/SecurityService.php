@@ -69,7 +69,7 @@ readonly class SecurityService
             return;
         }
 
-        if ($user->getRegistrationPaymentStatus() === 'pending') {
+        if ($user->getMainDonation()->getPaymentStatus() === 'pending') {
             throw new UserAccessException(
                 'pending_payment',
                 'Registration payment is pending.'

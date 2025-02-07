@@ -35,8 +35,6 @@ class ProcessPendingCyclesCommand extends Command
             $users = $this->em->createQueryBuilder()
                 ->select('u')
                 ->from(User::class, 'u')
-                ->where('u.registrationPaymentStatus = :status')
-                ->setParameter('status', 'completed')
                 ->getQuery()
                 ->getResult();
 

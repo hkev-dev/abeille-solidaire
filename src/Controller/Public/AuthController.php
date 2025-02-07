@@ -6,6 +6,7 @@ use App\Entity\Donation;
 use App\Entity\User;
 use App\DTO\RegistrationDTO;
 use App\Repository\DonationRepository;
+use App\Service\Payment\PaymentServiceInterface;
 use Psr\Log\LoggerInterface;
 use App\Form\RegistrationType;
 use App\Service\SecurityService;
@@ -106,12 +107,12 @@ class AuthController extends AbstractController
     public function paymentSelection(Request $request): Response
     {
         $user = $this->getUser();
-
         if (!$user) {
             return $this->redirectToRoute('app.login');
         }
 
-        if ($user->getRegistrationPaymentStatus() !== 'pending') {
+        /** @var User $user */
+        if ($user->getMainDonation()->getPaymentStatus() === 'completed') {
             return $this->redirectToRoute('app.user.dashboard');
         }
 

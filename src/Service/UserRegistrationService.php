@@ -27,7 +27,6 @@ class UserRegistrationService
             $user->setEmail($dto->email)
                 ->setFirstName($dto->firstName)
                 ->setLastName($dto->lastName)
-                ->setRegistrationPaymentStatus('pending')
                 ->setWaitingSince(new \DateTime())
                 ->setRoles(['ROLE_USER'])
                 ->setUsername($dto->username)

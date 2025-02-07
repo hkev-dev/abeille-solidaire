@@ -2,6 +2,7 @@
 
 namespace App\EventSubscriber;
 
+use App\Entity\User;
 use App\Event\ParentFlowerUpdateEvent;
 use App\Service\FlowerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -67,8 +68,8 @@ class FlowerProgressionSubscriber implements EventSubscriberInterface
         $child->setCurrentFlower($flower);
 
         // Get completed children only
-        $completedChildren = $child->getChildren()->filter(function($c) {
-            return $c->getRegistrationPaymentStatus() === 'completed';
+        $completedChildren = $child->getChildren()->filter(function(User $c) {
+            return $c->getMainDonation()->getPaymentStatus() === 'completed';
         });
 
         // Recursively update grandchildren

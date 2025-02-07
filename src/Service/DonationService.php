@@ -136,27 +136,6 @@ class DonationService
         return $rootUser;
     }
 
-    private function findUserWithFewestChildren(): User
-    {
-        $qb = $this->em->createQueryBuilder();
-        $result = $qb->select('u')
-            ->from(User::class, 'u')
-            ->leftJoin('u.children', 'c')
-            ->where('u.registrationPaymentStatus = :status')
-            ->setParameter('status', 'completed')
-            ->groupBy('u.id')
-            ->orderBy('COUNT(c.id)', 'ASC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        if (!$result) {
-            throw new \RuntimeException('No eligible user found for supplementary donation');
-        }
-
-        return $result;
-    }
-
     public function hasCompletedCycle(User $user): bool
     {
         // Get completed registration donations for the current flower
@@ -179,9 +158,9 @@ class DonationService
             ->select('COUNT(c.id)')
             ->from(User::class, 'c')
             ->where('c.parent = :parent')
-            ->andWhere('c.registrationPaymentStatus = :status')
+//            ->andWhere('c.registrationPaymentStatus = :status')
             ->setParameter('parent', $user)
-            ->setParameter('status', 'completed')
+//            ->setParameter('status', 'completed')
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -211,9 +190,9 @@ class DonationService
             ->select('COUNT(c.id)')
             ->from(User::class, 'c')
             ->where('c.parent = :parent')
-            ->andWhere('c.registrationPaymentStatus = :status')
+//            ->andWhere('c.registrationPaymentStatus = :status')
             ->setParameter('parent', $user)
-            ->setParameter('status', 'completed')
+//            ->setParameter('status', 'completed')
             ->getQuery()
             ->getSingleScalarResult();
 

@@ -150,7 +150,7 @@ class StripePaymentService extends AbstractPaymentService
         $user = $this->em->getRepository(User::class)->find($paymentIntent->metadata['user_id']);
         
         if ($user) {
-            $user->setRegistrationPaymentStatus('failed');
+            $user->getMainDonation()->setPaymentStatus('failed');
             $this->em->flush();
         }
     }

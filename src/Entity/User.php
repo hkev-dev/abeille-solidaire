@@ -96,9 +96,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $memberships;
 
-    #[ORM\Column(length: 20)]
-    private string $registrationPaymentStatus = 'pending';
-
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $waitingSince = null;
 
@@ -195,11 +192,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
     }
 
-    public function isVerified(): bool
-    {
-        return $this->registrationPaymentStatus === 'completed' && $this->isKycVerified;
-    }
-
     public function getFullName(): string
     {
         return $this->getName();
@@ -278,7 +270,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             ->andWhere(Criteria::expr()->gt('endDate', $now))
             ->orderBy(['startDate' => Order::Descending]);
 
-        return $this->memberships->matching($criteria)->first() ?: null;
+        $membershipFiltered = $this->memberships->matching($criteria);
+
+        return $membershipFiltered->first() ?: null;
     }
 
     public function hasPaidAnnualFee(): bool
@@ -392,20 +386,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
-        return $this;
-    }
-
-    public function getRegistrationPaymentStatus(): string
-    {
-        return $this->registrationPaymentStatus;
-    }
-
-    public function setRegistrationPaymentStatus(string $status): self
-    {
-        if (!in_array($status, ['pending', 'completed', 'failed'])) {
-            throw new \InvalidArgumentException('Invalid registration payment status');
-        }
-        $this->registrationPaymentStatus = $status;
         return $this;
     }
 

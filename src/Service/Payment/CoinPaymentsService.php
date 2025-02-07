@@ -156,7 +156,7 @@ class CoinPaymentsService extends AbstractPaymentService
         $user = $this->em->getRepository(User::class)->find($customData['user_id']);
 
         if ($user) {
-            $user->setRegistrationPaymentStatus('failed');
+            $user->getMainDonation()->setPaymentStatus('failed');
             $this->em->flush();
         }
     }
