@@ -112,7 +112,7 @@ class AuthController extends AbstractController
         }
 
         /** @var User $user */
-        if ($user->getMainDonation()->getPaymentStatus() === 'completed') {
+        if ($user->getMainDonation() && $user->getMainDonation()->getPaymentStatus() === 'completed') {
             return $this->redirectToRoute('app.user.dashboard');
         }
 

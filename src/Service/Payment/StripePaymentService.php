@@ -149,7 +149,7 @@ class StripePaymentService extends AbstractPaymentService
         $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
         $user = $this->em->getRepository(User::class)->find($paymentIntent->metadata['user_id']);
         
-        if ($user) {
+        if ($user && $user->getMainDonation()) {
             $user->getMainDonation()->setPaymentStatus('failed');
             $this->em->flush();
         }

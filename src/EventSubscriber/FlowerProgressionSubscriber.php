@@ -69,7 +69,7 @@ class FlowerProgressionSubscriber implements EventSubscriberInterface
 
         // Get completed children only
         $completedChildren = $child->getChildren()->filter(function(User $c) {
-            return $c->getMainDonation()->getPaymentStatus() === 'completed';
+            return $c->getMainDonation() && $c->getMainDonation()->getPaymentStatus() === 'completed';
         });
 
         // Recursively update grandchildren
