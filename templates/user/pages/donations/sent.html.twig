@@ -36,78 +36,67 @@
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Bénéficiaire</th>
-                                <th>Type</th>
-                                <th>Fleur</th>
-                                <th>Montant</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
+                        <tr>
+                            <th>Date</th>
+                            <th>Bénéficiaire</th>
+                            <th>Type</th>
+                            <th>Fleur</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {% for donation in pagination %}
-                                <tr>
-                                    <td>{{ donation.transactionDate|date('d/m/Y H:i') }}</td>
-                                    <td>{{ donation.recipient.fullName }}</td>
-                                    <td>
-                                        {% if donation.donationType == 'direct' %}
-                                            <span class="badge badge-primary">Don Direct</span>
-                                        {% elseif donation.donationType == 'solidarity' %}
-                                            <span class="badge badge-success">Don Solidaire</span>
-                                        {% elseif donation.donationType == 'registration' %}
-                                            <span class="badge badge-info">Inscription</span>
-                                        {% else %}
-                                            <span class="badge badge-secondary">{{ donation.donationType|title }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ donation.flower.name }}</td>
-                                    <td>€{{ donation.amount|number_format(2) }}</td>
-                                    <td>
-                                        {% if donation.stripePaymentIntentId %}
-                                            <span class="badge badge-success">Stripe</span>
-                                        {% elseif donation.coinpaymentsTransactionId %}
-                                            <span class="badge badge-warning">
-                                                Crypto
-                                                {% if donation.cryptoStatus %}
-                                                    ({{ donation.cryptoStatus }})
-                                                {% endif %}
-                                            </span>
-                                        {% else %}
-                                            <span class="badge badge-light">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}" 
-                                               class="btn btn-sm btn-light-primary">
-                                                <i class="ki-duotone ki-document text-primary"></i>
-                                                Reçu
-                                            </a>
-                                            <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}" 
-                                               class="btn btn-sm btn-light-info">
-                                                <i class="ki-duotone ki-document-download text-info"></i>
-                                                PDF
-                                            </a>
-                                            {% if donation.coinpaymentsTransactionId and donation.statusUrl %}
-                                                <a href="{{ donation.statusUrl }}" 
-                                                   target="_blank"
-                                                   class="btn btn-sm btn-light-warning">
-                                                    <i class="ki-duotone ki-bitcoin text-warning"></i>
-                                                    Status
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="7" class="text-center py-4">
-                                        Aucun don envoyé pour le moment
-                                    </td>
-                                </tr>
-                            {% endfor %}
+                        {% for donation in pagination %}
+                            <tr>
+                                <td>{{ donation.transactionDate|date('d/m/Y H:i') }}</td>
+                                <td>{{ donation.recipient.fullName|default('') }}</td>
+                                <td>
+                                    {% if donation.donationType == 'direct' %}
+                                        <span class="badge badge-primary">Don Direct</span>
+                                    {% elseif donation.donationType == 'solidarity' %}
+                                        <span class="badge badge-success">Don Solidaire</span>
+                                    {% elseif donation.donationType == 'registration' %}
+                                        <span class="badge badge-info">Inscription</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ donation.donationType|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ donation.flower.name }}</td>
+                                <td>€{{ donation.amount|number_format(2) }}</td>
+                                <td>
+                                    <span class="badge badge-success">{{ donation.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>
+                                </td>
+{#                                <td>#}
+{#                                    <div class="flex items-center gap-2">#}
+{#                                        <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}"#}
+{#                                           class="btn btn-sm btn-light-primary">#}
+{#                                            <i class="ki-duotone ki-document text-primary"></i>#}
+{#                                            Reçu#}
+{#                                        </a>#}
+{#                                        <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}"#}
+{#                                           class="btn btn-sm btn-light-info">#}
+{#                                            <i class="ki-duotone ki-document-download text-info"></i>#}
+{#                                            PDF#}
+{#                                        </a>#}
+{#                                        {% if donation.paymentProvider != 'stripe' and donation.statusUrl %}#}
+{#                                            <a href="{{ donation.statusUrl }}"#}
+{#                                               target="_blank"#}
+{#                                               class="btn btn-sm btn-light-warning">#}
+{#                                                <i class="ki-duotone ki-bitcoin text-warning"></i>#}
+{#                                                Status#}
+{#                                            </a>#}
+{#                                        {% endif %}#}
+{#                                    </div>#}
+{#                                </td>#}
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    Aucun don envoyé pour le moment
+                                </td>
+                            </tr>
+                        {% endfor %}
                         </tbody>
                     </table>
                 </div>
