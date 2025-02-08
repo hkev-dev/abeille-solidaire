@@ -2,13 +2,13 @@
 
 namespace App\Repository;
 
-use App\Entity\Flower;
 use App\Entity\Project;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method findOneBySlug(string $slug)
+ * @extends ServiceEntityRepository<Project>
  */
 class ProjectRepository extends ServiceEntityRepository
 {

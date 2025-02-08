@@ -329,4 +329,9 @@ class Project implements Serializable
             $this->id,
         ) = unserialize($serialized);
     }
+
+    public function getReceivedAmount(): float
+    {
+        return $this->getCreator()?->getReceivedAmount();
+    }
 }

@@ -318,16 +318,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->accountType;
     }
 
-    public function getAccountTypeLabel(): string
-    {
-        return match ($this->accountType) {
-            self::ACCOUNT_TYPE_PRIVATE => 'Private',
-            self::ACCOUNT_TYPE_ENTERPRISE => 'Enterprise',
-            self::ACCOUNT_TYPE_ASSOCIATION => 'Association',
-            default => 'Unknown'
-        };
-    }
-
     public function getDaysUntilAnnualFeeExpiration(): ?int
     {
         if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles())) {
@@ -556,6 +546,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getMainDonation()->countDirectChildrens();
     }
 
+    public function countDonations(): int
+    {
+        return $this->getDonationsMade()->count();
+    }
+
     public function getTotalReceivedInFlower(): float
     {
         $total = 0.0;
@@ -575,6 +570,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $total = $donation->getEarnings()->filter(function (Earning $earning) {
                 return $earning->getFlower() === $this->getCurrentFlower();
             })->reduce(function (float $carry, Earning $earning) use ($total) {
+                return $carry + $earning->getAmount();
+            }, $total);
+        }
+
+        return $total;
+    }
+
+    public function getReceivedAmount(): float
+    {
+        $total = 0.0;
+        /** @var Donation $donation */
+        foreach ($this->getDonationsMade() as $donation) {
+            $total = $donation->getEarnings()->reduce(function (float $carry, Earning $earning) use ($total) {
                 return $carry + $earning->getAmount();
             }, $total);
         }
@@ -657,5 +665,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return 0;
+    }
+
+    public function getAccountTypeLabel(): string
+    {
+        return match ($this->accountType) {
+            self::ACCOUNT_TYPE_PRIVATE => 'Privée',
+            self::ACCOUNT_TYPE_ENTERPRISE => 'Entreprise',
+            self::ACCOUNT_TYPE_ASSOCIATION => 'Association',
+            default => 'Inconnu'
+        };
     }
 }
