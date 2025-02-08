@@ -12,7 +12,7 @@
 
 		{{ menuItem.render({
             label: 'Projets',
-            icon: 'ki-duotone ki-document',
+            icon: 'ki-duotone ki-abstract-26',
 			route: 'app.admin.project.index'
         }) }}
 
@@ -23,7 +23,7 @@
 			submenu: [
 				{
 					label: 'Demande',
-					route: 'app.user.wallet.index',
+					route: 'app.admin.project.index',
 					badge: {
 						text: withdrawalPendingAmount|format_currency('EUR'),
 						class: 'badge-warning'
@@ -31,7 +31,7 @@
 				},
 				{
 					label: 'Frais',
-					route: 'app.user.wallet.withdraw',
+					route: 'app.admin.project.index',
 				}
 			]
         }) }}
@@ -39,13 +39,13 @@
 		{{ menuItem.render({
             label: 'Utilisateurs',
             icon: 'ki-duotone ki-users',
-			route: 'app.admin.project.index'
+			route: 'app.admin.user.index'
         }) }}
 
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-			route: 'app.admin.project.index'
+			route: 'app.admin.setting.index'
         }) }}
 	</div>
 </div>

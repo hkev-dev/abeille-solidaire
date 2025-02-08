@@ -9,13 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin/project', name: 'app.admin.project.')]
+#[Route('/admin/setting', name: 'app.admin.setting.')]
 #[IsGranted('ROLE_ADMIN')]
-class ProjectController extends AbstractController
+class SettingController extends AbstractController
 {
     #[Route('', name: 'index')]
     public function index(): Response
     {
-        return $this->render('admin/pages/project/index.html.twig');
+        return $this->render('admin/pages/setting/index.html.twig');
     }
 }
