@@ -4,409 +4,416 @@
 {% endblock %}
 
 {% block settings_content %}
-	<div class="container-fixed">
-		<div class="flex flex-col gap-6">
-			<div class="flex justify-between items-center p-6 bg-white rounded-xl shadow-sm">
-				<div>
-					<h2 class="text-xl font-bold mb-1">Mes moyens de paiement</h2>
-					<p class="text-gray-500">Gérez vos cartes bancaires et portefeuilles crypto pour les paiements</p>
-				</div>
-				<button type="button" class="btn btn-lg btn-primary" data-modal-toggle="#payment-method-modal">
-					<i class="ki-duotone ki-plus fs-2 me-2"></i>
-					Ajouter un moyen de paiement
-				</button>
-			</div>
+    <div class="container-fixed">
+        <div class="flex flex-col gap-6">
+            <div class="flex justify-between items-center p-6 bg-white rounded-xl shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold mb-1">Mes moyens de paiement</h2>
+                    <p class="text-gray-500">Gérez vos cartes bancaires et portefeuilles crypto pour les paiements</p>
+                </div>
+                <button type="button" class="btn btn-lg btn-primary" data-modal-toggle="#payment-method-modal">
+                    <i class="ki-duotone ki-plus fs-2 me-2"></i>
+                    Ajouter un moyen de paiement
+                </button>
+            </div>
 
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div class="card">
-					<div class="card-header border-b">
-						<h3 class="flex items-center gap-2 text-lg font-medium">
-							<i class="ki-duotone ki-credit-cart fs-2"></i>
-							Cartes Bancaires
-						</h3>
-					</div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="card">
+                    <div class="card-header border-b">
+                        <h3 class="flex items-center gap-2 text-lg font-medium">
+                            <i class="ki-duotone ki-credit-cart fs-2"></i>
+                            Cartes Bancaires
+                        </h3>
+                    </div>
 
-					<div class="card-body p-6">
-						{% if paymentMethods.cards is empty %}
-							<div class="flex flex-col items-center justify-center py-12 text-center">
-								<div class="w-20 h-20 bg-light/50 rounded-full flex items-center justify-center mb-4">
-									<i class="ki-duotone ki-credit-cart text-[60px] text-gray-400"></i>
-								</div>
-								<h4 class="text-lg font-medium text-gray-800 mb-2">Aucune carte enregistrée</h4>
-								<p class="text-gray-500 mb-6">Ajoutez une carte bancaire pour effectuer vos paiements en toute sécurité</p>
-								<button type="button" class="btn btn-light-primary" data-modal-toggle="#payment-method-modal">
-									<i class="ki-duotone ki-plus fs-2 me-2"></i>
-									Ajouter une carte
-								</button>
-							</div>
-						{% else %}
-							<div class="divide-y divide-gray-100">
-								{% for card in paymentMethods.cards %}
-									<div class="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
-										<div class="flex items-center gap-4">
-											<div class="w-14 h-14 bg-light rounded-xl flex items-center justify-center">
-												<i class="ki-duotone ki-credit-cart text-[3rem] text-gray-700"></i>
-											</div>
-											<div>
-												<div class="flex items-center gap-3">
+                    <div class="card-body p-6">
+                        {% if paymentMethods.cards is empty %}
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <div class="w-20 h-20 bg-light/50 rounded-full flex items-center justify-center mb-4">
+                                    <i class="ki-duotone ki-credit-cart text-[60px] text-gray-400"></i>
+                                </div>
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">Aucune carte enregistrée</h4>
+                                <p class="text-gray-500 mb-6">Ajoutez une carte bancaire pour effectuer vos paiements en
+                                    toute sécurité</p>
+                                <button type="button" class="btn btn-light-primary"
+                                        data-modal-toggle="#payment-method-modal">
+                                    <i class="ki-duotone ki-plus fs-2 me-2"></i>
+                                    Ajouter une carte
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="divide-y divide-gray-100">
+                                {% for card in paymentMethods.cards %}
+                                    <div class="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-14 h-14 bg-light rounded-xl flex items-center justify-center">
+                                                <i class="ki-duotone ki-credit-cart text-[3rem] text-gray-700"></i>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-3">
 													<span class="font-medium text-gray-900">••••
 														{{ card.last4 }}</span>
-													{% if card.isDefault %}
-														<span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-success/10 text-success">
+                                                    {% if card.isDefault %}
+                                                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-success/10 text-success">
 															Par défaut
 														</span>
-													{% endif %}
-												</div>
-												<p class="text-sm text-gray-500 mt-0.5">Expire
-													{{ card.expMonth }}/{{ card.expYear }}</p>
-											</div>
-										</div>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="text-sm text-gray-500 mt-0.5">Expire
+                                                    {{ card.expMonth }}/{{ card.expYear }}</p>
+                                            </div>
+                                        </div>
 
-										<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-											{% if not card.isDefault %}
-												<button type="button" class="btn btn-sm btn-light-primary" data-action="set-default" data-id="{{ card.id }}">
-													Définir par défaut
-												</button>
-											{% endif %}
-											<button type="button" class="btn btn-sm btn-icon btn-light-danger" data-action="delete" data-id="{{ card.id }}" data-bs-tooltip="Supprimer">
-												<i class="ki-duotone ki-trash fs-2"></i>
-											</button>
-										</div>
-									</div>
-								{% endfor %}
-							</div>
-						{% endif %}
-					</div>
-				</div>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {% if not card.isDefault %}
+                                                <button type="button" class="btn btn-sm btn-light-primary"
+                                                        data-action="set-default" data-id="{{ card.id }}">
+                                                    Définir par défaut
+                                                </button>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger"
+                                                    data-action="delete" data-id="{{ card.id }}"
+                                                    data-bs-tooltip="Supprimer">
+                                                <i class="ki-duotone ki-trash fs-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
 
-				<div class="card">
-					<div class="card-header border-b">
-						<h3 class="flex items-center gap-2 text-lg font-medium">
-							<i class="ki-duotone ki-bitcoin fs-2"></i>
-							Portefeuilles Crypto
-						</h3>
-					</div>
+                <div class="card">
+                    <div class="card-header border-b">
+                        <h3 class="flex items-center gap-2 text-lg font-medium">
+                            <i class="ki-duotone ki-bitcoin fs-2"></i>
+                            Portefeuilles Crypto
+                        </h3>
+                    </div>
 
-					<div class="card-body p-6">
-						{% if paymentMethods.crypto is empty %}
-							<div class="flex flex-col items-center justify-center py-12 text-center">
-								<div class="w-20 h-20 bg-light/50 rounded-full flex items-center justify-center mb-4">
-									<i class="ki-duotone ki-bitcoin text-[60px] text-gray-400"></i>
-								</div>
-								<h4 class="text-lg font-medium text-gray-800 mb-2">Aucun portefeuille enregistré</h4>
-								<p class="text-gray-500 mb-6">Ajoutez un portefeuille crypto pour recevoir vos paiements en cryptomonnaie</p>
-								<button type="button" class="btn btn-light-primary" data-modal-toggle="#payment-method-modal">
-									<i class="ki-duotone ki-plus fs-2 me-2"></i>
-									Ajouter un portefeuille
-								</button>
-							</div>
-						{% else %}
-							<div class="divide-y divide-gray-100">
-								{% for wallet in paymentMethods.crypto %}
-									<div class="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
-										<div class="flex items-center gap-4">
-											<div class="w-14 h-14 bg-light rounded-xl flex items-center justify-center">
-												<i class="ki-duotone ki-{{ wallet.currency|lower }} fs-1 text-gray-700"></i>
-											</div>
-											<div>
-												<div class="flex items-center gap-3">
-													<span class="font-medium text-gray-900">{{ wallet.currency }}</span>
-													{% if wallet.isDefault %}
-														<span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-success/10 text-success">
+                    <div class="card-body p-6">
+                        {% if paymentMethods.crypto is empty %}
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <div class="w-20 h-20 bg-light/50 rounded-full flex items-center justify-center mb-4">
+                                    <i class="ki-duotone ki-bitcoin text-[60px] text-gray-400"></i>
+                                </div>
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">Aucun portefeuille enregistré</h4>
+                                <p class="text-gray-500 mb-6">Ajoutez un portefeuille crypto pour recevoir vos paiements
+                                    en cryptomonnaie</p>
+                                <button type="button" class="btn btn-light-primary"
+                                        data-modal-toggle="#payment-method-modal">
+                                    <i class="ki-duotone ki-plus fs-2 me-2"></i>
+                                    Ajouter un portefeuille
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="divide-y divide-gray-100">
+                                {% for wallet in paymentMethods.crypto %}
+                                    <div class="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-14 h-14 bg-light rounded-xl flex items-center justify-center">
+                                                <i class="ki-duotone ki-{{ wallet.currency|lower }} fs-1 text-gray-700"></i>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-3">
+                                                    <span class="font-medium text-gray-900">{{ wallet.currency }}</span>
+                                                    {% if wallet.isDefault %}
+                                                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-success/10 text-success">
 															Par défaut
 														</span>
-													{% endif %}
-												</div>
-												<p class="text-sm text-gray-500 font-mono mt-0.5">{{ wallet.address|slice(0, 16) }}...</p>
-											</div>
-										</div>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="text-sm text-gray-500 font-mono mt-0.5">{{ wallet.address|slice(0, 16) }}
+                                                    ...</p>
+                                            </div>
+                                        </div>
 
-										<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-											{% if not wallet.isDefault %}
-												<button type="button" class="btn btn-sm btn-light-primary" data-action="set-default" data-id="{{ wallet.id }}">
-													Définir par défaut
-												</button>
-											{% endif %}
-											<button type="button" class="btn btn-sm btn-icon btn-light-danger" data-action="delete" data-id="{{ wallet.id }}" data-bs-tooltip="Supprimer">
-												<i class="ki-duotone ki-trash fs-2"></i>
-											</button>
-										</div>
-									</div>
-								{% endfor %}
-							</div>
-						{% endif %}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {% if not wallet.isDefault %}
+                                                <button type="button" class="btn btn-sm btn-light-primary"
+                                                        data-action="set-default" data-id="{{ wallet.id }}">
+                                                    Définir par défaut
+                                                </button>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger"
+                                                    data-action="delete" data-id="{{ wallet.id }}"
+                                                    data-bs-tooltip="Supprimer">
+                                                <i class="ki-duotone ki-trash fs-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	{% include 'user/components/forms/payment-method-modal.html.twig' with {
+    {% include 'user/components/forms/payment-method-modal.html.twig' with {
         form: form
     } %}
 {% endblock %}
 
 {% block javascripts %}
-	{{ parent() }}
-	<script src="https://js.stripe.com/v3/"></script>
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-const modalEl = document.querySelector('#payment-method-modal');
-const modal = KTModal.getInstance(modalEl);
+    {{ parent() }}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.querySelector('#payment-method-modal');
+            const modal = KTModal.getInstance(modalEl);
 
-const stripe = Stripe('{{ stripe_public_key }}');
-let cardElement = null;
+            const stripe = Stripe('{{ stripe_public_key }}');
+            let cardElement = null;
 
-const state = {
-form: document.getElementById('payment-method-form'),
-cardErrors: document.getElementById('card-errors'),
-submitButton: document.querySelector('#payment-method-form button[type="submit"]'),
-loading: false,
-selectedType: null
-};
+            const state = {
+                form: document.getElementById('payment-method-form'),
+                cardErrors: document.getElementById('card-errors'),
+                submitButton: document.querySelector('#payment-method-form button[type="submit"]'),
+                loading: false,
+                selectedType: null
+            };
 
-initializePaymentTypeSelection();
-initializeFormSubmission();
-initializePaymentMethodActions();
+            initializePaymentTypeSelection();
+            initializeFormSubmission();
+            initializePaymentMethodActions();
 
-function initializePaymentTypeSelection() {
-const radioButtons = document.querySelectorAll('input[name="payment_method[type]"]');
-const paymentOptions = document.querySelectorAll('.payment-type-option');
+            function initializePaymentTypeSelection() {
+                const radioButtons = document.querySelectorAll('input[name="payment_method[type]"]');
+                const paymentOptions = document.querySelectorAll('.payment-type-option');
 
-radioButtons.forEach(radio => {
-radio.addEventListener('change', (e) => {
-state.selectedType = e.target.value;
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        state.selectedType = e.target.value;
 
-paymentOptions.forEach(option => {
-option.querySelector('.border-dashed').classList.remove('border-primary', 'bg-light-primary/50');
-option.querySelector('.w-6').classList.add('opacity-0');
-});
+                        paymentOptions.forEach(option => {
+                            option.querySelector('.border-dashed').classList.remove('border-primary', 'bg-light-primary/50');
+                            option.querySelector('.w-6').classList.add('opacity-0');
+                        });
 
-const selectedOption = e.target.closest('.payment-type-option');
-if (selectedOption) {
-selectedOption.querySelector('.border-dashed').classList.add('border-primary', 'bg-light-primary/50');
-selectedOption.querySelector('.w-6').classList.remove('opacity-0');
-}
+                        const selectedOption = e.target.closest('.payment-type-option');
+                        if (selectedOption) {
+                            selectedOption.querySelector('.border-dashed').classList.add('border-primary', 'bg-light-primary/50');
+                            selectedOption.querySelector('.w-6').classList.remove('opacity-0');
+                        }
 
-togglePaymentForms(e.target.value);
-});
-});
-}
+                        togglePaymentForms(e.target.value);
+                    });
+                });
+            }
 
-function togglePaymentForms(type) {
-const forms = document.querySelectorAll('.payment-method-form');
-forms.forEach(form => form.classList.add('hidden'));
+            function togglePaymentForms(type) {
+                const forms = document.querySelectorAll('.payment-method-form');
+                forms.forEach(form => form.classList.add('hidden'));
 
-if (type) {
-const selectedForm = document.getElementById (`${type}-form`);
-if (selectedForm) {
-selectedForm.classList.remove('hidden');
+                if (type) {
+                    const selectedForm = document.getElementById(`${type}-form`);
+                    if (selectedForm) {
+                        selectedForm.classList.remove('hidden');
 
-if (type === 'card' && ! cardElement) {
-initializeStripeElements();
-}
-}
-}
-}
+                        if (type === 'card' && !cardElement) {
+                            initializeStripeElements();
+                        }
+                    }
+                }
+            }
 
-function initializeStripeElements() {
-const elements = stripe.elements();
-cardElement = elements.create('card');
+            function initializeStripeElements() {
+                const elements = stripe.elements();
+                cardElement = elements.create('card');
 
-cardElement.mount('#card-element');
+                cardElement.mount('#card-element');
 
-cardElement.on('change', ({error}) => {
-const displayError = state.cardErrors;
-if (error) {
-displayError.textContent = error.message;
-displayError.classList.remove('hidden');
-} else {
-displayError.textContent = '';
-displayError.classList.add('hidden');
-}
-});
-}
+                cardElement.on('change', ({error}) => {
+                    const displayError = state.cardErrors;
+                    if (error) {
+                        displayError.textContent = error.message;
+                        displayError.classList.remove('hidden');
+                    } else {
+                        displayError.textContent = '';
+                        displayError.classList.add('hidden');
+                    }
+                });
+            }
 
-function initializeFormSubmission() {
-state.form.addEventListener('submit', async (e) => {
-e.preventDefault();
+            function initializeFormSubmission() {
+                state.form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
 
-if (state.loading) 
-return;
-
-
-
-state.cardErrors.classList.add('hidden');
-state.cardErrors.textContent = '';
-
-if (! state.selectedType) {
-showError('Veuillez sélectionner un type de paiement');
-return;
-}
-
-setLoading(true);
-
-try {
-if (state.selectedType === 'card') {
-await handleCardSubmission();
-} else {
-await handleCryptoSubmission();
-} showSuccess();
-setTimeout(() => {
-modal.hide();
-window.location.reload();
-}, 1000);
-
-} catch (error) {
-showError(error.message);
-} finally {
-setLoading(false);
-}
-});
-}
-
-async function handleCardSubmission() {
-const {paymentMethod, error} = await stripe.createPaymentMethod({type: 'card', card: cardElement});
-
-if (error) 
-throw new Error(error.message);
+                    if (state.loading)
+                        return;
 
 
+                    state.cardErrors.classList.add('hidden');
+                    state.cardErrors.textContent = '';
 
-await submitPaymentMethod({type: 'card', paymentMethodId: paymentMethod.id});
-}
+                    if (!state.selectedType) {
+                        showError('Veuillez sélectionner un type de paiement');
+                        return;
+                    }
 
-async function handleCryptoSubmission() {
-const currency = state.form.querySelector('[name="payment_method[cryptoCurrency]"]').value;
-const address = state.form.querySelector('[name="payment_method[walletAddress]"]').value;
+                    setLoading(true);
 
-if (! currency) 
-throw new Error('Veuillez sélectionner une cryptomonnaie');
+                    try {
+                        if (state.selectedType === 'card') {
+                            await handleCardSubmission();
+                        } else {
+                            await handleCryptoSubmission();
+                        }
+                        showSuccess();
+                        setTimeout(() => {
+                            modal.hide();
+                            window.location.reload();
+                        }, 1000);
 
+                    } catch (error) {
+                        showError(error.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                });
+            }
 
+            async function handleCardSubmission() {
+                const {paymentMethod, error} = await stripe.createPaymentMethod({type: 'card', card: cardElement});
 
-if (! address) 
-throw new Error('Veuillez saisir une adresse de portefeuille');
-
-
-
-await submitPaymentMethod({type: 'crypto', currency, address});
-}
-
-async function submitPaymentMethod(data) {
-const response = await fetch('{{ path('app.user.settings.payment_methods.add') }}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRF-Token': '{{ csrf_token('payment_method') }}'
-},
-body: JSON.stringify(data)
-});
-
-const result = await response.json();
-
-if (! response.ok) {
-throw new Error(result.message || 'Une erreur est survenue');
-}
-
-return result;
-}
-
-function initializePaymentMethodActions() {
-document.querySelectorAll('[data-action="delete"]').forEach(button => {
-button.addEventListener('click', async (e) => {
-e.preventDefault();
-
-if (!confirm('Êtes-vous sûr de vouloir supprimer ce moyen de paiement ?')) {
-return;
-}
-
-const id = e.currentTarget.dataset.id;
-await handlePaymentMethodAction(`{{ path('app.user.settings.payment_methods.delete', {'id': 'ID'}) }}`.replace('ID', id));
-});
-});
-
-document.querySelectorAll('[data-action="set-default"]').forEach(button => {
-button.addEventListener('click', async (e) => {
-e.preventDefault();
-const id = e.currentTarget.dataset.id;
-await handlePaymentMethodAction(`{{ path('app.user.settings.payment_methods.default', {'id': 'ID'}) }}`.replace('ID', id));
-});
-});
-}
-
-async function handlePaymentMethodAction(url) {
-try {
-const response = await fetch(url, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRF-Token': '{{ csrf_token('payment_method') }}'
-}
-});
-
-if (! response.ok) 
-throw new Error('Request failed');
+                if (error)
+                    throw new Error(error.message);
 
 
+                await submitPaymentMethod({type: 'card', paymentMethodId: paymentMethod.id});
+            }
 
-const result = await response.json();
+            async function handleCryptoSubmission() {
+                const currency = state.form.querySelector('[name="payment_method[cryptoCurrency]"]').value;
+                const address = state.form.querySelector('[name="payment_method[walletAddress]"]').value;
 
-if (result.success) {
-window.location.reload();
-} else {
-throw new Error(result.message);
-}
-} catch (error) {
-alert(error.message || 'Une erreur est survenue');
-}
-}
+                if (!currency)
+                    throw new Error('Veuillez sélectionner une cryptomonnaie');
 
-function setLoading(loading) {
-state.loading = loading;
-state.submitButton.disabled = loading;
 
-if (loading) {
-state.submitButton.textContent = 'Traitement en cours...';
-} else {
-state.submitButton.innerHTML = 'Ajouter ce moyen de paiement';
-}
-}
+                if (!address)
+                    throw new Error('Veuillez saisir une adresse de portefeuille');
 
-function showSuccess() {
-state.submitButton.classList.remove('btn-primary');
-state.submitButton.classList.add('btn-success');
-state.submitButton.innerHTML = 'Moyen de paiement ajouté';
-}
 
-function showError(message) {
-state.cardErrors.textContent = message;
-state.cardErrors.classList.remove('hidden');
+                await submitPaymentMethod({type: 'crypto', currency, address});
+            }
 
-state.submitButton.classList.add('animate-shake');
-setTimeout(() => {
-state.submitButton.classList.remove('animate-shake');
-}, 500);
+            async function submitPaymentMethod(data) {
+                const response = await fetch('{{ path('app.user.settings.payment_methods.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '{{ csrf_token('payment_method') }}'
+                    },
+                    body: JSON.stringify(data)
+                });
 
-state.cardErrors.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-}
+                const result = await response.json();
 
-modalEl.addEventListener('hidden.bs.modal', () => {
-state.form.reset();
-state.selectedType = null;
-state.submitButton.classList.remove('btn-success', 'submitting');
-state.cardErrors.classList.add('hidden');
-state.cardErrors.textContent = '';
+                if (!response.ok) {
+                    throw new Error(result.message || 'Une erreur est survenue');
+                }
 
-document.querySelectorAll('.payment-type-option').forEach(option => {
-option.querySelector('.border-dashed').classList.remove('border-primary', 'bg-light-primary/50');
-option.querySelector('.w-6').classList.add('opacity-0');
-});
+                return result;
+            }
 
-document.querySelectorAll('.payment-method-form').forEach(form => {
-form.classList.add('hidden');
-});
-});
-});
-	</script>
+            function initializePaymentMethodActions() {
+                document.querySelectorAll('[data-action="delete"]').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        e.preventDefault();
+
+                        if (!confirm('Êtes-vous sûr de vouloir supprimer ce moyen de paiement ?')) {
+                            return;
+                        }
+
+                        const id = e.currentTarget.dataset.id;
+                        await handlePaymentMethodAction(`{{ path('app.user.settings.payment_methods.delete', {'id': 'ID'}) }}`.replace('ID', id));
+                    });
+                });
+
+                document.querySelectorAll('[data-action="set-default"]').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const id = e.currentTarget.dataset.id;
+                        await handlePaymentMethodAction(`{{ path('app.user.settings.payment_methods.default', {'id': 'ID'}) }}`.replace('ID', id));
+                    });
+                });
+            }
+
+            async function handlePaymentMethodAction(url) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': '{{ csrf_token('payment_method') }}'
+                        }
+                    });
+
+                    if (!response.ok)
+                        throw new Error('Request failed');
+
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        window.location.reload();
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    alert(error.message || 'Une erreur est survenue');
+                }
+            }
+
+            function setLoading(loading) {
+                state.loading = loading;
+                state.submitButton.disabled = loading;
+
+                if (loading) {
+                    state.submitButton.textContent = 'Traitement en cours...';
+                } else {
+                    state.submitButton.innerHTML = 'Ajouter ce moyen de paiement';
+                }
+            }
+
+            function showSuccess() {
+                state.submitButton.classList.remove('btn-primary');
+                state.submitButton.classList.add('btn-success');
+                state.submitButton.innerHTML = 'Moyen de paiement ajouté';
+            }
+
+            function showError(message) {
+                state.cardErrors.textContent = message;
+                state.cardErrors.classList.remove('hidden');
+
+                state.submitButton.classList.add('animate-shake');
+                setTimeout(() => {
+                    state.submitButton.classList.remove('animate-shake');
+                }, 500);
+
+                state.cardErrors.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+            }
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                state.form.reset();
+                state.selectedType = null;
+                state.submitButton.classList.remove('btn-success', 'submitting');
+                state.cardErrors.classList.add('hidden');
+                state.cardErrors.textContent = '';
+
+                document.querySelectorAll('.payment-type-option').forEach(option => {
+                    option.querySelector('.border-dashed').classList.remove('border-primary', 'bg-light-primary/50');
+                    option.querySelector('.w-6').classList.add('opacity-0');
+                });
+
+                document.querySelectorAll('.payment-method-form').forEach(form => {
+                    form.classList.add('hidden');
+                });
+            });
+        });
+    </script>
 {% endblock %}

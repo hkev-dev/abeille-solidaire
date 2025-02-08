@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\WithdrawalRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -26,7 +27,7 @@ class DashboardController extends AbstractController
 
     #[Route('/user/dashboard', name: 'app.user.dashboard')]
     #[IsGranted('ROLE_USER')]
-    public function index(): Response
+    public function index(Session $session): Response
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -54,8 +55,12 @@ class DashboardController extends AbstractController
         // Format recent activities
         $recentActivity = $this->formatRecentActivity($user);
 
+        $justLoggedIn = $session->get('justLoggedIn', false);
+        $session->remove('justLoggedIn');
+
         $data = [
             'user' => $user,
+            'showChoiceModal' => $justLoggedIn,
             'currentFlower' => $currentFlower,
             'walletBalance' => $user->getWalletBalance(),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),

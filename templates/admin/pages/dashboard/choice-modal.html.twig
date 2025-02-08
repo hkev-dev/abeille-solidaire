@@ -1,0 +1,71 @@
+<div class="modal" data-modal="true" id="account-type-choice-modal">
+    <div class="modal-content modal-center-y max-w-[600px]">
+        <div class="modal-header">
+            <h3 class="modal-title">Continuer en tant que :</h3>
+            <button class="btn btn-icon btn-sm btn-light hover:bg-gray-100" data-modal-dismiss="true">
+                <i class="ki-outline ki-cross fs-2"></i>
+            </button>
+        </div>
+
+        <div class="modal-body p-5">
+            {# Payment Type Selection #}
+            <div class="grid grid-cols-2 gap-6">
+                {% set paymentTypes = {
+                    'card': {
+                        'title': 'Utilisateur',
+                        'link': path('app.user.dashboard'),
+                        'icon': 'ki-duotone ki-user',
+                        'description': 'En tant qu\'utilisateur vous accederez q\'à vos informations (Fleur, Filleuls, Withdrawals, etc.)'
+                    },
+                    'crypto': {
+                        'title': 'Administrateur',
+                        'link': path('app.admin.dashboard'),
+                        'icon': 'ki-duotone ki-security-user',
+                        'description': 'En tant qu\'administrateur vous accéderez à toutes les fonctionnalités de gestion de la plateforme'
+                    }
+                } %}
+
+                {% for type, config in paymentTypes %}
+                    <div data-payment-toggle="{{ type }}" class="dashboard-choice-option cursor-pointer group" data-link="{{ config.link }}">
+                        <div class="relative p-8 rounded-xl border-2 border-dashed hover:bg-light-primary/50 hover:border-primary transition-all">
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-xl bg-light mx-auto mb-4 flex items-center justify-center group-hover:bg-white transition-colors">
+                                    <i class="{{ config.icon }} text-[50px] text-gray-600 group-hover:text-primary transition-colors"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2">{{ config.title }}</h4>
+                                <p class="text-sm text-gray-500">{{ config.description }}</p>
+                            </div>
+                            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                                    <i class="ki-duotone ki-check fs-2 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {# Card Form #}
+            <div id="card-form" class="payment-method-form space-y-4 mt-2">
+                <div class="card bg-light-light">
+                    <div class="card-body space-y-2">
+                        <span class="block text-sm font-medium text-gray-700 required">A tout moment, vous pouvez basculer entre le mode Administrateur ou Utilisateur à partir du menu de votre avatar en bas à gauche.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.dashboard-choice-option').forEach(choice => {
+            choice.addEventListener('click', function () {
+                const link = this.getAttribute('data-link');
+                if (link) {
+                    window.location.href = link;
+                }
+            });
+        });
+    });
+</script>

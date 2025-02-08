@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Membership;
 use App\Entity\Donation;
+use App\Repository\MembershipRepository;
 use App\Service\Payment\PaymentServiceInterface;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +24,7 @@ class MembershipService
 
     public function __construct(
         private readonly EntityManagerInterface   $entityManager,
+        private readonly MembershipRepository   $membershipRepository,
         private readonly LoggerInterface          $logger,
         private readonly EventDispatcherInterface $eventDispatcher
     )
@@ -137,8 +139,12 @@ class MembershipService
         return self::MEMBERSHIP_FEE;
     }
 
+    /**
+     * @param User $user
+     * @return Membership[]
+     */
     public function getMembershipHistory(User $user): array
     {
-        return $user->getMemberships()->toArray();
+        return $this->membershipRepository->findBy(["user" => $user]);
     }
 }

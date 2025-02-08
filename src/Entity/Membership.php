@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\MembershipRepository;
+use App\Service\MembershipService;
 use App\Service\Payment\PayableInterface;
 use DateTime;
 use DateTimeInterface;
@@ -209,5 +210,10 @@ class Membership implements PayableInterface
         $this->paymentCompletedAt = $paymentCompletedAt;
 
         return $this;
+    }
+
+    public function getAmount(): float
+    {
+        return MembershipService::MEMBERSHIP_FEE;
     }
 }

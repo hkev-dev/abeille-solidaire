@@ -5,21 +5,39 @@
 {% block content %}
     <div class="container-fixed">
         {# Stats Cards Grid #}
-{#        {% include 'user/pages/dashboard/partials/_stats_cards.html.twig' %}#}
+        {#        {% include 'user/pages/dashboard/partials/_stats_cards.html.twig' %} #}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {# Main Content (Left Column) #}
             <div class="lg:col-span-2 space-y-6">
-{#                {% include 'user/pages/dashboard/partials/_matrix_visualization.html.twig' %}#}
-{#                {% include 'user/pages/dashboard/partials/_flower_progress.html.twig' %}#}
-{#                {% include 'user/pages/dashboard/partials/_recent_activity.html.twig' %}#}
+                {#                {% include 'user/pages/dashboard/partials/_matrix_visualization.html.twig' %} #}
+                {#                {% include 'user/pages/dashboard/partials/_flower_progress.html.twig' %} #}
+                {#                {% include 'user/pages/dashboard/partials/_recent_activity.html.twig' %} #}
             </div>
 
             {# Sidebar Content (Right Column) #}
             <div class="space-y-6">
-{#                {% include 'user/pages/dashboard/partials/_account_status.html.twig' %}#}
-{#                {% include 'user/pages/dashboard/partials/_direct_children.html.twig' %}#}
+                {#                {% include 'user/pages/dashboard/partials/_account_status.html.twig' %} #}
+                {#                {% include 'user/pages/dashboard/partials/_direct_children.html.twig' %} #}
             </div>
         </div>
     </div>
+
+    {% if showChoiceModal %}
+        {% include 'admin/pages/dashboard/choice-modal.html.twig' %}
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {% if showChoiceModal %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalEl = document.querySelector('#account-type-choice-modal');
+                const modal = KTModal.getInstance(modalEl);
+                modal.show();
+            })
+        </script>
+    {% endif %}
 {% endblock %}

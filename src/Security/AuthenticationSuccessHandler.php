@@ -29,6 +29,10 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
             return new RedirectResponse($this->urlGenerator->generate('app.login'));
         }
 
+        if (empty(array_diff(['ROLE_USER', 'ROLE_ADMIN'], $user->getRoles()))) {
+            $request->getSession()->set('justLoggedIn', true);
+        }
+
         // Skip all checks for super admin
         if (array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $user->getRoles())) {
             return new RedirectResponse($this->urlGenerator->generate('app.admin.dashboard'));

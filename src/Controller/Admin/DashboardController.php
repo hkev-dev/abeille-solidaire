@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -14,8 +15,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app.admin.dashboard')]
-    public function index(): Response
+    public function index(Session $session): Response
     {
-        return $this->render('admin/pages/dashboard/index.html.twig');
+        $justLoggedIn = $session->get('justLoggedIn', false);
+        $session->remove('justLoggedIn');
+        return $this->render('admin/pages/dashboard/index.html.twig', [
+            'showChoiceModal' => $justLoggedIn
+        ]);
     }
 }
