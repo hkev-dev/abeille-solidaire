@@ -1,0 +1,23 @@
+{% extends 'admin/layouts/default.html.twig' %}
+
+{% set page_title = 'Demande de retrait' %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Stats Cards Grid #}
+
+        <div class="grid grid-cols-1 gap-6">
+            {# Main Content (Left Column) #}
+            <div class="space-y-6">
+                {% include 'admin/pages/project/partials/_list.html.twig' %}
+            </div>
+
+            {# Sidebar Content (Right Column) #}
+            <div class="space-y-6">
+                {#                {% include 'user/pages/dashboard/partials/_account_status.html.twig' %} #}
+                {#                {% include 'user/pages/dashboard/partials/_direct_children.html.twig' %} #}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

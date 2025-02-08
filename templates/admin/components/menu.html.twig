@@ -19,11 +19,11 @@
 		{{ menuItem.render({
             label: 'Retrait',
             icon: 'ki-duotone ki-euro',
-			routes: ['app.user.wallet.index', 'app.user.wallet.withdraw'],
+			routes: ['app.admin.withdrawal.request', 'app.admin.withdrawal.charge'],
 			submenu: [
 				{
 					label: 'Demande',
-					route: 'app.admin.project.index',
+					route: 'app.admin.withdrawal.request',
 					badge: {
 						text: withdrawalPendingAmount|format_currency('EUR'),
 						class: 'badge-warning'
@@ -31,7 +31,7 @@
 				},
 				{
 					label: 'Frais',
-					route: 'app.admin.project.index',
+					route: 'app.admin.withdrawal.charge',
 				}
 			]
         }) }}
