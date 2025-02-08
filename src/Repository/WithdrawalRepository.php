@@ -7,6 +7,9 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Withdrawal>
+ */
 class WithdrawalRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -51,4 +54,25 @@ class WithdrawalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getTotalAmount()
+    {
+        return $this->createQueryBuilder('w')
+            ->select('SUM(w.amount)')
+            ->andWhere('w.status = :status')
+            ->setParameter('status', Withdrawal::STATUS_PROCESSED)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getTotalPendingAmount()
+    {
+        return $this->createQueryBuilder('w')
+            ->select('SUM(w.amount)')
+            ->andWhere('w.status = :status')
+            ->setParameter('status', Withdrawal::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

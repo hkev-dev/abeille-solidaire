@@ -12,31 +12,39 @@
 
 		{{ menuItem.render({
             label: 'Projets',
-            icon: 'ki-duotone ki-heart',
+            icon: 'ki-duotone ki-document',
 			route: 'app.admin.project.index'
         }) }}
 
 		{{ menuItem.render({
-            label: 'Withdraw Requests',
-            icon: 'ki-duotone ki-heart',
-			route: 'app.admin.project.index'
+            label: 'Retrait',
+            icon: 'ki-duotone ki-euro',
+			routes: ['app.user.wallet.index', 'app.user.wallet.withdraw'],
+			submenu: [
+				{
+					label: 'Demande',
+					route: 'app.user.wallet.index',
+					badge: {
+						text: withdrawalPendingAmount|format_currency('EUR'),
+						class: 'badge-warning'
+					}
+				},
+				{
+					label: 'Frais',
+					route: 'app.user.wallet.withdraw',
+				}
+			]
         }) }}
 
 		{{ menuItem.render({
             label: 'Utilisateurs',
-            icon: 'ki-duotone ki-heart',
+            icon: 'ki-duotone ki-users',
 			route: 'app.admin.project.index'
         }) }}
 
 		{{ menuItem.render({
             label: 'Paramètres',
-            icon: 'ki-duotone ki-heart',
-			route: 'app.admin.project.index'
-        }) }}
-
-		{{ menuItem.render({
-            label: 'Withdrawal Charges',
-            icon: 'ki-duotone ki-heart',
+            icon: 'ki-duotone ki-setting-2',
 			route: 'app.admin.project.index'
         }) }}
 	</div>

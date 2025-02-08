@@ -1,0 +1,35 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+    {# Wallet Card - Simplified #}
+    <div class="card bg-gradient-to-br from-primary-50 to-primary-100">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-700">Utilisateurs</h3>
+                <span class="text-primary ki-duotone ki-wallet text-2xl"></span>
+            </div>
+            <div class="text-3xl font-bold text-primary">{{ users.verifiedCount }} Verifié / {{ users.count }} Total</div>
+        </div>
+    </div>
+
+    {# Current Flower Card #}
+    <div class="card bg-gradient-to-br from-info-50 to-info-100">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-700">Donations</h3>
+                <span class="text-info ki-duotone ki-wallet text-2xl"></span>
+            </div>
+            <div class="text-2xl font-bold text-info">{{ donations.amount|number_format(2) }}</div>
+            <div class="mt-2 text-sm text-gray-600">€{{ donations.count }}</div>
+        </div>
+    </div>
+
+    {# Matrix Children Card #}
+    <div class="card bg-gradient-to-br from-warning-50 to-warning-100">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-700">Retraits</h3>
+                <span class="text-warning ki-duotone ki-paypal text-2xl"></span>
+            </div>
+            <div class="text-2xl font-bold text-warning">€{{ withdraws.amount }}</div>
+        </div>
+    </div>
+</div>

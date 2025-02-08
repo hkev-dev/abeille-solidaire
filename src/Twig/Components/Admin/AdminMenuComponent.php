@@ -7,6 +7,7 @@ use App\Entity\Project;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;
+use App\Repository\WithdrawalRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -22,6 +23,7 @@ class AdminMenuComponent
         private readonly DonationRepository $donationRepository,
         private readonly FlowerRepository $flowerRepository,
         private readonly UserRepository $userRepository,
+        private readonly WithdrawalRepository $withdrawalRepository,
     ) {
     }
 
@@ -30,4 +32,11 @@ class AdminMenuComponent
     {
         return $this->security->getUser();
     }
+
+    #[ExposeInTemplate]
+    public function getWithdrawalPendingAmount(): float
+    {
+        return $this->withdrawalRepository->getTotalPendingAmount() ?? 0.0;
+    }
+
 }

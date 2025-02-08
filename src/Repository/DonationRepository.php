@@ -229,4 +229,24 @@ class DonationRepository extends ServiceEntityRepository
         // Each 4 donations completes a cycle
         return (int) floor($result / 4);
     }
+
+    public function getTotalAmount()
+    {
+        return $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->andWhere('d.paymentStatus = :status')
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countCompleted()
+    {
+        return $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->andWhere('d.paymentStatus = :status')
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

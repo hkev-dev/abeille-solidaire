@@ -46,4 +46,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    public function countVerified()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere('u.isKycVerified = :kyc')
+            ->setParameter('kyc', true)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
