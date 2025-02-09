@@ -1,0 +1,67 @@
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fait le</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Demandeur</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Methode de retrait</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+            {% for item in pagination %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{{ item.createdAt|date('d/m/Y H:i') }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900 max-w-[200px] truncate">{{ item.user.fullName|default('') }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{{ item.amount|number_format(2) }} €</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm font-medium">
+                            {{ item.withdrawalMethod }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="text-sm font-medium badge {{ item.status == 'pending' ? 'badge-warning' : 'badge-success' }}">
+                            {{ item.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if item.status == 'pending' %}
+                        <div class="flex items-center gap-2">
+                            <a href="#"
+                               class="btn btn-sm btn-light-primary">
+                                <i class="ki-duotone ki-check-circle text-success"></i>
+                                Valider
+                            </a>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="#"
+                               class="btn btn-sm btn-light-primary">
+                                <i class="ki-duotone ki-cross-circle text-danger"></i>
+                                Rejeter
+                            </a>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Aucune activité récente
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

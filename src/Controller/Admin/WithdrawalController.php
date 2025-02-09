@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use App\Repository\DonationRepository;
 use App\Repository\ProjectRepository;
+use App\Repository\WithdrawalRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,10 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class WithdrawalController extends AbstractController
 {
     #[Route('/request', name: 'request')]
-    public function request(Request $request, ProjectRepository $projectRepository, PaginatorInterface $paginator): Response
+    public function request(Request $request, WithdrawalRepository $withdrawalRepository, PaginatorInterface $paginator): Response
     {
-        $query = $projectRepository->createQueryBuilder('project')
-            ->orderBy('project.updatedAt', 'DESC');
+        $query = $withdrawalRepository->createQueryBuilder('withdrawal')
+            ->orderBy('withdrawal.updatedAt', 'DESC');
 
         $pagination = $paginator->paginate(
             $query,
@@ -34,10 +35,10 @@ class WithdrawalController extends AbstractController
         ]);
     }
     #[Route('/charge', name: 'charge')]
-    public function charge(Request $request, ProjectRepository $projectRepository, PaginatorInterface $paginator): Response
+    public function charge(Request $request, WithdrawalRepository $withdrawalRepository, PaginatorInterface $paginator): Response
     {
-        $query = $projectRepository->createQueryBuilder('project')
-            ->orderBy('project.updatedAt', 'DESC');
+        $query = $withdrawalRepository->createQueryBuilder('withdrawal')
+            ->orderBy('withdrawal.updatedAt', 'DESC');
 
         $pagination = $paginator->paginate(
             $query,

@@ -173,6 +173,15 @@
 												Adhésion annuelle active
 											</li>
 										{% endif %}
+										{% if not app.user.hasRequiredMatrixDepthForWithdrawal %}
+											<li class="d-flex align-items-center text-danger">
+												<i class="ki-duotone ki-cross-circle fs-7 me-2">
+													<span class="path1"></span>
+													<span class="path2"></span>
+												</i>
+												Niveau de fleur insuffisant
+											</li>
+										{% endif %}
 										{% if app.user.walletBalance < constant('App\\Entity\\Withdrawal::MIN_AMOUNT') %}
 											<li class="d-flex align-items-center text-danger">
 												<i class="ki-duotone ki-cross-circle fs-7 me-2">

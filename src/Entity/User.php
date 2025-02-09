@@ -507,15 +507,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function hasRequiredMatrixDepthForWithdrawal(): bool
+    {
+        return array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) ||
+            $this->getMainDonation()?->getFlower()->getLevel() >= 4;
+    }
+
     public function isEligibleForWithdrawal(): bool
     {
-        // Admin users bypass matrix depth check
-        $hasRequiredMatrixDepth = array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) ||
-            $this->getMainDonation()?->getMatrixDepth() >= 3;
-
         return $this->isKycVerified &&      // KYC verification completed
             $this->hasPaidAnnualFee() &&    // Annual membership is active
-            $hasRequiredMatrixDepth &&       // Has required matrix depth
+            $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth
             $this->hasProject();             // Has at least one project
     }
 

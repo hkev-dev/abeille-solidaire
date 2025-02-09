@@ -2,9 +2,11 @@
 
 namespace App\Controller\User;
 
+use App\Entity\Withdrawal;
 use App\Form\WithdrawalFormType;
 use App\Repository\WithdrawalRepository;
 use App\Service\Payment\CoinPaymentsService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -53,14 +55,15 @@ class WalletController extends AbstractController
     }
 
     #[Route('/withdraw', name: 'withdraw')]
-    public function withdraw(Request $request): Response
+    public function withdraw(Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
 
         // Check all withdrawal prerequisites
         $canWithdraw = $user->isEligibleForWithdrawal();
 
-        $form = $this->createForm(WithdrawalFormType::class, null, [
+        $withdrawal = new Withdrawal();
+        $form = $this->createForm(WithdrawalFormType::class, $withdrawal, [
             'crypto_currencies' => $this->coinPaymentsService->getAcceptedCryptoCurrencies()
         ]);
 
@@ -70,6 +73,13 @@ class WalletController extends AbstractController
             //TODO on witdrawal submited
             // Handle withdrawal submission
             // This would be implemented in a service
+            $withdrawal->setUser($user);
+            $entityManager->persist($withdrawal);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Votre projet a été créé avec succès.');
+
+            return $this->redirectToRoute('app.user.dashboard');
         }
 
         return $this->render('user/pages/wallet/withdraw.html.twig', [
