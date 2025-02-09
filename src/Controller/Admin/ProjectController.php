@@ -54,7 +54,7 @@ class ProjectController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
             $this->addFlash('success', 'Votre projet a été mis à jour avec succès.');
-            return $this->redirectToRoute('app.user.project.index');
+            return $this->redirectToRoute('app.admin.project.index');
         }
 
         return $this->render('admin/pages/project/update.html.twig', [
