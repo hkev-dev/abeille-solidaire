@@ -7,6 +7,7 @@ use App\Entity\Flower;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query\Expr;
 
 /**
  * @extends ServiceEntityRepository<Donation>
@@ -248,5 +249,17 @@ class DonationRepository extends ServiceEntityRepository
             ->setParameter('status', Donation::PAYMENT_COMPLETED)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function getGraphData()
+    {
+        return $this->createQueryBuilder('d')
+        ->select('SUM(d.amount) as totalAmount, YEAR(d.paymentCompletedAt) as year, MONTH(d.paymentCompletedAt) as month')
+        ->where('d.paymentStatus = :status')
+        ->setParameter('status', Donation::PAYMENT_COMPLETED)
+        ->groupBy('year, month')
+        ->orderBy('year, month')
+        ->getQuery()
+        ->getResult();
     }
 }

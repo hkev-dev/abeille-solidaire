@@ -27,14 +27,37 @@ class DashboardController extends AbstractController
         $session->remove('justLoggedIn');
 
         $stats = [
+            'recentUsers' => $userRepository->findRecent(),
             'users' => ['count' => $userRepository->count(), 'verifiedCount' => $userRepository->countVerified()],
             'donations' => ['count' => $donationRepository->countCompleted(), 'amount' => $donationRepository->getTotalAmount()],
-            'withdraws' => ['amount' => $withdrawalRepository->getTotalAmount()]
+            'withdraws' => ['amount' => $withdrawalRepository->getTotalAmount()],
+            'graph' => [
+                'donations' => json_encode($this->formatToGraph($donationRepository->getGraphData())),
+                'withdrawals' => json_encode($this->formatToGraph($withdrawalRepository->getGraphData()))
+            ]
         ];
+
 
         return $this->render('admin/pages/dashboard/index.html.twig', [
             'showChoiceModal' => $justLoggedIn,
             ...$stats
         ]);
+    }
+
+    private function formatToGraph(mixed $stats): array
+    {
+        $keys = [];
+        $data = [];
+
+        foreach ($stats as $item) {
+            $key = $item['year'] . '-' . str_pad($item['month'], 2, '0', STR_PAD_LEFT);
+            $keys[] = $key;
+            $data[] = (float) $item['totalAmount'];
+        }
+
+        return [
+            'keys' => $keys,
+            'data' => $data
+        ];
     }
 }

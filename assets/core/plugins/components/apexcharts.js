@@ -60,7 +60,7 @@ export default plugin(({addComponents, theme}) => {
     },
     '.apexcharts-legend': {
       'display': 'flex',
-      'flex-direction': 'column',
+      'flex-direction': 'row',
       'gap': theme('spacing.2'),
       '.apexcharts-legend-series': {
         'gap': theme('spacing.1'),

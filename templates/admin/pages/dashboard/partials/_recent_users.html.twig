@@ -1,0 +1,8 @@
+<div class="card">
+    <div class="card-header border-b">
+        <h3 class="card-title">Inscription Récente</h3>
+    </div>
+    <div class="overflow-x-auto">
+        {% include 'admin/pages/user/partials/_list.html.twig' with {'pagination': recentUsers, 'hideActions': true} %}
+    </div>
+</div>

@@ -6,6 +6,7 @@ use App\Entity\Withdrawal;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query\Expr;
 
 /**
  * @extends ServiceEntityRepository<Withdrawal>
@@ -75,4 +76,15 @@ class WithdrawalRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getGraphData()
+    {
+        return $this->createQueryBuilder('w')
+            ->select('SUM(w.amount) as totalAmount, YEAR(w.processedAt) as year, MONTH(w.processedAt) as month')
+            ->where('w.status = :status')
+            ->setParameter('status', Withdrawal::STATUS_PROCESSED)
+            ->groupBy('year, month')
+            ->orderBy('year, month')
+            ->getQuery()
+            ->getResult();
+    }
 }

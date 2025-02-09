@@ -56,4 +56,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findRecent()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u')
+            ->andWhere('u.createdAt > :date')
+            ->setParameter('date', new \DateTime('-3 days'))
+            ->orderBy('u.createdAt', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+    }
 }
