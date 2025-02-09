@@ -65,7 +65,7 @@ class DashboardController extends AbstractController
             'walletBalance' => $user->getWalletBalance(),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
-            'matrixChildren' => $user->getChildren(),
+            'matrixChildren' => $user->getChildrenDonation(),
             'matrixChildrenCount' => $user->getChildren()->count(),
             'membershipInfo' => $membershipInfo,
             'flowerProgress' => $flowerProgress,

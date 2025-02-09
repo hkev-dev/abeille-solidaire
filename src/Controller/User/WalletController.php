@@ -67,6 +67,7 @@ class WalletController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            //TODO on witdrawal submited
             // Handle withdrawal submission
             // This would be implemented in a service
         }

@@ -47,25 +47,27 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for donation in pagination %}
+                        {% for earning in pagination %}
+                            {% set beneficiary = earning.beneficiary %}
+                            {% set donor = earning.donor %}
                             <tr>
-                                <td>{{ donation.transactionDate|date('d/m/Y H:i') }}</td>
-                                <td>{{ donation.recipient.fullName|default('') }}</td>
+                                <td>{{ earning.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>{{ beneficiary.donor.fullName|default('') }}</td>
                                 <td>
-                                    {% if donation.donationType == 'direct' %}
+                                    {% if donor.donationType == 'direct' %}
                                         <span class="badge badge-primary">Don Direct</span>
-                                    {% elseif donation.donationType == 'solidarity' %}
+                                    {% elseif donor.donationType == 'solidarity' %}
                                         <span class="badge badge-success">Don Solidaire</span>
-                                    {% elseif donation.donationType == 'registration' %}
+                                    {% elseif donor.donationType == 'registration' %}
                                         <span class="badge badge-info">Inscription</span>
                                     {% else %}
-                                        <span class="badge badge-secondary">{{ donation.donationType|title }}</span>
+                                        <span class="badge badge-secondary">{{ donor.donationType|title }}</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ donation.flower.name }}</td>
-                                <td>€{{ donation.amount|number_format(2) }}</td>
+                                <td>{{ earning.flower.name }}</td>
+                                <td>€{{ earning.amount|number_format(2) }}</td>
                                 <td>
-                                    <span class="badge badge-success">{{ donation.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>
+                                    <span class="badge badge-success">{{ donor.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>
                                 </td>
 {#                                <td>#}
 {#                                    <div class="flex items-center gap-2">#}

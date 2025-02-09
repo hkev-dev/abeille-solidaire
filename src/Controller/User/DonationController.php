@@ -26,7 +26,8 @@ class DonationController extends AbstractController
         private readonly DonationRepository     $donationRepository,
         private readonly DonationReceiptService $receiptService,
         private readonly PaginatorInterface     $paginator,
-        private readonly EntityManagerInterface $em, private readonly EarningRepository $earningRepository,
+        private readonly EntityManagerInterface $em,
+        private readonly EarningRepository $earningRepository,
     )
     {
     }
@@ -40,8 +41,10 @@ class DonationController extends AbstractController
             ->select('e')
             ->from(Earning::class, 'e')
             ->leftJoin('e.beneficiary', 'beneficiary')
-            ->where('beneficiary.donor = :user')
+            ->andWhere('beneficiary.donor = :user')
+            ->andWhere('beneficiary.paymentStatus = :status')
             ->setParameter('user', $user)
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
             ->orderBy('e.createdAt', 'DESC');
 
         $pagination = $this->paginator->paginate(
@@ -66,10 +69,15 @@ class DonationController extends AbstractController
     public function sent(Request $request): Response
     {
         $user = $this->getUser();
-        $query = $this->donationRepository->createQueryBuilder('d')
-            ->where('d.donor = :user')
+        $query = $this->em->createQueryBuilder()
+            ->select('e')
+            ->from(Earning::class, 'e')
+            ->leftJoin('e.donor', 'donor')
+            ->andWhere('donor.donor = :user')
+            ->andWhere('donor.paymentStatus = :status')
             ->setParameter('user', $user)
-            ->orderBy('d.transactionDate', 'DESC');
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->orderBy('e.createdAt', 'DESC');
 
         $pagination = $this->paginator->paginate(
             $query,
@@ -78,7 +86,7 @@ class DonationController extends AbstractController
         );
 
         $stats = [
-            'totalSent' => $this->donationRepository->getTotalMadeByUser($user),
+            'totalSent' => $this->earningRepository->getTotalMadeByUser($user),
             'currentFlowerSent' => $this->donationRepository->findTotalMadeInFlower(
                 $user,
                 $user->getCurrentFlower()

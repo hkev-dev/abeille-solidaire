@@ -551,6 +551,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getDonationsMade()->count();
     }
 
+    public function countPaidDonations(): int
+    {
+        return $this->getDonationsMade()->filter(function(Donation $donation) {
+            return $donation->getPaymentStatus() === Donation::PAYMENT_COMPLETED;
+        })->count();
+    }
+
     public function getTotalReceivedInFlower(): float
     {
         $total = 0.0;
@@ -656,6 +663,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (new ArrayCollection($childrens))->map(function (Donation $donation) {
             return $donation->getDonor();
         });
+    }
+
+    public function getChildrenDonation(): Collection
+    {
+        $childrens = $this->getMainDonation()->getChildrens()->toArray();
+
+        usort($childrens, fn(Donation $a, Donation $b) => $a->getMatrixPosition() <=> $b->getMatrixPosition());
+
+        return new ArrayCollection($childrens);
     }
 
     public function getMatrixChildrenCount(): int

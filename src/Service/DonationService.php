@@ -207,8 +207,10 @@ class DonationService
     {
         $earning = new Earning();
 
-        $earning->setDonor($donation)
-            ->setFlower($donation->getFlower());
+        $donor = $earningSource?->getDonor() ?? $donation;
+
+        $earning->setDonor($donor)
+            ->setFlower($donor->getFlower());
 
         $rootDonation = $this->em->getRepository(Donation::class)
             ->findOneBy(['paymentStatus' => 'completed'], ['paymentCompletedAt' => 'ASC']);
