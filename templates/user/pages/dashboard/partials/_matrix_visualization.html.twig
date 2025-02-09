@@ -29,7 +29,7 @@
                                 <div class="text-xs text-gray-600">Position {{ donation.matrixPosition }}</div>
                                 
                                 {# Include hover details for child #}
-                                {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': child} %}
+                                {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': child, 'donation': donation} %}
                             </div>
                         {% else %}
                             <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 border-2 border-dashed border-gray-300">

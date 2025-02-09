@@ -6,7 +6,7 @@
         <div class="relative pt-1">
             <div class="flex mb-2 items-center justify-between">
                 <div class="text-sm font-medium text-gray-700">
-                    {{ flowerProgress.received }}/{{ flowerProgress.total }} Donateurs
+                    {{ flowerProgress.received }}/{{ flowerProgress.total }} Donations
                 </div>
                 <div class="text-sm font-medium text-primary">
                     {{ flowerProgress.percentage|number_format }}%
@@ -22,7 +22,7 @@
                 </div>
             {% else %}
                 <div class="mt-2 text-sm text-gray-600">
-                    Il vous manque {{ flowerProgress.remaining }} inscription{{ flowerProgress.remaining > 1 ? 's' : '' }} pour compléter ce niveau
+                    Il vous manque {{ flowerProgress.remaining }} don{{ flowerProgress.remaining > 1 ? 's' : '' }} pour compléter ce niveau
                 </div>
             {% endif %}
         </div>

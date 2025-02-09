@@ -429,4 +429,14 @@ class Donation implements PayableInterface
 
         return $this;
     }
+
+    public function getPositionInUser(): ?int
+    {
+        $dons = $this->getDonor()->getDonationsMade()->filter(fn(self $d) => $d->getPaymentStatus() === self::PAYMENT_COMPLETED)->toArray();
+        usort($dons, fn(self $a,self $b) => $a->getPaymentCompletedAt() <=> $b->getPaymentCompletedAt());
+
+        $index = array_search($this, $dons, true);
+
+        return $this->getPaymentStatus() === self::PAYMENT_COMPLETED && $index !== false ? $index + 1 : null;
+    }
 }

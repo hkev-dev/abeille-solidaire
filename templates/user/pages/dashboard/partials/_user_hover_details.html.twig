@@ -1,3 +1,4 @@
+{% set donation = donation ?? null %}
 <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-96 z-50">
     <div class="bg-gray-900 text-white text-xs rounded-lg p-4 shadow-lg relative text-left">
         {# Arrow #}
@@ -8,7 +9,12 @@
         {# Header - Force left alignment #}
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700 text-left">
             <div>
-                <h4 class="font-medium text-sm text-primary-300">{{ user.fullName }}</h4>
+                <h4 class="font-medium text-sm text-primary-300">
+                    {{ user.fullName }}
+                    {% if donation %}
+                        <span class="text-xs">(Don #{{ donation.positionInUser }})</span>
+                    {% endif %}
+                </h4>
                 <p class="text-gray-400 text-xs mt-1">Inscrit le {{ user.createdAt|date('d/m/Y') }}</p>
             </div>
             <div class="flex space-x-2">
