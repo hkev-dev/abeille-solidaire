@@ -42,7 +42,7 @@
                             <th>Type</th>
                             <th>Fleur</th>
                             <th>Montant</th>
-                            <th>Statut</th>
+{#                            <th>Statut</th>#}
 {#                            <th>Actions</th>#}
                         </tr>
                         </thead>
@@ -66,9 +66,9 @@
                                 </td>
                                 <td>{{ earning.flower.name }}</td>
                                 <td>€{{ earning.amount|number_format(2) }}</td>
-                                <td>
-                                    <span class="badge badge-success">{{ donor.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>
-                                </td>
+{#                                <td>#}
+{#                                    <span class="badge badge-success">{{ donor.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>#}
+{#                                </td>#}
 {#                                <td>#}
 {#                                    <div class="flex items-center gap-2">#}
 {#                                        <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}"#}

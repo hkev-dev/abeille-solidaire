@@ -63,7 +63,7 @@ class ProjectType extends AbstractType
                     'min' => '0',
                     'data-control' => 'input'
                 ],
-                'divisor' => 100,
+                'divisor' => 1,
                 'grouping' => true,
                 'constraints' => [
                     new NotBlank(['message' => 'L\'objectif est requis']),

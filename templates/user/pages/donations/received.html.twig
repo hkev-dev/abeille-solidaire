@@ -81,20 +81,20 @@
                                     </td>
                                     <td>{{ earning.flower.name }}</td>
                                     <td>€{{ earning.amount|number_format(2) }}</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}" 
-                                               class="btn btn-sm btn-light-primary">
-                                                <i class="ki-duotone ki-document text-primary"></i>
-                                                Reçu
-                                            </a>
-                                            <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}" 
-                                               class="btn btn-sm btn-light-info">
-                                                <i class="ki-duotone ki-document-download text-info"></i>
-                                                PDF
-                                            </a>
-                                        </div>
-                                    </td>
+{#                                    <td>#}
+{#                                        <div class="flex items-center gap-2">#}
+{#                                            <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}" #}
+{#                                               class="btn btn-sm btn-light-primary">#}
+{#                                                <i class="ki-duotone ki-document text-primary"></i>#}
+{#                                                Reçu#}
+{#                                            </a>#}
+{#                                            <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}" #}
+{#                                               class="btn btn-sm btn-light-info">#}
+{#                                                <i class="ki-duotone ki-document-download text-info"></i>#}
+{#                                                PDF#}
+{#                                            </a>#}
+{#                                        </div>#}
+{#                                    </td>#}
                                 </tr>
                             {% else %}
                                 <tr>

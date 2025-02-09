@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Repository\DonationRepository;
+use App\Entity\Project;
+use App\Form\ProjectType;
 use App\Repository\ProjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,5 +34,41 @@ class ProjectController extends AbstractController
         return $this->render('admin/pages/project/index.html.twig', [
             'pagination' => $pagination
         ]);
+    }
+
+    #[Route('/detail/{id}', name: 'detail')]
+    public function detail(Project $project): Response
+    {
+        return $this->render('admin/pages/project/detail.html.twig', [
+            'project' => $project
+        ]);
+    }
+
+    #[Route('/update/{id}', name: 'update')]
+    public function update(Project $project, Request $request, EntityManagerInterface $entityManager): Response
+    {
+
+        $form = $this->createForm(ProjectType::class, $project);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Votre projet a été mis à jour avec succès.');
+            return $this->redirectToRoute('app.user.project.index');
+        }
+
+        return $this->render('admin/pages/project/update.html.twig', [
+            'form' => $form->createView(),
+            'project' => $project
+        ]);
+    }
+
+    #[Route('/delete/{id}', name: 'delete')]
+    public function delete(Project $project, EntityManagerInterface $entityManager): Response
+    {
+        $entityManager->remove($project);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app.admin.project.index');
     }
 }

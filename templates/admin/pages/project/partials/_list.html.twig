@@ -31,12 +31,12 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-2">
-                            <a href="#"
+                            <a href="{{ path('app.admin.project.detail', {id: project.id}) }}"
                                class="btn btn-sm btn-light-primary">
                                 <i class="ki-duotone ki-pencil text-primary"></i>
-                                Modifier
+                                Detail
                             </a>
-                            <a href="#"
+                            <a href="{{ path('app.admin.project.delete', {id: project.id}) }}"
                                class="btn btn-sm btn-light-danger">
                                 <i class="ki-duotone ki-trash text-danger"></i>
                                 Supprimer
