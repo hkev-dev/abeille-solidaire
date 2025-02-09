@@ -692,4 +692,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             default => 'Inconnu'
         };
     }
+
+    public function hasManyDonations(): bool
+    {
+        return $this->getDonationsMade()->filter(fn(Donation $d) => $d->getPaymentStatus() === Donation::PAYMENT_COMPLETED)->count() > 1;
+    }
 }

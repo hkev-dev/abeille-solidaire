@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\DonationRepository;
+use App\Service\FlowerService;
 use App\Service\Payment\PayableInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -438,5 +439,15 @@ class Donation implements PayableInterface
         $index = array_search($this, $dons, true);
 
         return $this->getPaymentStatus() === self::PAYMENT_COMPLETED && $index !== false ? $index + 1 : null;
+    }
+
+    public function countCurrentFlowerChildren(): int
+    {
+        $previousChildren = 0;
+        for ($i = 1; $i < $this->getCurrentFlower()->getLevel(); $i++) {
+            $previousChildren += FlowerService::getNumberOfSlotByLevel($i);
+        }
+
+        return $this->countAllChildrens() - $previousChildren;
     }
 }

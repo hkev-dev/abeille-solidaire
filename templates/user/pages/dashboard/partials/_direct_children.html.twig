@@ -28,8 +28,12 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ child.fullName }}</p>
-                                    <p class="text-xs text-gray-500">{{ child.currentFlower.name }}</p>
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ child.fullName }}
+                                        {% if child.hasManyDonations %}
+                                            #{{ donation.positionInUser }}
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-xs text-gray-500">{{ donation.currentFlower.name }}</p>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     {% if child.isKycVerified %}
@@ -39,7 +43,7 @@
                                         <span class="ki-duotone ki-star text-warning text-sm"></span>
                                     {% endif %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary-50 text-primary-700">
-                                        {{ child.countCurrentFlowerChildren }}/{{ child.currentFlower.numberOfSlots }}
+                                        {{ donation.countCurrentFlowerChildren }}/{{ donation.currentFlower.numberOfSlots }}
                                     </span>
                                 </div>
                             </div>

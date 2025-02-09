@@ -1,4 +1,10 @@
 {% set donation = donation ?? null %}
+{% set matrixPosition = donation ? donation.matrixPosition : user.matrixPosition %}
+{% set matrixDepth = donation ? donation.matrixDepth : user.matrixDepth %}
+{% set countDirectChildrens = donation ? donation.countDirectChildrens : user.countDirectChildrens %}
+{% set currentFlower = donation ? donation.currentFlower : user.currentFlower %}
+{% set countCurrentFlowerChildren = donation ? donation.countCurrentFlowerChildren : user.countCurrentFlowerChildren %}
+
 <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-96 z-50">
     <div class="bg-gray-900 text-white text-xs rounded-lg p-4 shadow-lg relative text-left">
         {# Arrow #}
@@ -33,7 +39,7 @@
                 <div class="text-gray-400">Position</div>
                 <div class="flex items-center text-end">
                     <span class="ki-duotone ki-abstract-26 text-info mr-1.5"></span>
-                    <span class="text-info-300 font-medium">Position {{ user.matrixPosition }} - Niveau {{ user.matrixDepth + 1 }}</span>
+                    <span class="text-info-300 font-medium">Position {{ matrixPosition }} - Niveau {{ matrixDepth + 1 }}</span>
                 </div>
             </div>
 
@@ -41,7 +47,7 @@
                 <div class="text-gray-400">Enfants Directs</div>
                 <div class="flex items-center text-end">
                     <span class="ki-duotone ki-people text-primary mr-1.5"></span>
-                    <span class="text-primary-300 font-medium">{{ user.countDirectChildrens }}/4 membres</span>
+                    <span class="text-primary-300 font-medium">{{ countDirectChildrens }}/4 membres</span>
                 </div>
             </div>
 
@@ -49,7 +55,7 @@
                 <div class="text-gray-400">Fleur Actuelle</div>
                 <div class="flex items-center text-end">
                     <span class="ki-duotone ki-flower2 text-success mr-1.5"></span>
-                    <span class="text-success-300 font-medium">{{ user.currentFlower.name }} ({{ user.countCurrentFlowerChildren }}/{{ user.currentFlower.numberOfSlots }})</span>
+                    <span class="text-success-300 font-medium">{{ currentFlower.name }} ({{ countCurrentFlowerChildren }}/{{ currentFlower.numberOfSlots }})</span>
                 </div>
             </div>
 
