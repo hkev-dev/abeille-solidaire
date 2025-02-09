@@ -296,10 +296,10 @@ class Project implements Serializable
 
     public function getProgress(): float
     {
-        if ($this->goal <= 0) {
+        if ($this->getGoal() <= 0) {
             return 0;
         }
-        return min(100, ($this->pledged / $this->goal) * 100);
+        return min(100, ($this->getReceivedAmount() / $this->getGoal()) * 100);
     }
 
     public function getDaysLeft(): int
