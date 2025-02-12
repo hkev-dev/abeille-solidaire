@@ -104,7 +104,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'membership_id' => $membership->getId(),
                     'payment_type' => 'membership'
                 ]),
-                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {

@@ -192,14 +192,24 @@ export class PaymentProcessor {
                 Initializing Payment...
             `;
 
-            const formData = new FormData();
-            formData.append('currency', selectedCurrency);
-            formData.append('include_annual_membership', document.querySelector('[name="payment_selection[include_annual_membership]"]').checked);
-            formData.append('_csrf_token', this.config.csrf.cryptoToken);
+            let includeMembership = false;
+
+            if (document.querySelector('[name="payment_selection[include_annual_membership]"]')) {
+                includeMembership =  document.querySelector('[name="payment_selection[include_annual_membership]"]').checked;
+            }
 
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.config.csrf.stripeToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    payment_method: 'coinpayments',
+                    currency: selectedCurrency,
+                    include_annual_membership: includeMembership ? includeMembership.checked : false
+                })
             });
 
             const data = await response.json();
