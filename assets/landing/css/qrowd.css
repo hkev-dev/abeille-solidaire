@@ -24,11 +24,11 @@
   --qrowd-gray-rgb: 110, 122, 122;
   --qrowd-white: #ffffff;
   --qrowd-white-rgb: 255, 255, 255;
-  --qrowd-base: #fe7f4c;
+  --qrowd-base: /*#fe7f4c*/ #E5B25D;
   --qrowd-base-rgb: 254, 127, 76;
   --qrowd-black: #1e3737;
   --qrowd-black-rgb: 30, 55, 55;
-  --qrowd-primary: #07847f;
+  --qrowd-primary: /*#07847f*/ #A7C4A0;
   --qrowd-primary-rgb: 7, 132, 127;
   --qrowd-extra: #f2f7f7;
   --qrowd-extra-rgb: 242, 247, 247;
