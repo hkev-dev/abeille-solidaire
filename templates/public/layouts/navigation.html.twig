@@ -10,13 +10,13 @@
     <a href="{{ path('landing.projects.index') }}">Projets</a>
 </li>
 
-<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current' : 'link' }}">
+{#<li class="{{ app.request.get('_route') starts with 'landing.events' ? 'current' : 'link' }}">
     <a href="{{ path('landing.events.index') }}">Événements</a>
 </li>
 
 <li class="{{ app.request.get('_route') starts with 'landing.news' ? 'current' : 'link' }}">
     <a href="{{ path('landing.news.index') }}">Actualités</a>
-</li>
+</li>#}
 
 <li class="{{ app.request.get('_route') starts with 'landing.faq' ? 'current' : 'link' }}">
     <a href="{{ path('landing.faq') }}">FAQ</a>
