@@ -18,34 +18,16 @@ class MainSlider
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null {
-        get {
-            return $this->id;
-        }
-    }
+    private ?int $id = null;
 
     #[Vich\UploadableField(mapping: 'slides', fileNameProperty: 'imageName', size: 'imageSize')]
     private ?File $imageFile = null;
 
     #[ORM\Column(nullable: true)]
-    public ?string $imageName = null {
-        get {
-            return $this->imageName;
-        }
-        set {
-            $this->imageName = $value;
-        }
-    }
+    public ?string $imageName = null;
 
     #[ORM\Column(nullable: true)]
-    public ?int $imageSize = null {
-        get {
-            return $this->imageSize;
-        }
-        set {
-            $this->imageSize = $value;
-        }
-    }
+    public ?int $imageSize = null;
 
     #[ORM\Column(length: 255)]
     private ?string $subtitle = null;
@@ -59,13 +41,16 @@ class MainSlider
     #[ORM\Column]
     private bool $isActive = true;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     public function setImageFile(?File $imageFile = null): void
     {
         $this->imageFile = $imageFile;
 
         if (null !== $imageFile) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
             $this->setUpdatedAtValue();
         }
     }
@@ -118,4 +103,29 @@ class MainSlider
         $this->isActive = $isActive;
         return $this;
     }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
+    public function setImageName(?string $imageName): static
+    {
+        $this->imageName = $imageName;
+
+        return $this;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
+    }
+
+    public function setImageSize(?int $imageSize): static
+    {
+        $this->imageSize = $imageSize;
+
+        return $this;
+    }
+
 }

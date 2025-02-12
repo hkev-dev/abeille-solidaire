@@ -45,7 +45,17 @@
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-			route: 'app.admin.setting.index'
+			routes: ['app.admin.setting.general', 'app.admin.setting.slide'],
+			submenu: [
+				{
+					label: 'General',
+					route: 'app.admin.setting.general',
+				},
+				{
+					label: 'Slide',
+					route: 'app.admin.setting.slide',
+				}
+			]
         }) }}
 	</div>
 </div>

@@ -2,28 +2,15 @@
     <nav class="flex space-x-8" aria-label="Settings">
         {% for item in [
             {
-                label: 'KYC Vérification',
+                label: 'Général',
                 icon: 'ki-shield-tick',
-                route: 'app.user.settings.kyc',
-                badge: not user.isKycVerified ? {
-                    text: 'Requis',
-                    class: 'badge-warning'
-                } : null
+                route: 'app.admin.setting.general',
             },
             {
-                label: 'Méthodes de Paiement',
-                icon: 'ki-credit-cart',
-                route: 'app.user.settings.payment_methods'
+                label: 'Slider',
+                icon: 'ki-slider-horizontal-2',
+                route: 'app.admin.setting.slide'
             },
-            {
-                label: 'Adhésion Annuelle',
-                icon: 'ki-star',
-                route: 'app.user.settings.membership',
-                badge: not currentMembership ? {
-                    text: 'À renouveler',
-                    class: 'badge-danger'
-                } : null
-            }
         ] %}
             <a href="{{ path(item.route) }}" 
                class="flex items-center gap-2 py-4 border-b-2 px-1 
