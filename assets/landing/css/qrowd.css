@@ -3151,7 +3151,7 @@ ul {
   position: relative;
   display: inline-block;
   font-size: 65px;
-  color: #fd7e46;
+  color: /*#fd7e46*/ #E88E5A;
   -webkit-transition: all 500ms linear;
   transition: all 500ms linear;
   -webkit-transition-delay: 0.1s;
