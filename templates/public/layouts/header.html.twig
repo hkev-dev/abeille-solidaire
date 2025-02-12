@@ -111,19 +111,19 @@
 				</div>
 				<div class="main-menu__right">
 					<div class="main-menu__call-search-btn-box d-flex align-items-center gap-3">
-						<div class="main-menu__call d-flex align-items-center gap-2">
+						{#<div class="main-menu__call d-flex align-items-center gap-2">
 							<div class="main-menu__call-icon">
 								<i class="fas fa-phone"></i>
 							</div>
-							{#<div class="main-menu__call-content">
+							<div class="main-menu__call-content">
 								<p class="main-menu__call-sub-title m-0">Appelez-nous</p>
 								<h5 class="main-menu__call-number m-0">
 									<a href="tel:{{ site_config.contact.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">
 										{{ site_config.contact.phone }}
 									</a>
 								</h5>
-							</div>#}
-						</div>
+							</div>
+						</div>#}
 						<div class="main-menu__search-box">
 							<a href="#" class="main-menu__search search-toggler icon-magnifying-glass"></a>
 						</div>
