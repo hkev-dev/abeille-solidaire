@@ -2280,7 +2280,7 @@ ul {
   background-position: left center;
   -webkit-transform: scale(1);
   transform: scale(1);
-  mix-blend-mode: luminosity;
+  /*mix-blend-mode: luminosity;*/
   opacity: 0.5;
   -webkit-transition: opacity 1500ms ease-in, -webkit-transform 7000ms ease;
   transition: opacity 1500ms ease-in, -webkit-transform 7000ms ease;
