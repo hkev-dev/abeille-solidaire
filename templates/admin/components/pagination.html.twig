@@ -1,0 +1,45 @@
+<div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-3 text-gray-600 text-2sm font-medium">
+    <div class="flex items-center gap-2">
+        <form method="GET" id="paginationForm" class="flex items-center gap-2">
+            Afficher
+            <select class="select select-sm w-16" name="perpage" onchange="this.form.submit()">
+                <option value="3" {{ paginationData.numItemsPerPage == 3 ? 'selected' : '' }}>3</option>
+                <option value="5" {{ paginationData.numItemsPerPage == 5 ? 'selected' : '' }}>5</option>
+                <option value="10" {{ paginationData.numItemsPerPage == 10 ? 'selected' : '' }}>10</option>
+                <option value="20" {{ paginationData.numItemsPerPage == 20 ? 'selected' : '' }}>20</option>
+                <option value="50" {{ paginationData.numItemsPerPage == 50 ? 'selected' : '' }}>50</option>
+            </select>
+            par page sur {{ paginationData.totalCount }} éléments
+        </form>
+    </div>
+    <div class="flex items-center gap-4">
+        <span data-datatable-info="true"></span>
+        <div class="pagination">
+            {% if paginationData.pagesInRange|length > 1 %}
+                <a
+                        href="{{ path('app.admin.user.index', {'page': paginationData.previous|default(1), 'perpage': paginationData.numItemsPerPage }) }}"
+                        class="btn"
+                        {{ paginationData.previous|default(false) ? '' : 'disabled' }}
+                >
+                    <i class="ki-outline ki-black-left"></i>
+                </a>
+
+                {% for page in paginationData.pagesInRange %}
+                    {% if page == paginationData.current %}
+                        <button class="btn active">{{ page }}</button>
+                    {% else %}
+                        <a href="{{ path('app.admin.user.index', {'page': page, 'perpage': paginationData.numItemsPerPage}) }}"
+                           class="btn">{{ page }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                <a href="{{ path('app.admin.user.index', {'page': paginationData.next|default(1), 'perpage': paginationData.numItemsPerPage }) }}"
+                   class="btn"
+                        {{ paginationData.next|default(false) ? '' : 'disabled' }}
+                >
+                    <i class="ki-outline ki-black-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

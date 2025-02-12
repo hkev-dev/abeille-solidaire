@@ -27,7 +27,7 @@ class WithdrawalController extends AbstractController
         $pagination = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
-            10
+            $request->query->getInt('perpage', 10),
         );
 
         return $this->render('admin/pages/withdrawal/request.html.twig', [
@@ -43,7 +43,7 @@ class WithdrawalController extends AbstractController
         $pagination = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
-            10
+            $request->query->getInt('perpage', 10),
         );
 
         return $this->render('admin/pages/withdrawal/charge.html.twig', [

@@ -63,5 +63,9 @@
             {% endfor %}
             </tbody>
         </table>
+
+        {% include 'admin/components/pagination.html.twig' with {
+            'paginationData': pagination.getPaginationData
+        } %}
     </div>
 </div>
