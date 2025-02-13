@@ -1,22 +1,24 @@
 {% set hideActions = hideActions ?? false %}
 <div class="card">
-    <div class="card-header flex-wrap gap-2">
-        <h3 class="card-title text-gray-600 text-2sm font-medium">
-            Affichage de {{ pagination.getPaginationData.currentItemCount }} sur {{ pagination.getPaginationData.totalCount }} utilisateurs
-        </h3>
-        <div class="flex flex-wrap gap-2 lg:gap-5">
-            <div class="flex">
-                <form method="GET" class="flex items-center gap-2">
-                    <input type="hidden" name="perpage" value="{{ app.request.query.get('perpage', 10) }}">
-                    <label class="input input-sm">
-                        <i class="ki-filled ki-magnifier"></i>
-                        <input type="text" name="q" placeholder="Recherche ..." value="{{ app.request.query.get('q', '') }}"/>
-                    </label>
-                    <button type="submit" class="btn btn-sm btn-light">Rechercher</button>
-                </form>
+    {% if pagination.getPaginationData is defined and pagination.getPaginationData is not empty %}
+        <div class="card-header flex-wrap gap-2">
+            <h3 class="card-title text-gray-600 text-2sm font-medium">
+                Affichage de {{ pagination.getPaginationData.currentItemCount }} sur {{ pagination.getPaginationData.totalCount }} utilisateurs
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+                <div class="flex">
+                    <form method="GET" class="flex items-center gap-2">
+                        <input type="hidden" name="perpage" value="{{ app.request.query.get('perpage', 10) }}">
+                        <label class="input input-sm">
+                            <i class="ki-filled ki-magnifier"></i>
+                            <input type="text" name="q" placeholder="Recherche ..." value="{{ app.request.query.get('q', '') }}"/>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-light">Rechercher</button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    {% endif %}
     <div class="card-body">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">

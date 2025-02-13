@@ -6,6 +6,7 @@ use App\Entity\Flower;
 use App\Entity\User;
 use App\Entity\Donation;
 use App\Repository\EarningRepository;
+use App\Repository\FlowerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -17,16 +18,20 @@ class FlowerService
     protected EventDispatcherInterface $eventDispatcher;
     protected MembershipService $membershipService;
     private EarningRepository $earningRepository;
+    private FlowerRepository $flowerRepository;
 
     public function __construct(
         EntityManagerInterface   $em,
         EventDispatcherInterface $eventDispatcher,
-        MembershipService        $membershipService, EarningRepository $earningRepository
+        MembershipService        $membershipService,
+        EarningRepository $earningRepository,
+        FlowerRepository $flowerRepository
     ) {
         $this->em = $em;
         $this->eventDispatcher = $eventDispatcher;
         $this->membershipService = $membershipService;
         $this->earningRepository = $earningRepository;
+        $this->flowerRepository = $flowerRepository;
     }
 
     public function getUserCycleIterations(User $user, Flower $flower): int
@@ -139,5 +144,26 @@ class FlowerService
         return array_reduce($earnings, function($carry, $item) {
             return $carry + $item->getAmount();
         }, 0.0);
+    }
+
+    public function getFlowerProgression(Flower $currentFlower): array
+    {
+        $allFlowers = $this->flowerRepository->findBy([], ['level' => 'ASC']);
+        $currentLevel = $currentFlower->getLevel();
+
+        return array_map(
+            function (Flower $flower) use ($currentLevel) {
+                $flowerLevel = $flower->getLevel();
+                return [
+                    'id' => $flower->getId(),
+                    'name' => $flower->getName(),
+                    'donationAmount' => $flower->getDonationAmount(),
+                    'isActive' => $flowerLevel === $currentLevel,
+                    'isCompleted' => $flowerLevel < $currentLevel,
+                    'isNext' => $flowerLevel === $currentLevel + 1,
+                ];
+            },
+            $allFlowers
+        );
     }
 }

@@ -2,67 +2,51 @@
 
 namespace App\Controller\User;
 
-use App\Form\KycVerificationType;
-use App\Form\PaymentMethodType;
+use App\Form\ChangePasswordType;
 use App\Service\KycService;
-use App\Service\PaymentMethodService;
-use App\Service\MembershipService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/user/profile')]
 #[IsGranted('ROLE_USER')]
 class ProfileController extends AbstractController
 {
-    public function __construct(
-        private readonly KycService $kycService,
-        private readonly PaymentMethodService $paymentMethodService,
-        private readonly MembershipService $membershipService,
-    ) {
-    }
 
     #[Route('', name: 'app.user.profile')]
-    #[Route('', name: 'app.user.profile.update')]
-    public function profile(Request $request): Response
+    public function profile(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
-        $form = $this->createForm(KycVerificationType::class);
+        $form = $this->createForm(ChangePasswordType::class);
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
 
             if ($form->isValid()) {
                 try {
-                    // Validate document type
-                    $documentType = $form->get('documentType')->getData();
-                    if (!in_array($documentType, ['national_id', 'passport', 'drivers_license', 'residence_permit'])) {
-                        throw new \InvalidArgumentException('Type de document invalide');
+                    $currentPassword = $form->get('currentPassword')->getData();
+                    $newPassword = $form->get('newPassword')->getData();
+
+                    if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                        $this->addFlash('error', 'Mot de passe actuel incorrect');
+
+                        return $this->redirectToRoute('app.user.profile');
                     }
 
-                    // Validate required files
-                    $files = [
-                        'frontImage' => $form['frontImage']->getData(),
-                        'backImage' => $form['backImage']->getData(),
-                        'selfieImage' => $form['selfieImage']->getData(),
-                    ];
+                    // Mettre à jour le mot de passe
+                    $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
+                    $user->setPassword($hashedPassword);
 
-                    foreach ($files as $type => $file) {
-                        if (!$file) {
-                            throw new \InvalidArgumentException("Le fichier $type est requis");
-                        }
-                    }
+                    $entityManager->persist($user);
+                    $entityManager->flush();
 
-                    $formData = $form->getData();
-                    $success = $this->kycService->submitVerification($user, $formData, $files);
+                    $this->addFlash('success', 'Mot de passe mis à jour avec succès');
 
-                    if ($success) {
-                        $this->addFlash('success', 'Votre demande de vérification KYC a été soumise avec succès.');
-                        return $this->redirectToRoute('app.user.settings.kyc');
-                    }
+                    return $this->redirectToRoute('app.user.profile');
                 } catch (\Exception $e) {
                     $this->addFlash('error', $e->getMessage());
                 }

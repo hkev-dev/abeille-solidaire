@@ -17,7 +17,8 @@ class FlowerController extends AbstractController
     public function __construct(
         private readonly DonationRepository $donationRepository,
         private readonly FlowerRepository   $flowerRepository,
-        private readonly UserRepository     $userRepository, private readonly FlowerService $flowerService,
+        private readonly UserRepository     $userRepository,
+        private readonly FlowerService $flowerService,
     ) {
     }
 
@@ -35,7 +36,7 @@ class FlowerController extends AbstractController
         $data = [
             'user' => $user,
             'flower' => $currentFlower,
-            'allFlowers' => $this->getFlowerProgression($currentFlower),
+            'allFlowers' => $this->flowerService->getFlowerProgression($currentFlower),
             'walletBalance' => $user->getWalletBalance(),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
@@ -56,26 +57,5 @@ class FlowerController extends AbstractController
         ];
 
         return $this->render('user/pages/flower/current.html.twig', $data);
-    }
-
-    private function getFlowerProgression(Flower $currentFlower): array
-    {
-        $allFlowers = $this->flowerRepository->findBy([], ['level' => 'ASC']);
-        $currentLevel = $currentFlower->getLevel();
-
-        return array_map(
-            function (Flower $flower) use ($currentLevel) {
-                $flowerLevel = $flower->getLevel();
-                return [
-                    'id' => $flower->getId(),
-                    'name' => $flower->getName(),
-                    'donationAmount' => $flower->getDonationAmount(),
-                    'isActive' => $flowerLevel === $currentLevel,
-                    'isCompleted' => $flowerLevel < $currentLevel,
-                    'isNext' => $flowerLevel === $currentLevel + 1,
-                ];
-            },
-            $allFlowers
-        );
     }
 }
