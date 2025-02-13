@@ -13107,3 +13107,26 @@ body.boxed-wrapper {
 .project-one {
   background-color: var(--qrowd-extra);
 }
+
+.project-one__img-box {
+  max-height: 200px;
+}
+
+.project-one__title {
+  min-height: 112px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.recommended-one__content {
+  top: 15px;
+}
+
+.recommended-one__img-box {
+  max-height: 240px;
+}
+
+.recommended-one__img img {
+  width: 500px;
+}
