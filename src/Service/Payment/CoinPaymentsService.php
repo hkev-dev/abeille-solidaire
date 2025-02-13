@@ -67,7 +67,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'donation_id' => $donation->getId(),
                     'payment_type' => 'registration'
                 ]),
-                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {
@@ -104,7 +104,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'membership_id' => $membership->getId(),
                     'payment_type' => 'membership'
                 ]),
-                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {
@@ -188,7 +188,7 @@ class CoinPaymentsService extends AbstractPaymentService
     public function getAcceptedCryptoCurrencies(): array
     {
         try {
-            $result = $this->coinPayments->GetRates();
+            $result = $this->coinPayments->GetRatesWithAccepted();
 
             if ($result['error'] !== 'ok') {
                 throw new Exception($result['error'] ?? 'Failed to fetch rates');
@@ -244,7 +244,7 @@ class CoinPaymentsService extends AbstractPaymentService
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: $amount,
                 currency1: 'EUR',
-                currency2: 'BTC',
+                currency2: $user->getPaymentCurrency(),
                 buyer_email: $user->getEmail(),
                 address: "",
                 buyer_name: $user->getFullName(),
@@ -255,7 +255,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'donation_id' => $donation->getId(),
                     'payment_type' => 'supplementary'
                 ]),
-                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {

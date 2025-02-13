@@ -17,8 +17,6 @@ final class StripeWebhookConsumer implements ConsumerInterface
     public function __construct(
         private readonly LoggerInterface      $logger,
         private readonly StripePaymentService $paymentService,
-        private readonly UserRepository       $userRepository,
-        private readonly DonationRepository $donationRepository
     ) {
     }
 

@@ -3,7 +3,7 @@
 namespace App\Controller\User;
 
 use App\Form\ChangePasswordType;
-use App\Service\KycService;
+use App\Form\UserUpdateType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +56,34 @@ class ProfileController extends AbstractController
         }
 
         return $this->render('user/pages/profile/index.html.twig', [
+            'user' => $user,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/update', name: 'app.user.profile.update')]
+    public function update(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        $form = $this->createForm(UserUpdateType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Information mis à jour avec succès');
+
+                return $this->redirectToRoute('app.user.profile');
+            } catch (\Exception $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        } else {
+            $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
+        }
+
+        return $this->render('user/pages/profile/update.html.twig', [
             'user' => $user,
             'form' => $form,
         ]);

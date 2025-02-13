@@ -4,16 +4,16 @@ namespace App\Entity;
 
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
-use App\Service\DonationService;
 use App\Service\FlowerService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
-use Symfony\Component\HttpFoundation\File\File;use Doctrine\Common\Collections\Criteria;
 
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -111,6 +111,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $defaultPaymentMethodId = null;
 
+    private $paymentCurrency = 'USD';
+    
     public function __construct()
     {
         $this->donationsMade = new ArrayCollection();
@@ -698,5 +700,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasManyDonations(): bool
     {
         return $this->getDonationsMade()->filter(fn(Donation $d) => $d->getPaymentStatus() === Donation::PAYMENT_COMPLETED)->count() > 1;
+    }
+
+    public function getPaymentCurrency(): string
+    {
+        return $this->paymentCurrency;
+    }
+
+    public function setPaymentCurrency(string $paymentCurrency): static
+    {
+        $this->paymentCurrency = $paymentCurrency;
+        return $this; 
     }
 }

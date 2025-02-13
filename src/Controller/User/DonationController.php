@@ -237,8 +237,16 @@ class DonationController extends AbstractController
             $data = json_decode($request->getContent(), true);
             $paymentMethod = $data['payment_method'] ?? 'stripe';
 
+            if (isset($data['currency'])) {
+                $user->setPaymentCurrency($data['currency']);
+            }
+
             $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
             $paymentData = $paymentService->createSupplementaryDonationPayment($user);
+
+            if (isset($data['currency'])) {
+                $paymentData["currency"] = $data['currency'];
+            }
 
             // Store payment info in session
             $session = $request->getSession();

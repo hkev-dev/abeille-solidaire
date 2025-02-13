@@ -1,6 +1,6 @@
 {% extends 'user/pages/settings/layout.html.twig' %}
 
-{% set page_title = 'Tableau de bord' %}
+{% set page_title = 'Mon Profil' %}
 
 {% block content %}
     <div class="container-fixed">
@@ -13,7 +13,7 @@
                                 Informations personnelles
                             </h3>
                             <div>
-                                <a href="javascript:void(0)" id="info-switch-update" class="btn btn-link">Faire des
+                                <a href="{{ path('app.user.profile.update') }}" id="info-switch-update" class="btn btn-link">Faire des
                                     modifications</a>
                             </div>
                         </div>
@@ -39,17 +39,6 @@
                                     <td class="py-2 text-center">
                                         <div class="flex justify-center items-center">
                                             <div class="image-input size-16" data-image-input="true">
-                                                <input accept=".png, .jpg, .jpeg" name="avatar" type="file"/>
-                                                <input name="avatar_remove" type="hidden"/>
-                                                <div class="btn btn-icon btn-icon-xs btn-light shadow-default absolute z-1 size-5 -top-0.5 -right-0.5 rounded-full"
-                                                     data-image-input-remove="" data-tooltip="#image_input_tooltip"
-                                                     data-tooltip-trigger="hover">
-                                                    <i class="ki-filled ki-cross">
-                                                    </i>
-                                                </div>
-                                                <span class="tooltip" id="image_input_tooltip">
-                 Click to remove or revert
-                </span>
                                                 <div class="image-input-placeholder rounded-full border-2 border-success image-input-empty:border-gray-300"
                                                      style="background-image:url(assets/media/avatars/blank.png)">
                                                     <div class="image-input-preview rounded-full"
