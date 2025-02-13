@@ -1,0 +1,22 @@
+{% extends 'admin/pages/setting/layout.html.twig' %}
+
+{% block page_title %}Paramètres Généraux
+{% endblock %}
+
+{% block settings_content %}
+    {# Status Card with improved visual hierarchy #}
+    <div class="card mb-8">
+        <div class="card-body p-0">
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            KTImageInput.init()
+        });
+    </script>
+{% endblock %}

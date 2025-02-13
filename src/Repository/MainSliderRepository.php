@@ -6,6 +6,9 @@ use App\Entity\MainSlider;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<MainSlider>
+ */
 class MainSliderRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
