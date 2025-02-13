@@ -28,7 +28,6 @@ class UserController extends AbstractController
             $request->query->getInt('perpage', 10),
         );
 
-        dump($pagination->getPaginationData());
         return $this->render('admin/pages/user/index.html.twig', [
             'pagination' => $pagination
         ]);

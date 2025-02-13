@@ -67,7 +67,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'donation_id' => $donation->getId(),
                     'payment_type' => 'registration'
                 ]),
-                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {
@@ -255,7 +255,7 @@ class CoinPaymentsService extends AbstractPaymentService
                     'donation_id' => $donation->getId(),
                     'payment_type' => 'supplementary'
                 ]),
-                ipn_url: $this->router->generate('app.webhook.coinpayments', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $this->router->generate('_webhook_controller', ['type' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
             );
 
             if ($result['error'] !== 'ok') {

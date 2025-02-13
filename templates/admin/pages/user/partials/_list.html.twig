@@ -78,8 +78,10 @@
             </tbody>
         </table>
 
-        {% include 'admin/components/pagination.html.twig' with {
-            'paginationData': pagination.getPaginationData
-        } %}
+        {%  if pagination.getPaginationData is defined and pagination.getPaginationData is not empty  %}
+            {% include 'admin/components/pagination.html.twig' with {
+                'paginationData': pagination.getPaginationData
+            } %}
+        {% endif %}
     </div>
 </div>
