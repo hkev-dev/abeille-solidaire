@@ -13127,6 +13127,14 @@ body.boxed-wrapper {
   max-height: 240px;
 }
 
-.recommended-one__img img {
-  width: 500px;
+.recommended-one__img{
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
 }
+
+.recommended-one__img img {
+  width: 500px !important;
+}
+
