@@ -4,6 +4,7 @@ namespace App\Controller\User;
 
 use App\Form\KycVerificationType;
 use App\Form\PaymentMethodType;
+use App\Service\FlowerService;
 use App\Service\KycService;
 use App\Service\PaymentMethodService;
 use App\Service\MembershipService;
@@ -19,9 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProfileController extends AbstractController
 {
     public function __construct(
-        private readonly KycService $kycService,
-        private readonly PaymentMethodService $paymentMethodService,
-        private readonly MembershipService $membershipService,
+        private readonly KycService           $kycService,
+        private readonly FlowerService $flowerService,
     ) {
     }
 
@@ -72,6 +72,8 @@ class ProfileController extends AbstractController
         }
 
         return $this->render('user/pages/profile/index.html.twig', [
+            'allFlowers' => $this->flowerService->getFlowerProgression($user->getCurrentFlower()),
+            'flower' => $user->getCurrentFlower(),
             'user' => $user,
             'form' => $form,
         ]);

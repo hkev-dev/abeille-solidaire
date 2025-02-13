@@ -177,150 +177,57 @@
                         </div>
                         <div class="card-body pb-7.5">
                             <div class="grid gap-2.5">
-                                <div class="flex items-center justify-between flex-wrap group border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                                    <div class="flex items-center flex-wrap gap-2.5">
-                                        <div class="relative size-[50px] shrink-0">
-                                            <svg class="w-full h-full stroke-primary-clarity fill-primary-light"
-                                                 fill="none" height="48" viewbox="0 0 44 48" width="44"
-                                                 xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506
-			18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937
-			39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z"
-                                                      fill="">
-                                                </path>
-                                                <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506
-			18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937
-			39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z"
-                                                      stroke="">
-                                                </path>
-                                            </svg>
-                                            <div class="absolute leading-none left-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4">
-                                                <i class="ki-filled ki-abstract-39 text-1.5xl ps-px text-primary">
-                                                </i>
+                                {% for f in allFlowers %}
+                                    {% set isActive = f.id == flower.id %}
+                                    {% set isCompleted = f.id < flower.id %}
+                                    {% set isNext = f.id == flower.id + 1 %}
+                                    <div class="flex items-center justify-between flex-wrap group border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
+                                        <div class="flex items-center flex-wrap gap-2.5">
+                                            <div class="relative size-[50px] shrink-0">
+                                                <svg class="w-full h-full
+                                                    {{ isCompleted ? 'stroke-success-clarity fill-success-light' : '' }}
+                                                    {{ isActive ? 'stroke-primary-clarity fill-primary-light' : '' }}
+                                                    {{ isNext ? 'stroke-brand-clarity fill-brand-light' : '' }}
+                                                     "
+                                                     fill="none" height="48" viewbox="0 0 44 48" width="44"
+                                                     xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506
+                18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937
+                39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z"
+                                                          fill="">
+                                                    </path>
+                                                    <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506
+                18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937
+                39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z"
+                                                          stroke="">
+                                                    </path>
+                                                </svg>
+                                                <div class="absolute leading-none left-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4">
+                                                    <i class="ki-filled ki-abstract-36 text-1.5xl ps-px
+                                                    {{ isCompleted ? 'text-success' : '' }}
+                                                    {{ isActive ? 'text-primary' : '' }}
+                                                    {{ isNext ? 'text-warning' : '' }}">
+                                                    </i>
+                                                </div>
                                             </div>
+                                            <span class="text-gray-900 text-sm font-medium">
+                                               {{ f.name }}
+                                            </span>
                                         </div>
-                                        <span class="text-gray-900 text-sm font-medium">
-               Expert Contributor Badge
-              </span>
-                                    </div>
-                                    <div class="btn btn-sm btn-icon text-gray-300 group-hover:text-primary-active">
-                                        <svg class="size-6" fill="none" viewbox="0 0 24 24"
-                                             xmlns="http://www.w3.org/2000/svg">
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="14.5">
-                                            </rect>
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="6.5">
-                                            </rect>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between flex-wrap group border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                                    <div class="flex items-center flex-wrap gap-2.5">
-                                        <div class="relative size-[50px] shrink-0">
-                                            <svg class="w-full h-full stroke-brand-clarity fill-brand-light" fill="none"
-                                                 height="48" viewbox="0 0 44 48" width="44"
+                                        <div class="btn btn-sm btn-icon text-gray-300 group-hover:
+                                                    {{ isCompleted ? 'group-hover:text-success-active' : '' }}
+                                                    {{ isActive ? 'group-hover:text-primary-active' : '' }}
+                                                    {{ isNext ? 'group-hover:text-warning-active' : '' }}">
+                                            <svg class="size-6" fill="none" viewbox="0 0 24 24"
                                                  xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506
-			18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937
-			39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z"
-                                                      fill="">
-                                                </path>
-                                                <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506
-			18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937
-			39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z"
-                                                      stroke="">
-                                                </path>
+                                                <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="14.5">
+                                                </rect>
+                                                <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="6.5">
+                                                </rect>
                                             </svg>
-                                            <div class="absolute leading-none left-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4">
-                                                <i class="ki-filled ki-abstract-44 text-1.5xl ps-px text-brand">
-                                                </i>
-                                            </div>
                                         </div>
-                                        <span class="text-gray-900 text-sm font-medium">
-               Innovation Trailblazer
-              </span>
                                     </div>
-                                    <div class="btn btn-sm btn-icon text-gray-300 group-hover:text-primary-active">
-                                        <svg class="size-6" fill="none" viewbox="0 0 24 24"
-                                             xmlns="http://www.w3.org/2000/svg">
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="14.5">
-                                            </rect>
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="6.5">
-                                            </rect>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between flex-wrap group border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                                    <div class="flex items-center flex-wrap gap-2.5">
-                                        <div class="relative size-[50px] shrink-0">
-                                            <svg class="w-full h-full stroke-success-clarity fill-success-light"
-                                                 fill="none" height="48" viewbox="0 0 44 48" width="44"
-                                                 xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506
-			18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937
-			39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z"
-                                                      fill="">
-                                                </path>
-                                                <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506
-			18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937
-			39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z"
-                                                      stroke="">
-                                                </path>
-                                            </svg>
-                                            <div class="absolute leading-none left-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4">
-                                                <i class="ki-filled ki-abstract-25 text-1.5xl ps-px text-success">
-                                                </i>
-                                            </div>
-                                        </div>
-                                        <span class="text-gray-900 text-sm font-medium">
-               Impact Recognition
-              </span>
-                                    </div>
-                                    <div class="btn btn-sm btn-icon text-gray-300 group-hover:text-primary-active">
-                                        <svg class="size-6" fill="none" viewbox="0 0 24 24"
-                                             xmlns="http://www.w3.org/2000/svg">
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="14.5">
-                                            </rect>
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="6.5">
-                                            </rect>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between flex-wrap group border border-gray-200 rounded-xl gap-2 px-3.5 py-2.5">
-                                    <div class="flex items-center flex-wrap gap-2.5">
-                                        <div class="relative size-[50px] shrink-0">
-                                            <svg class="w-full h-full stroke-info-clarity fill-info-light" fill="none"
-                                                 height="48" viewbox="0 0 44 48" width="44"
-                                                 xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506
-			18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937
-			39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z"
-                                                      fill="">
-                                                </path>
-                                                <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506
-			18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937
-			39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z"
-                                                      stroke="">
-                                                </path>
-                                            </svg>
-                                            <div class="absolute leading-none left-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4">
-                                                <i class="ki-filled ki-delivery-24 text-1.5xl ps-px text-info">
-                                                </i>
-                                            </div>
-                                        </div>
-                                        <span class="text-gray-900 text-sm font-medium">
-               Performance Honor
-              </span>
-                                    </div>
-                                    <div class="btn btn-sm btn-icon text-gray-300 group-hover:text-primary-active">
-                                        <svg class="size-6" fill="none" viewbox="0 0 24 24"
-                                             xmlns="http://www.w3.org/2000/svg">
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="14.5">
-                                            </rect>
-                                            <rect fill="currentColor" height="3" rx="1.5" width="18" x="3" y="6.5">
-                                            </rect>
-                                        </svg>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
