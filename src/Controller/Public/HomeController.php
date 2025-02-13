@@ -38,7 +38,7 @@ class HomeController extends AbstractController
                     'description' => 'Un système de dons cycliques garantissant la réussite de chaque projet.'
                 ],
                 [
-                    'title' => 'Millions d\'Euros Collectés',
+                    'title' => 'Collectons ensemble',
                     'description' => 'Une communauté solidaire qui s\'entraide pour réaliser ses projets.'
                 ]
             ]
@@ -53,7 +53,7 @@ class HomeController extends AbstractController
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'name' => 'Kevin Cooper',
-                'position' => 'Co-Fondateur',
+                'position' => 'Abeille',
                 'rating' => 5,
                 'content' => 'Grâce à Abeilles Solidaires, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
             ],
@@ -61,7 +61,7 @@ class HomeController extends AbstractController
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
                 'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
                 'name' => 'Sarah Albert',
-                'position' => 'Directrice Marketing',
+                'position' => 'Abeille',
                 'rating' => 5,
                 'content' => 'Une plateforme exceptionnelle pour le financement participatif. Le processus est simple et l\'équipe de support est incroyablement réactive tout au long du parcours.'
             ],

@@ -30,9 +30,9 @@
         {% include 'public/components/counter.html.twig' %}
     </div>
 
-    {# Newsletter Section #}
-    {% include 'public/components/newsletter.html.twig' %}
-
+    {# Newsletter Section 
+        {% include 'public/components/newsletter.html.twig' %}
+    #}
     {# Recommended Projects #}
     {% include 'public/components/recommended.html.twig' with {
         recommendedProjects: recommendedProjectsList|slice(0, 4)
@@ -63,10 +63,10 @@
         testimonials: testimonialsList
     } %}
 
-    {# Brand Partners #}
+    {# Brand Partners 
     {% include 'public/components/brands.html.twig' with {
         brands: brandPartners
-    } %}
+    } %} #}
 
     {# Latest News #}
     {% include 'public/components/news.html.twig' with {

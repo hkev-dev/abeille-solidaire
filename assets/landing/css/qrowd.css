@@ -3512,6 +3512,7 @@ ul {
 .why-choose-one {
   position: relative;
   display: block;
+  background-color: #fff;
 }
 
 .why-choose-one__inner {
@@ -13094,4 +13095,15 @@ body.boxed-wrapper {
 
 .pagination .thm-btn.active:hover {
   background-color: var(--qrowd-base);
+}
+.about-two__points list-unstyled li {
+  padding-left: 5px;
+}
+
+.news-one, .brand-one {
+  display: none;
+}
+
+.project-one {
+  background-color: var(--qrowd-extra);
 }

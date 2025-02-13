@@ -1,10 +1,10 @@
 {# templates/components/page-header.html.twig #}
 <section class="page-header {{ class|default('') }}">
     {# Background Image #}
-    <div class="page-header-bg"
-         style="background-image: url({{ asset(background_image|default('assets/images/backgrounds/page-header-bg.jpg')) }})">
+    <div class="page-header-bg" 
+         style="background-image: url('/assets/landing/images/backgrounds/page-header-bg.jpg')">
     </div>
-
+    
     {# Decorative Shapes - Can be disabled #}
     {% if show_shapes|default(true) %}
         <div class="page-header-shape-1 float-bob-x">
