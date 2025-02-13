@@ -32,7 +32,7 @@ class ProfileController extends AbstractController
                     $newPassword = $form->get('newPassword')->getData();
 
                     if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
-                        $this->addFlash('danger', 'Mot de passe actuel incorrect');
+                        $this->addFlash('error', 'Mot de passe actuel incorrect');
 
                         return $this->redirectToRoute('app.user.profile');
                     }
