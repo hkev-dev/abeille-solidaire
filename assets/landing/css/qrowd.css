@@ -13103,3 +13103,7 @@ body.boxed-wrapper {
 .news-one, .brand-one {
   display: none;
 }
+
+.project-one {
+  background-color: var(--qrowd-extra);
+}

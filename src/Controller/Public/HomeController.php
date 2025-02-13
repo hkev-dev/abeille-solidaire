@@ -38,7 +38,7 @@ class HomeController extends AbstractController
                     'description' => 'Un système de dons cycliques garantissant la réussite de chaque projet.'
                 ],
                 [
-                    'title' => 'Millions d\'Euros Collectés',
+                    'title' => 'Collectons ensemble',
                     'description' => 'Une communauté solidaire qui s\'entraide pour réaliser ses projets.'
                 ]
             ]
