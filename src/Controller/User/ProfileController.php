@@ -68,21 +68,22 @@ class ProfileController extends AbstractController
         $form = $this->createForm(UserUpdateType::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $entityManager->persist($user);
-                $entityManager->flush();
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                try {
+                    $entityManager->persist($user);
+                    $entityManager->flush();
 
-                $this->addFlash('success', 'Information mis à jour avec succès');
+                    $this->addFlash('success', 'Information mis à jour avec succès');
 
-                return $this->redirectToRoute('app.user.profile');
-            } catch (\Exception $e) {
-                $this->addFlash('error', $e->getMessage());
+                    return $this->redirectToRoute('app.user.profile');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', $e->getMessage());
+                }
+            } else {
+                $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
             }
-        } else {
-            $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
         }
-
         return $this->render('user/pages/profile/update.html.twig', [
             'user' => $user,
             'form' => $form,
