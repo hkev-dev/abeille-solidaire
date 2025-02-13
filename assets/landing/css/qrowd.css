@@ -13096,6 +13096,10 @@ body.boxed-wrapper {
 .pagination .thm-btn.active:hover {
   background-color: var(--qrowd-base);
 }
-.about-two__points list-unstyled {
+.about-two__points list-unstyled li {
   padding-left: 5px;
+}
+
+.news-one, .brand-one {
+  display: none;
 }
