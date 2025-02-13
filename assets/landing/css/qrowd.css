@@ -13141,3 +13141,7 @@ body.boxed-wrapper {
 .progress-levels .progress-box .bar {
   padding-left: 20px;
 }
+
+.page-header{
+  padding: 50px 0 50px;
+}
