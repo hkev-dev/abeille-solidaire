@@ -154,19 +154,13 @@
                                     </td>
                                     <td class="py-3 text-gray-800 font-normal">
                                         <a href="javascript:void(0)"
-                                           data-bs-toggle="modal"
-                                           data-bs-target="#update-password"
+                                           data-modal-toggle="#update-password-modal"
                                            class="btn btn-light btn-sm">
                                             Mettre à jour le mot de passe
                                         </a>
                                     </td>
                                 </tr>
                             </table>
-                        </div>
-                        <div class="card-footer justify-center">
-                            <a class="btn btn-outline-primary" href="{{ path('app.user.profile.update') }}">
-                                Mettre à jour
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -202,9 +196,85 @@
             </div>
         </div>
     </div>
+
+    <div class="modal" data-modal="true" id="update-password-modal">
+        <div class="modal-content modal-center-y max-w-[600px]">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier mon mot de passe</h3>
+                <button class="btn btn-icon btn-sm btn-light hover:bg-gray-100" data-modal-dismiss="true">
+                    <i class="ki-outline ki-cross fs-2"></i>
+                </button>
+            </div>
+
+            <div class="modal-body p-5">
+                {{ form_start(form, {'attr': {'id': 'change-password-form', 'class': 'space-y-8'}}) }}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div class="space-y-2">
+                        {{ form_label(form.currentPassword, null, {
+                            'label_attr': {
+                                'class': 'block text-sm font-medium text-gray-700'
+                            }
+                        }) }}
+                        {{ form_widget(form.currentPassword) }}
+                        {{ form_errors(form.currentPassword, {
+                            'attr': {
+                                'class': 'text-sm text-danger mt-1'
+                            }
+                        }) }}
+                    </div>
+                    <div class="space-y-2">
+                    </div>
+                    <div class="space-y-2">
+                        {{ form_label(form.newPassword.first, null, {
+                            'label_attr': {
+                                'class': 'block text-sm font-medium text-gray-700'
+                            }
+                        }) }}
+                        {{ form_widget(form.newPassword.first) }}
+                        {{ form_errors(form.newPassword.first, {
+                            'attr': {
+                                'class': 'text-sm text-danger mt-1'
+                            }
+                        }) }}
+                    </div>
+                    <div class="space-y-2">
+                        {{ form_label(form.newPassword.second, null, {
+                            'label_attr': {
+                                'class': 'block text-sm font-medium text-gray-700'
+                            }
+                        }) }}
+                        {{ form_widget(form.newPassword.second) }}
+                        {{ form_errors(form.newPassword.second, {
+                            'attr': {
+                                'class': 'text-sm text-danger mt-1'
+                            }
+                        }) }}
+                    </div>
+                </div>
+                {# Submit Button #}
+                <div class="text-center mt-8">
+                    <button type="submit" class="btn btn-lg btn-primary">
+                        Enregistrer
+                    </button>
+                </div>
+
+                {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 
 {% block javascripts %}
     {{ parent() }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.querySelector('#update-password-modal');
+            const modal = KTModal.getInstance(modalEl);
+        })
+    </script>
 {% endblock %}
