@@ -30,9 +30,9 @@
         {% include 'public/components/counter.html.twig' %}
     </div>
 
-    {# Newsletter Section #}
-    {% include 'public/components/newsletter.html.twig' %}
-
+    {# Newsletter Section 
+        {% include 'public/components/newsletter.html.twig' %}
+    #}
     {# Recommended Projects #}
     {% include 'public/components/recommended.html.twig' with {
         recommendedProjects: recommendedProjectsList|slice(0, 4)
