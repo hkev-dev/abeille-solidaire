@@ -13138,3 +13138,6 @@ body.boxed-wrapper {
   width: 500px !important;
 }
 
+.progress-levels .progress-box .bar {
+  padding-left: 20px;
+}
