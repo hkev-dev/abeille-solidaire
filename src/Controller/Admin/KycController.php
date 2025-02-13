@@ -4,47 +4,29 @@ namespace App\Controller\Admin;
 
 use App\Service\KycService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/kyc')]
+#[IsGranted('ROLE_ADMIN')]
 class KycController extends AbstractController
 {
-    public function __construct(private readonly KycService $kycService)
+    #[Route('/download/{filename}', name: 'admin_kyc_download')]
+    public function downloadKycDocument(string $filename): Response
     {
-    }
+        $filePath = $this->getParameter('kyc_uploads_dir') . '/' . $filename;
 
-    #[Route('/', name: 'admin_kyc_index')]
-    public function index(): Response
-    {
-        return $this->render('admin/kyc/index.html.twig', [
-            'verifications' => $this->kycService->getPendingVerifications()
-        ]);
-    }
-
-    #[Route('/approve/{referenceId}', name: 'admin_kyc_approve', methods: ['POST'])]
-    public function approve(Request $request, string $referenceId): Response
-    {
-        $comment = $request->request->get('comment');
-        $this->kycService->approveVerification($referenceId, $comment);
-        
-        $this->addFlash('success', 'KYC verification approved successfully');
-        return $this->redirectToRoute('admin_kyc_index');
-    }
-
-    #[Route('/reject/{referenceId}', name: 'admin_kyc_reject', methods: ['POST'])]
-    public function reject(Request $request, string $referenceId): Response
-    {
-        $reason = $request->request->get('reason');
-        if (!$reason) {
-            $this->addFlash('error', 'Rejection reason is required');
-            return $this->redirectToRoute('admin_kyc_index');
+        if (!file_exists($filePath)) {
+            throw $this->createNotFoundException('Fichier non trouvé.');
         }
 
-        $this->kycService->rejectVerification($referenceId, $reason);
-        
-        $this->addFlash('success', 'KYC verification rejected');
-        return $this->redirectToRoute('admin_kyc_index');
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+
+        return $response;
     }
 }

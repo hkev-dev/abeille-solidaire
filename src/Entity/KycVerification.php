@@ -16,10 +16,6 @@ class KycVerification
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private User $user;
-
     #[ORM\Column(type: 'string', length: 255)]
     private string $referenceId;
 
@@ -41,20 +37,13 @@ class KycVerification
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $adminComment = null;
 
+    #[ORM\ManyToOne(inversedBy: 'kycVerifications')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $author = null;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getUser(): User
-    {
-        return $this->user;
-    }
-
-    public function setUser(User $user): self
-    {
-        $this->user = $user;
-        return $this;
     }
 
     public function getReferenceId(): string
@@ -133,4 +122,49 @@ class KycVerification
         $this->adminComment = $adminComment;
         return $this;
     }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->getAuthor();
+    }
+
+    public function setUser(?User $author): static
+    {
+        return $this->setAuthor($author);
+    }
+
+    public function getDocumentType()
+    {
+        return $this->getSubmittedData()['documentType'] ?? null;
+    }
+
+
+    public function getDocumentTypeLabel()
+    {
+        return match($this->getDocumentType()){
+            'national_id' => 'Carte d\'identité nationale',
+            'passport' => 'Passeport',
+            'drivers_license' => 'Permis de conduire',
+            'residence_permit' => 'Carte de séjour',
+            default => 'Inconnu'
+        };
+    }
+
+    public function getDocuments()
+    {
+        return $this->getDocumentPaths();
+    }
+
 }

@@ -37,11 +37,10 @@
                             de la plateforme, veuillez renouveler votre adhésion.
                         </p>
                         <div class="mt-6">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#renewalModal">
+                            <a href="{{ path('app.membership.renew') }}" class="btn btn-primary">
                                 <i class="ki-duotone ki-star fs-2 me-2"></i>
                                 Renouveler mon Adhésion
-                            </button>
+                            </a>
                         </div>
                     {% endif %}
                 </div>

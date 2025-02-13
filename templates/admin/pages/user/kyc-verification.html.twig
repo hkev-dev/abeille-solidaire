@@ -1,0 +1,145 @@
+{% extends 'admin/layouts/default.html.twig' %}
+
+{% set page_title = 'KYC Verification - ' ~ kycVerification.user.fullName %}
+
+{% block content %}
+    <div class="container-fixed">
+        <!-- begin: grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
+            <div class="col-span-1">
+                <div class="grid gap-5 lg:gap-7.5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                Document Info
+                            </h3>
+                        </div>
+                        <div class="card-body pt-3.5 pb-3.5">
+                            <table class="table-auto">
+                                <tbody>
+                                <tr>
+                                    <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
+                                        Type de document:
+                                    </td>
+                                    <td class="text-sm text-gray-900 pb-3">
+                                        {{ kycVerification.getDocumentTypeLabel() }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
+                                        Numéro du document:
+                                    </td>
+                                    <td class="text-sm text-gray-900 pb-3">
+                                        {{ submittedData.documentNumber }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
+                                        Pays Emetteur:
+                                    </td>
+                                    <td class="text-sm text-gray-900 pb-3">
+                                        {{ submittedData.issuingCountry }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
+                                        Date d'éxpiration:
+                                    </td>
+                                    <td class="text-sm text-gray-900 pb-3">
+                                        {{ submittedData.expiryDate.date|format_date }}
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-1">
+                <div class="flex flex-col gap-5 lg:gap-7.5">
+                    <div class="flex flex-col gap-5 lg:gap-7.5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    Documents
+                                </h3>
+                            </div>
+                            <div class="card-table scrollable-x-auto">
+                                <table class="table text-right">
+                                    <tbody>
+                                    <tr>
+                                        <td class="text-left">
+                                            <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.frontImage}) }}" download>
+                                                Recto du document
+                                            </a>
+                                        </td>
+                                        <td class="text-left">
+                                            <a href="{{ path('admin_kyc_download', {filename : documents.frontImage}) }}" download class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                <i class="ki-filled ki-exit-down">
+                                                </i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">
+                                            <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.backImage}) }}" download>
+                                                Verso du document
+                                            </a>
+                                        </td>
+                                        <td class="text-left">
+                                            <a href="{{ path('admin_kyc_download', {filename : documents.backImage}) }}" download class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                <i class="ki-filled ki-exit-down">
+                                                </i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">
+                                            <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.selfieImage}) }}" download>
+                                                Selfie avec document
+                                            </a>
+                                        </td>
+                                        <td class="text-left">
+                                            <a href="{{ path('admin_kyc_download', {filename : documents.selfieImage}) }}" download class="menu-toggle btn btn-sm btn-icon btn-light btn-clear">
+                                                <i class="ki-filled ki-exit-down">
+                                                </i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-2">
+                <div class="grid gap-5 lg:gap-7.5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                Verification
+                            </h3>
+                        </div>
+                        <div class="card-body pt-3.5 pb-3.5">
+                            <form method="POST">
+                                <div class="grid grid-cols-1 gap-6">
+                                    <label>
+                                        <textarea name="comment" placeholder="Commentaire" class="textarea w-full" rows="6"></textarea>
+                                    </label>
+                                </div>
+                                <div class="mt-2 flex flex-row justify-end gap-2">
+                                    <button type="submit" name="action" value="reject" class="btn btn-secondary">Rejeter</button>
+                                    <button type="submit" name="action" value="approve" class="btn btn-primary">Approver</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end: grid -->
+    </div>
+
+{% endblock %}
+

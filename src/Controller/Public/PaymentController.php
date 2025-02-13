@@ -4,6 +4,7 @@ namespace App\Controller\Public;
 
 use App\Entity\User;
 use App\Service\Payment\PaymentFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -69,9 +70,14 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/webhook/{method}', name: 'app.payment.webhook')]
-    public function handleWebhook(Request $request, string $method): Response
+    public function handleWebhook(Request $request, string $method,LoggerInterface $logger): Response
     {
         try {
+
+            $logger->info("Received $method webhook", [
+                'payload' => $request->toArray()
+            ]);
+
             $paymentService = $this->paymentFactory->getPaymentService($method);
             
             $signature = match($method) {

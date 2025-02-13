@@ -256,7 +256,7 @@ export class PaymentProcessor {
                             <div class="alert alert-warning mb-3">
                                 <strong>Important:</strong> Send exactly the specified amount to ensure proper processing
                             </div>
-                            <p class="mb-2">Amount to send: <strong>${paymentData.amount} ${paymentData.currency2}</strong></p>
+                            <p class="mb-2">Amount to send: <strong>${paymentData.amount} ${paymentData.currency}</strong></p>
                             <p class="mb-2">To address:<br><code class="select-all">${paymentData.address}</code></p>
                             <button class="btn btn-sm btn-secondary mb-3" onclick="navigator.clipboard.writeText('${paymentData.address}')">
                                 Copy Address

@@ -1,0 +1,91 @@
+{% extends 'user/pages/settings/layout.html.twig' %}
+
+{% set page_title = 'Mise à jour profil' %}
+
+{% block content %}
+    <div class="container-fixed">
+        <div class="grid gap-5 lg:gap-7.5">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <h3 class="flex items-center gap-2">
+                            <i class="ki-duotone ki-user-edit fs-2 text-primary"></i>
+                            Informations personnelles
+                        </h3>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="max-w-3xl mx-auto">
+                        {{ form_start(form, {'attr': {'class': 'space-y-8'}}) }}
+
+                        {# Document Info Section #}
+                        <div class="bg-gray-50 rounded-xl p-8 space-y-6">
+                            <h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="ki-duotone ki-document-text text-gray-500"></i>
+                                Informations personnelles
+                            </h4>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {% for field in ['accountType', 'firstName', 'lastName', 'organizationName', 'organizationNumber', 'country', 'phone'] %}
+                                    <div class="space-y-2 {{ field in ["organizationName", "organizationNumber"] ? "organization-field" : "" }}">
+                                        {{ form_label(attribute(form, field), null, {
+                                            'label_attr': {
+                                                'class': 'block text-sm font-medium text-gray-700'
+                                            }
+                                        }) }}
+                                        {{ form_widget(attribute(form, field), {
+                                            'attr': field == 'accountType' ? {'data-account-type': 'true'} : {}
+                                        }) }}
+                                        {{ form_errors(attribute(form, field), {
+                                            'attr': {
+                                                'class': 'text-sm text-danger mt-1'
+                                            }
+                                        }) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-8 py-3 min-w-[200px]">
+                                Enregistrer
+                            </button>
+                        </div>
+                        {{  form_rest(form) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.querySelector('#update-password-modal');
+            const modal = KTModal.getInstance(modalEl);
+
+            const accountTypeField = document.querySelector("[data-account-type]");
+            const organizationFields = document.querySelectorAll(".organization-field");
+
+            function toggleOrganizationFields() {
+                console.log("toggle", accountTypeField.value )
+                if (accountTypeField.value === "PRIVATE") {
+                    organizationFields.forEach(field => field.classList.add("hidden"));
+                } else {
+                    organizationFields.forEach(field => field.classList.remove("hidden"));
+                }
+            }
+
+            // Initial check
+            toggleOrganizationFields();
+
+            // Listen for changes
+            accountTypeField.addEventListener("change", toggleOrganizationFields);
+        })
+    </script>
+{% endblock %}
