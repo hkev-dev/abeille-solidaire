@@ -69,8 +69,12 @@
                         <td class="px-6 py-4">
                             <span class="badge {{ item.hasPaidAnnualFee ? 'badge-success' : 'badge-warning' }}">{{ item.hasPaidAnnualFee ? 'Active' : 'Non active' }}</span>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="badge {{ item.isKycVerified ? 'badge-success' : 'badge-warning' }}">{{ item.isKycVerified ? 'Verified' : 'Pending' }}</span>
+                        <td class="px-6 py-4 text-center">
+                            {% if item.getKycStatus == "waiting_validation" %}
+                                <a href="{{ path('app.admin.user.kyc_verification', {id: item.id}) }}" class="badge {{ item.kycStatusBadge }}">{{ item.getKycStatusLabel() }}</a>
+                            {% else %}
+                                <span class="badge {{ item.kycStatusBadge }}">{{ item.getKycStatusLabel() }}</span>
+                            {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ item.accountTypeLabel|default('') }}

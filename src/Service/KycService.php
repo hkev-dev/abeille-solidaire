@@ -28,7 +28,7 @@ class KycService
     public function getKycStatus(User $user): array
     {
         $verification = $this->entityManager->getRepository(KycVerification::class)
-            ->findOneBy(['user' => $user], ['submittedAt' => 'DESC']);
+            ->findOneBy(['author' => $user], ['submittedAt' => 'DESC']);
 
         return [
             'isVerified' => $user->isKycVerified(),
@@ -117,6 +117,8 @@ class KycService
 
         $user->setIsKycVerified(true);
 
+        $this->entityManager->persist($user);
+        $this->entityManager->persist($verification);
         $this->entityManager->flush();
 
         $event = new KycVerificationEvent($user, 'approved');

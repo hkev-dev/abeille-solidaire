@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
 use App\Service\FlowerService;
+use App\Service\KycService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -112,6 +113,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $defaultPaymentMethodId = null;
 
     private $paymentCurrency = 'USD';
+
+    /**
+     * @var Collection<int, KycVerification>
+     */
+    #[ORM\OneToMany(targetEntity: KycVerification::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $kycVerifications;
     
     public function __construct()
     {
@@ -119,6 +126,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->donationsReceived = new ArrayCollection();
         $this->withdrawals = new ArrayCollection();
         $this->memberships = new ArrayCollection();
+        $this->kycVerifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -711,5 +719,89 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->paymentCurrency = $paymentCurrency;
         return $this; 
+    }
+
+    /**
+     * @return Collection<int, KycVerification>
+     */
+    public function getKycVerifications(): Collection
+    {
+        return $this->kycVerifications;
+    }
+
+    public function addKycVerification(KycVerification $kycVerification): static
+    {
+        if (!$this->kycVerifications->contains($kycVerification)) {
+            $this->kycVerifications->add($kycVerification);
+            $kycVerification->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKycVerification(KycVerification $kycVerification): static
+    {
+        if ($this->kycVerifications->removeElement($kycVerification)) {
+            // set the owning side to null (unless already changed)
+            if ($kycVerification->getAuthor() === $this) {
+                $kycVerification->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getKycStatus(): string
+    {
+        if ($this->isKycVerified) {
+            return 'approved';
+        }
+
+        $verifications = $this->getKycVerifications();
+        if ($verifications->isEmpty()) {
+            return 'pending';
+        }
+
+        $allRejected = true;
+        foreach ($verifications as $verification) {
+            if ($verification->getStatus() === KycService::STATUS_APPROVED) {
+                return 'approved';
+            }
+            elseif ($verification->getStatus() === KycService::STATUS_PENDING) {
+                $allRejected = false;
+            }
+        }
+
+        return $allRejected ? 'rejected' : 'waiting_validation' ;
+    }
+
+    public function getKycStatusBadge()
+    {
+        return match ($this->getKycStatus()) {
+            'waiting_validation' => 'badge-primary',
+            'pending' => 'badge-warning',
+            'approved' => 'badge-success',
+            'rejected' => 'badge-danger',
+            default => 'badge-secondary'
+        };
+    }
+
+    public function getKycStatusLabel()
+    {
+        return match ($this->getKycStatus()) {
+            'waiting_validation' => 'En attente de validation',
+            'pending' => 'En attente',
+            'approved' => 'Approuvé',
+            'rejected' => 'Rejeté',
+            default => 'Inconnu'
+        };
+    }
+
+    public function getKycVerificationWaitingValidation(): ?KycVerification
+    {
+        $verifications = $this->getKycVerifications()->toArray();
+
+        return array_find($verifications, fn($verification) => $verification->getStatus() === KycService::STATUS_PENDING);
+
     }
 }

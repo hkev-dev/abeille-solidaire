@@ -4,160 +4,169 @@
 {% endblock %}
 
 {% block settings_content %}
-	{# Status Card with improved visual hierarchy #}
-	<div class="card mb-8">
-		<div class="card-body p-0">
-			<div class="px-6 py-12 {{ user.isKycVerified ? 'bg-success/10' : 'bg-warning/10' }}">
-				<div class="text-center">
-					<div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center {{ user.isKycVerified ? 'bg-success text-success-inverse' : 'bg-warning text-warning-inverse' }}">
-						<i class="ki-duotone ki-shield-tick text-4xl"></i>
-					</div>
+    {# Status Card with improved visual hierarchy #}
+    <div class="card mb-8">
+        <div class="card-body p-0">
+            <div class="px-6 py-12 {{ user.isKycVerified ? 'bg-success/10' : 'bg-warning/10' }}">
+                <div class="text-center">
+                    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center {{ user.isKycVerified ? 'bg-success text-success-inverse' : 'bg-warning text-warning-inverse' }}">
+                        <i class="ki-duotone ki-shield-tick text-4xl"></i>
+                    </div>
 
-					<h2 class="text-2xl font-bold mb-2">
-						{% if user.isKycVerified %}
-							Vérification KYC Complète
-						{% else %}
-							Vérification KYC Requise
-						{% endif %}
-					</h2>
+                    <h2 class="text-2xl font-bold mb-2">
+                        {% if user.getKycStatus() == "approved" %}
+                            Vérification KYC Complète
+                        {% elseif user.getKycStatus() == "waiting_validation" %}
+                            KYC En attente de validation
+                        {% elseif user.getKycStatus() == "rejected" %}
+                            KYC Refusé
+                        {% elseif user.getKycStatus() == "pending" %}
+                            Vérification KYC requise
+                        {% endif %}
+                    </h2>
 
-					<p class="text-gray-600 max-w-2xl mx-auto">
-						{% if user.isKycVerified %}
-							Votre compte a été vérifié avec succès le
-							{{ user.kycVerifiedAt|date('d/m/Y') }}.
-																																			                            Vous avez maintenant accès à toutes les fonctionnalités de la plateforme.
-						{% else %}
-							La vérification KYC est requise pour effectuer des retraits et accéder à toutes 
-																																										les fonctionnalités de la plateforme. Ce processus nous aide à maintenir un 
-																																										environnement sûr et conforme.
-						{% endif %}
-					</p>
-				</div>
-			</div>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        {% if user.getKycStatus() == "approved" %}
+                            Votre compte a été vérifié avec succès le
+                            {{ user.kycVerifiedAt|date('d/m/Y') }}.
+                            Vous avez maintenant accès à toutes les fonctionnalités de la plateforme.
+                        {% elseif user.getKycStatus() == "rejected" %}
+                            Vos document ont été refusés. Veuillez soumettre à nouveau des documents valides.
+                        {% elseif user.getKycStatus() == "waiting_validation" %}
+                            La vérification KYC est en cours. Veuillez patienter pendant que nous examinons vos documents.
+                        {% elseif user.getKycStatus() == "pending" %}
+                            La vérification KYC est requise pour effectuer des retraits et accéder à toutes
+                            les fonctionnalités de la plateforme. Ce processus nous aide à maintenir un
+                            environnement sûr et conforme.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
 
-		</div>
-	</div>
+        </div>
+    </div>
 
-	{% if not user.isKycVerified %}
-		<div class="card">
-			<div class="card-header">
-				<div class="card-title">
-					<h3 class="flex items-center gap-2">
-						<i class="ki-duotone ki-user-edit fs-2 text-primary"></i>
-						Vérification d'Identité
-					</h3>
-				</div>
-			</div>
-			<div class="card-body">
-				<div class="max-w-3xl mx-auto">
-					{{ form_start(form, {'attr': {'class': 'space-y-8'}}) }}
+    {% if user.getKycStatus() == "pending" or user.getKycStatus() == "rejected"   %}
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <h3 class="flex items-center gap-2">
+                        <i class="ki-duotone ki-user-edit fs-2 text-primary"></i>
+                        Vérification d'Identité
+                    </h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="max-w-3xl mx-auto">
+                    {{ form_start(form, {'attr': {'class': 'space-y-8'}}) }}
 
-					{# Document Info Section #}
-					<div class="bg-gray-50 rounded-xl p-8 space-y-6">
-						<h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-							<i class="ki-duotone ki-document-text text-gray-500"></i>
-							Informations du Document
-						</h4>
+                    {# Document Info Section #}
+                    <div class="bg-gray-50 rounded-xl p-8 space-y-6">
+                        <h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="ki-duotone ki-document-text text-gray-500"></i>
+                            Informations du Document
+                        </h4>
 
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{% for field in ['documentType', 'documentNumber', 'issuingCountry', 'expiryDate'] %}
-								<div class="space-y-2">
-									{{ form_label(attribute(form, field), null, {
-                                            'label_attr': {
-                                                'class': 'block text-sm font-medium text-gray-700'
-                                            }
-                                        }) }}
-									{{ form_widget(attribute(form, field)) }}
-									{{ form_errors(attribute(form, field), {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {% for field in ['documentType', 'documentNumber', 'issuingCountry', 'expiryDate'] %}
+                                <div class="space-y-2">
+                                    {{ form_label(attribute(form, field), null, {
+                                        'label_attr': {
+                                            'class': 'block text-sm font-medium text-gray-700'
+                                        }
+                                    }) }}
+                                    {{ form_widget(attribute(form, field)) }}
+                                    {{ form_errors(attribute(form, field), {
+                                        'attr': {
+                                            'class': 'text-sm text-danger mt-1'
+                                        }
+                                    }) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {# Document Upload Section #}
+                    <div class="bg-gray-50 rounded-xl p-8 space-y-6">
+                        <h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="ki-duotone ki-document-upload text-gray-500"></i>
+                            Documents Requis
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {% for info in [
+                                {field: 'frontImage', icon: 'credit-card-front', label: 'Recto du Document'},
+                                {field: 'backImage', icon: 'credit-card-back', label: 'Verso du Document'},
+                                {field: 'selfieImage', icon: 'user-camera', label: 'Selfie avec Document'}
+                            ] %}
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        {{ info.label }}
+                                    </label>
+
+                                    <div
+                                            class="image-input size-[200px]" data-image-input="true">
+
+                                        {# File input #}
+                                        {{ form_widget(attribute(form, info.field), {
                                             'attr': {
-                                                'class': 'text-sm text-danger mt-1'
+                                                'class': 'visual-hidden',
+                                                'accept': 'image/jpeg,image/png'
                                             }
                                         }) }}
-								</div>
-							{% endfor %}
-						</div>
-					</div>
 
-					{# Document Upload Section #}
-					<div class="bg-gray-50 rounded-xl p-8 space-y-6">
-						<h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-							<i class="ki-duotone ki-document-upload text-gray-500"></i>
-							Documents Requis
-						</h4>
+                                        {# Hidden input for remove action #}
+                                        <input
+                                                type="hidden" name="{{ info.field }}_remove"/>
 
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-							{% for info in [
-                                    {field: 'frontImage', icon: 'credit-card-front', label: 'Recto du Document'},
-                                    {field: 'backImage', icon: 'credit-card-back', label: 'Verso du Document'},
-                                    {field: 'selfieImage', icon: 'user-camera', label: 'Selfie avec Document'}
-                                ] %}
-								<div class="space-y-2">
-									<label class="block text-sm font-medium text-gray-700">
-										{{ info.label }}
-									</label>
-
-									<div
-										class="image-input size-[200px]" data-image-input="true">
-
-										{# File input #}
-										{{ form_widget(attribute(form, info.field), {
-												'attr': {
-                                                    'class': 'visual-hidden',
-													'accept': 'image/jpeg,image/png'
-												}
-											}) }}
-
-										{# Hidden input for remove action #}
-										<input
-										type="hidden" name="{{ info.field }}_remove"/>
-
-										{# Remove button #}
-										<span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10" data-image-input-remove="">
+                                        {# Remove button #}
+                                        <span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10"
+                                              data-image-input-remove="">
 											<i class="ki-duotone ki-cross fs-2"></i>
 										</span>
 
-										{# Placeholder with preview #}
-										<div class="image-input-placeholder w-full h-full border-2 border-dashed border-gray-300 rounded-lg">
-											<div class="image-input-preview w-full h-full bg-cover bg-center bg-no-repeat"></div>
+                                        {# Placeholder with preview #}
+                                        <div class="image-input-placeholder w-full h-full border-2 border-dashed border-gray-300 rounded-lg">
+                                            <div class="image-input-preview w-full h-full bg-cover bg-center bg-no-repeat"></div>
 
-											{# Upload icon overlay #}
-											<div class="hidden image-input-empty:flex items-center justify-center absolute inset-0 cursor-pointer">
-												<div class="text-center p-4">
-													<i class="ki-duotone ki-{{ info.icon }} fs-3x text-gray-400 mb-4"></i>
-													<p class="text-sm text-gray-600">Cliquez pour sélectionner</p>
-													<p class="text-xs text-gray-400 mt-1">JPG, PNG (max 5MB)</p>
-												</div>
-											</div>
-										</div>
-									</div>
+                                            {# Upload icon overlay #}
+                                            <div class="hidden image-input-empty:flex items-center justify-center absolute inset-0 cursor-pointer">
+                                                <div class="text-center p-4">
+                                                    <i class="ki-duotone ki-{{ info.icon }} fs-3x text-gray-400 mb-4"></i>
+                                                    <p class="text-sm text-gray-600">Cliquez pour sélectionner</p>
+                                                    <p class="text-xs text-gray-400 mt-1">JPG, PNG (max 5MB)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-									{{ form_errors(attribute(form, info.field), {
-										'attr': {'class': 'text-sm text-danger mt-1'}
-									}) }}
-								</div>
-							{% endfor %}
-						</div>
-					</div>
+                                    {{ form_errors(attribute(form, info.field), {
+                                        'attr': {'class': 'text-sm text-danger mt-1'}
+                                    }) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-					<div class="flex justify-center">
-						<button type="submit" class="btn btn-primary btn-lg px-8 py-3 min-w-[200px]">
-							<i class="ki-duotone ki-shield-tick me-2"></i>
-							Soumettre la Vérification
-						</button>
-					</div>
-					{{  form_rest(form) }}
-					{{ form_end(form) }}
-				</div>
-			</div>
-		</div>
-	{% endif %}
+                    <div class="flex justify-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-8 py-3 min-w-[200px]">
+                            <i class="ki-duotone ki-shield-tick me-2"></i>
+                            Soumettre la Vérification
+                        </button>
+                    </div>
+                    {{ form_rest(form) }}
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}
-	{{ parent() }}
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-KTImageInput.init()
-});
-	</script>
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            KTImageInput.init()
+        });
+    </script>
 {% endblock %}
