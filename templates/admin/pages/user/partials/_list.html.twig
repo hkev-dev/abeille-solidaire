@@ -1,87 +1,109 @@
 {% set hideActions = hideActions ?? false %}
 <div class="card">
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ajouté le
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adhésion</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type de
-                    compte
-                </th>
-                {% if not hideActions %}
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+    <div class="card-header flex-wrap gap-2">
+        <h3 class="card-title text-gray-600 text-2sm font-medium">
+            Affichage de {{ pagination.getPaginationData.currentItemCount }} sur {{ pagination.getPaginationData.totalCount }} utilisateurs
+        </h3>
+        <div class="flex flex-wrap gap-2 lg:gap-5">
+            <div class="flex">
+                <form method="GET" class="flex items-center gap-2">
+                    <input type="hidden" name="perpage" value="{{ app.request.query.get('perpage', 10) }}">
+                    <label class="input input-sm">
+                        <i class="ki-filled ki-magnifier"></i>
+                        <input type="text" name="q" placeholder="Recherche ..." value="{{ app.request.query.get('q', '') }}"/>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-light">Rechercher</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Utilisateur
                     </th>
-                {% endif %}
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-            {% for item in pagination %}
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center gap-2.5">
-                            <img alt="" class="h-9 rounded-full" style="max-height: 50px"
-                                 src="{{ asset('landing/images/team/team-1-1.jpg') }}"/>
-                            <div class="flex flex-col gap-0.5">
-                                <a class="leading-none font-semibold text-sm text-gray-900" href="#">
-                                    {{ item.fullname|default('') }}
-                                </a>
-                                <a class="leading-none text-sm hover:text-primary" href="#">
-                                    {{ item.email|default('') }}
-                                </a>
-                                <span class="text-2sm text-gray-600">
-                                    {{ item.countPaidDonations|default(0) }} Donations
-                                </span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="text-sm">{{ item.createdAt|date('d/m/Y') }}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="badge {{ item.hasPaidAnnualFee ? 'badge-success' : 'badge-warning' }}">{{ item.hasPaidAnnualFee ? 'Active' : 'Non active' }}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="badge {{ item.isKycVerified ? 'badge-success' : 'badge-warning' }}">{{ item.isKycVerified ? 'Verified' : 'Pending' }}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ item.accountTypeLabel|default('') }}
-                    </td>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ajouté le
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Adhésion
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type de
+                        compte
+                    </th>
                     {% if not hideActions %}
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2">
-                                <a href="#"
-                                   class="btn btn-sm btn-light-primary">
-                                    <i class="ki-duotone ki-pencil text-primary"></i>
-                                    Modifier
-                                </a>
-                                <a href="#"
-                                   class="btn btn-sm btn-light-danger">
-                                    <i class="ki-duotone ki-trash text-danger"></i>
-                                    Supprimer
-                                </a>
-                            </div>
-                        </td>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
                     {% endif %}
                 </tr>
-            {% else %}
-                <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                        Aucun utilisateur disponible
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-        {%  if pagination.getPaginationData is defined and pagination.getPaginationData is not empty  %}
-            {% include 'admin/components/pagination.html.twig' with {
-                'paginationData': pagination.getPaginationData
-            } %}
-        {% endif %}
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in pagination %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-2.5">
+                                <img alt="" class="h-9 rounded-full" style="max-height: 50px"
+                                     src="{{ asset('landing/images/team/team-1-1.jpg') }}"/>
+                                <div class="flex flex-col gap-0.5">
+                                    <a class="leading-none font-semibold text-sm text-gray-900" href="#">
+                                        {{ item.fullname|default('') }}
+                                    </a>
+                                    <a class="leading-none text-sm hover:text-primary" href="#">
+                                        {{ item.email|default('') }}
+                                    </a>
+                                    <span class="text-2sm text-gray-600">
+                                    {{ item.countPaidDonations|default(0) }} Donations
+                                </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm">{{ item.createdAt|date('d/m/Y') }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="badge {{ item.hasPaidAnnualFee ? 'badge-success' : 'badge-warning' }}">{{ item.hasPaidAnnualFee ? 'Active' : 'Non active' }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="badge {{ item.isKycVerified ? 'badge-success' : 'badge-warning' }}">{{ item.isKycVerified ? 'Verified' : 'Pending' }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.accountTypeLabel|default('') }}
+                        </td>
+                        {% if not hideActions %}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <a href="#"
+                                       class="btn btn-sm btn-light-primary">
+                                        <i class="ki-duotone ki-pencil text-primary"></i>
+                                        Modifier
+                                    </a>
+                                    <a href="#"
+                                       class="btn btn-sm btn-light-danger">
+                                        <i class="ki-duotone ki-trash text-danger"></i>
+                                        Supprimer
+                                    </a>
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Aucun utilisateur disponible
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+    {% if pagination.getPaginationData is defined and pagination.getPaginationData is not empty %}
+        {% include 'admin/components/pagination.html.twig' with {
+            'paginationData': pagination.getPaginationData
+        } %}
+    {% endif %}
 </div>

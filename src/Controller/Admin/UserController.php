@@ -22,6 +22,21 @@ class UserController extends AbstractController
         $query = $userRepository->createQueryBuilder('user')
             ->orderBy('user.updatedAt', 'DESC');
 
+        // Ajout du filtre de recherche
+        $search = $request->query->get('q');
+        if (!empty($search)) {
+            $fields = ['username', 'email', 'lastName', 'firstName'];
+            $conditions = [];
+
+            foreach ($fields as $field) {
+                $conditions[] = "LOWER(user.$field) LIKE LOWER(:search)";
+            }
+
+            $query
+                ->andWhere(implode(' OR ', $conditions))
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
         $pagination = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
