@@ -21,7 +21,6 @@ class ProfileController extends AbstractController
 {
     public function __construct(
         private readonly KycService           $kycService,
-        private readonly FlowerService $flowerService,
     ) {
     }
 
@@ -72,8 +71,6 @@ class ProfileController extends AbstractController
         }
 
         return $this->render('user/pages/profile/index.html.twig', [
-            'allFlowers' => $this->flowerService->getFlowerProgression($user->getCurrentFlower()),
-            'flower' => $user->getCurrentFlower(),
             'user' => $user,
             'form' => $form,
         ]);
