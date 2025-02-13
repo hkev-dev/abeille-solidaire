@@ -14,28 +14,28 @@ class AboutController extends AbstractController
         $testimonials = [
             [
                 'name' => 'Sarah Albert',
-                'position' => 'Co-Fondatrice',
+                'position' => 'Abeillee',
                 'image' => 'testimonial-two-client-img-1.jpg',
                 'text' => 'Grâce à Abeilles Solidaires, notre communauté grandit chaque jour. Le système de dons cycliques permet à chacun de réaliser ses projets dans un esprit de solidarité.',
                 'rating' => 5
             ],
             [
                 'name' => 'Kevin Martin',
-                'position' => 'Membre Actif',
+                'position' => 'Abeille',
                 'image' => 'testimonial-two-client-img-2.jpg',
                 'text' => 'Une plateforme innovante qui m\'a permis de concrétiser mon projet. La communauté est bienveillante et le support technique est toujours présent.',
                 'rating' => 5
             ],
             [
                 'name' => 'Kevin Coper',
-                'position' => 'CO Founder',
+                'position' => 'Abeille',
                 'image' => 'testimonial-two-client-img-3.jpg',
                 'text' => 'Exercitation ullamco laboris nisi ut aliquip ex ea ex commodo consequat duis aute aboris nisi ut aliquip irure reprehederit in voluptate velit esse.',
                 'rating' => 5
             ],
             [
                 'name' => 'Jessica Brown',
-                'position' => 'CO Founder',
+                'position' => 'Abeille',
                 'image' => 'testimonial-two-client-img-4.jpg',
                 'text' => 'Exercitation ullamco laboris nisi ut aliquip ex ea ex commodo consequat duis aute aboris nisi ut aliquip irure reprehederit in voluptate velit esse.',
                 'rating' => 5
