@@ -3512,6 +3512,7 @@ ul {
 .why-choose-one {
   position: relative;
   display: block;
+  background-color: #fff;
 }
 
 .why-choose-one__inner {
