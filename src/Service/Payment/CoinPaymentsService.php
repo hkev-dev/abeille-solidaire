@@ -240,7 +240,7 @@ class CoinPaymentsService extends AbstractPaymentService
 
         $donation = $this->donationService->createSupplementaryDonation($user);
 
-        $ipn = "https://d4f8-2c0f-2a80-2192-7710-8516-8e2c-2cfd-ac5f.ngrok-free.app" . $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_PATH);
+        $ipn = $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL);
         try {
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: $amount,
