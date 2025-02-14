@@ -16,20 +16,25 @@ class PaymentMethodType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $cryptoChoices = [];
+        foreach ($options['crypto_currencies'] as $symbol => $details) {
+            $cryptoChoices[$details['name']] = $symbol; // 'Tether USD (Tron/TRC20)' => 'USDT.TRC20'
+        }
+
         $builder
             ->add('type', ChoiceType::class, [
                 'label' => false,
                 'expanded' => true,
                 'multiple' => false,
                 'choices' => [
-                    'Carte bancaire' => 'card',
+                    'Virement bancaire' => 'rib',
                     'Cryptomonnaie' => 'crypto'
                 ],
                 'choice_attr' => function($choice, $key, $value) {
                     $attrs = [
-                        'card' => [
+                        'rib' => [
                             'icon' => 'ki-duotone ki-credit-cart',
-                            'description' => 'Paiement sécurisé par carte bancaire'
+                            'description' => 'Paiement par virement bancaire'
                         ],
                         'crypto' => [
                             'icon' => 'ki-duotone ki-bitcoin',
@@ -43,18 +48,15 @@ class PaymentMethodType extends AbstractType
                     ];
                 }
             ])
-            ->add('stripeToken', HiddenType::class, [
-                'required' => false
-            ])
             ->add('cryptoCurrency', ChoiceType::class, [
                 'label' => 'Cryptomonnaie',
                 'required' => false,
                 'placeholder' => 'Sélectionnez une cryptomonnaie',
-                'choices' => array_combine($options['crypto_currencies'], $options['crypto_currencies']),
+                'choices' => $cryptoChoices,
                 'choice_attr' => function($choice, $key, $value) {
                     return [
-                        'data-icon' => 'ki-duotone ki-'.strtolower($choice),
-                        'data-symbol' => strtoupper($choice)
+                        'data-icon' => 'ki-duotone ki-'.strtolower($value),
+                        'data-symbol' => strtoupper($value)
                     ];
                 },
                 'attr' => [
@@ -96,6 +98,54 @@ class PaymentMethodType extends AbstractType
                         'groups' => ['crypto']
                     ])
                 ]
+            ])
+            ->add('ribOwner', TextType::class, [
+                'label' => 'Titulaire du compte',
+                'required' => false,
+                'attr' => [
+                    'class' => 'input',
+                    'placeholder' => 'John Doe',
+                    'maxlength' => 64,
+                    'data-validation' => 'crypto-address'
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Veuillez saisir le titulaire du compte',
+                        'groups' => ['rib']
+                    ])
+                ]
+            ])
+            ->add('ribIban', TextType::class, [
+                'label' => 'IBAN',
+                'required' => false,
+                'attr' => [
+                    'class' => 'input',
+                    'placeholder' => 'Ex: FRXXXXXXXXXXXXXXXXXXXXX',
+                    'maxlength' => 64,
+                    'data-validation' => 'crypto-address'
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Veuillez saisir l\'IBAN',
+                        'groups' => ['rib']
+                    ])
+                ]
+            ])
+            ->add('ribBic', TextType::class, [
+                'label' => 'BIC',
+                'required' => false,
+                'attr' => [
+                    'class' => 'input',
+                    'placeholder' => 'Ex: BNPXXXXXXXXXXX',
+                    'maxlength' => 64,
+                    'data-validation' => 'crypto-address'
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Veuillez saisir le BIC',
+                        'groups' => ['rib']
+                    ])
+                ]
             ]);
     }
 
@@ -107,7 +157,7 @@ class PaymentMethodType extends AbstractType
             'csrf_protection' => true,
             'validation_groups' => function($form) {
                 $data = $form->getData();
-                return $data['type'] === 'crypto' ? ['Default', 'crypto'] : ['Default'];
+                return $data['type'] === 'crypto' ? ['Default', 'crypto'] : ['Default','rib'];
             }
         ]);
     }

@@ -17,9 +17,10 @@ class WithdrawalFormType extends AbstractType
     {
         $builder
             ->add('amount', MoneyType::class, [
-                'label' => 'Montant (€)',
-                'currency' => 'EUR',
+                'label' => 'Montant',
+                'currency' => false,
                 'divisor' => 1,
+                'grouping' => true,
                 'constraints' => [
                     new Assert\NotBlank(),
                     new Assert\Range([
@@ -34,7 +35,7 @@ class WithdrawalFormType extends AbstractType
                     'Virement bancaire' => Withdrawal::METHOD_STRIPE,
                     'Crypto-monnaie' => Withdrawal::METHOD_CRYPTO,
                 ],
-                'expanded' => true,
+                'expanded' => false,
                 'multiple' => false,
             ])
             ->add('cryptoAddress', TextType::class, [

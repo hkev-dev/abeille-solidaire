@@ -5,6 +5,7 @@ namespace App\Controller\User;
 use App\Form\KycVerificationType;
 use App\Form\PaymentMethodType;
 use App\Service\KycService;
+use App\Service\Payment\CoinPaymentsService;
 use App\Service\PaymentMethodService;
 use App\Service\MembershipService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -77,10 +78,11 @@ class SettingsController extends AbstractController
     }
 
     #[Route('/payment-methods', name: 'app.user.settings.payment_methods')]
-    public function paymentMethods(Request $request): Response
+    public function paymentMethods(Request $request, CoinPaymentsService $coinPaymentsService): Response
     {
         $user = $this->getUser();
-        $form = $this->createForm(PaymentMethodType::class);
+        $cryptoCurrencies = $coinPaymentsService->getAcceptedCryptoCurrencies();
+        $form = $this->createForm(PaymentMethodType::class, null, ['crypto_currencies' => $cryptoCurrencies]);
 
         return $this->render('user/pages/settings/payment-methods.html.twig', [
             'paymentMethods' => $this->paymentMethodService->getUserPaymentMethods($user),
@@ -100,6 +102,13 @@ class SettingsController extends AbstractController
                 $success = $this->paymentMethodService->addCardPaymentMethod(
                     $user,
                     $data['paymentMethodId']
+                );
+            } else if ($data['type'] === 'rib') {
+                $success = $this->paymentMethodService->addRibPaymentMethod(
+                    $user,
+                    $data['ribIban'],
+                    $data['ribBic'],
+                    $data['ribOwner'],
                 );
             } else {
                 $success = $this->paymentMethodService->addCryptoWallet(

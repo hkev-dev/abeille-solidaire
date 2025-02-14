@@ -14,10 +14,12 @@ class PaymentMethod
     use TimestampableTrait;
 
     public const TYPE_CARD = 'card';
+    public const TYPE_RIB = 'rib';
     public const TYPE_CRYPTO = 'crypto';
 
     public const VALID_METHOD_TYPES = [
         self::TYPE_CARD,
+        self::TYPE_RIB,
         self::TYPE_CRYPTO,
     ];
 
@@ -31,7 +33,7 @@ class PaymentMethod
     private User $user;
 
     #[ORM\Column(length: 20)]
-    #[Assert\Choice(choices: [self::TYPE_CARD, self::TYPE_CRYPTO])]
+    #[Assert\Choice(choices: self::VALID_METHOD_TYPES)]
     private string $methodType;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -48,6 +50,15 @@ class PaymentMethod
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $lastFour = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ribIban = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ribBic = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ribOwner = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $cardBrand = null;
@@ -150,4 +161,39 @@ class PaymentMethod
         $this->cardBrand = $cardBrand;
         return $this;
     }
+
+
+    public function getRibIban(): ?string
+    {
+        return $this->ribIban;
+    }
+
+    public function setRibIban(?string $ribIban): self
+    {
+        $this->ribIban = $ribIban;
+        return $this;
+    }
+
+    public function getRibBic(): ?string
+    {
+        return $this->ribBic;
+    }
+
+    public function setRibBic(?string $ribBic): self
+    {
+        $this->ribBic = $ribBic;
+        return $this;
+    }
+
+    public function getRibOwner(): ?string
+    {
+        return $this->ribOwner;
+    }
+
+    public function setRibOwner(?string $ribOwner): self
+    {
+        $this->ribOwner = $ribOwner;
+        return $this;
+    }
+    
 }
