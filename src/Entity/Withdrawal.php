@@ -13,6 +13,7 @@ class Withdrawal
     use TimestampableTrait;
 
     public const METHOD_STRIPE = 'stripe';
+    public const METHOD_RIB = 'rib';
     public const METHOD_CRYPTO = 'crypto';
 
     public const STATUS_PENDING = 'pending';
@@ -118,7 +119,7 @@ class Withdrawal
 
     public function setWithdrawalMethod(string $withdrawalMethod): self
     {
-        if (!in_array($withdrawalMethod, [self::METHOD_STRIPE, self::METHOD_CRYPTO])) {
+        if (!in_array($withdrawalMethod, [self::METHOD_STRIPE, self::METHOD_RIB, self::METHOD_CRYPTO])) {
             throw new \InvalidArgumentException('Invalid withdrawal method');
         }
         $this->withdrawalMethod = $withdrawalMethod;

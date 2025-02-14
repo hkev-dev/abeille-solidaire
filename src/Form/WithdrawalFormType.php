@@ -32,7 +32,7 @@ class WithdrawalFormType extends AbstractType
             ->add('withdrawalMethod', ChoiceType::class, [
                 'label' => 'Méthode de retrait',
                 'choices' => [
-                    'Virement bancaire' => Withdrawal::METHOD_STRIPE,
+                    'Virement bancaire' => Withdrawal::METHOD_RIB,
                     'Crypto-monnaie' => Withdrawal::METHOD_CRYPTO,
                 ],
                 'expanded' => false,
