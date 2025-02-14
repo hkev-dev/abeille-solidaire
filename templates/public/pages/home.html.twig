@@ -10,7 +10,8 @@
 
     {# Categories Section #}
     {% include 'public/components/categories.html.twig' with {
-        categories: projectCategories
+        categories: projectCategories,
+        donationNumber: totalDonation
     } %}
 
     {# Featured Projects #}

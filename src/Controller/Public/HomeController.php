@@ -9,6 +9,7 @@ use App\Repository\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\DonationRepository;
 
 class HomeController extends AbstractController
 {
@@ -16,6 +17,7 @@ class HomeController extends AbstractController
     public function index(
         MainSliderRepository      $mainSliderRepository,
         ProjectCategoryRepository $categoryRepository,
+        DonationRepository        $donationRepository,
         ProjectRepository         $projectRepository,
         NewsArticleRepository     $newsRepository
     ): Response
@@ -28,6 +30,9 @@ class HomeController extends AbstractController
 
         // Get featured projects from database (3 most funded active projects)
         $featuredProjects = $projectRepository->findActive();
+
+        // Get total of donations
+        $totalDonation = $donationRepository->countCompleted()
 
         // Why Choose Content
         $whyChooseContent = [
@@ -111,7 +116,8 @@ class HomeController extends AbstractController
             'latestNews' => $latestNews,
             'readyContent' => $readyContent,
             'videoUrl' => $videoContent['videoUrl'],
-            'videoTitle' => $videoContent['videoTitle']
+            'videoTitle' => $videoContent['videoTitle'],
+            'totalDonation' => $totalDonation
         ]);
     }
 }
