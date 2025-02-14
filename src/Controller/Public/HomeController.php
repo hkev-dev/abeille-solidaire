@@ -32,7 +32,7 @@ class HomeController extends AbstractController
         $featuredProjects = $projectRepository->findActive();
 
         // Get total of donations
-        $totalDonation = $donationRepository->countCompleted()
+        $totalDonation = $donationRepository->countCompleted();
 
         // Why Choose Content
         $whyChooseContent = [
