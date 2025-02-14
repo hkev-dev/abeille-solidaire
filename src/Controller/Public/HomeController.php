@@ -4,6 +4,7 @@ namespace App\Controller\Public;
 
 use App\Repository\MainSliderRepository;
 use App\Repository\NewsArticleRepository;
+use App\Repository\UserRepository;
 use App\Repository\ProjectCategoryRepository;
 use App\Repository\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,7 @@ class HomeController extends AbstractController
     public function index(
         MainSliderRepository      $mainSliderRepository,
         ProjectCategoryRepository $categoryRepository,
+        UserRepository            $userRepository,
         DonationRepository        $donationRepository,
         ProjectRepository         $projectRepository,
         NewsArticleRepository     $newsRepository
@@ -33,6 +35,9 @@ class HomeController extends AbstractController
 
         // Get total of donations
         $totalDonation = $donationRepository->countCompleted();
+
+        // Get total of user
+        $totalUser = $userRepository->countAll();
 
         // Why Choose Content
         $whyChooseContent = [
@@ -117,7 +122,8 @@ class HomeController extends AbstractController
             'readyContent' => $readyContent,
             'videoUrl' => $videoContent['videoUrl'],
             'videoTitle' => $videoContent['videoTitle'],
-            'totalDonation' => $totalDonation
+            'totalDonation' => $totalDonation,
+            'totalUser' => $totalUser
         ]);
     }
 }
