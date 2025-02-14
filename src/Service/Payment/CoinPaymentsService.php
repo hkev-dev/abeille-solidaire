@@ -130,7 +130,7 @@ class CoinPaymentsService extends AbstractPaymentService
     {
         $customData = json_decode($paymentData['custom'], true);
         if ($customData['payment_type'] === self::PAYMENT_TYPE_MEMBERSHIP) {
-            $payableObject = $membership = $this->em->getRepository(Membership::class)->find($customData['membership_id']);
+            $payableObject = $membership = $this->em->getRepository(Membership::class)->findOneBy(['id' => $customData['membership_id'], 'paymentStatus' => "pending"]);
 
             if (!$membership) {
                 throw new Exception('Membership not found');
@@ -138,10 +138,10 @@ class CoinPaymentsService extends AbstractPaymentService
 
             $this->processMembershipPayment($membership, $paymentData['txn_id']);
         }else{
-            $payableObject = $donation = $this->em->getRepository(Donation::class)->find($customData['donation_id']);
+            $payableObject = $donation = $this->em->getRepository(Donation::class)->findOneBy(['id' => $customData['donation_id'], 'paymentStatus' => Donation::PAYMENT_PENDING]);
 
             if (!$donation) {
-                throw new Exception('Donation not found');
+                throw new Exception('Payable Donation not found');
             }
 
             $this->processPaymentType($donation, $customData['payment_type'], $paymentData['txn_id'], $customData['include_membership'] ?? false);
@@ -240,6 +240,7 @@ class CoinPaymentsService extends AbstractPaymentService
 
         $donation = $this->donationService->createSupplementaryDonation($user);
 
+        $ipn = "https://d4f8-2c0f-2a80-2192-7710-8516-8e2c-2cfd-ac5f.ngrok-free.app" . $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_PATH);
         try {
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: $amount,
@@ -249,13 +250,13 @@ class CoinPaymentsService extends AbstractPaymentService
                 address: "",
                 buyer_name: $user->getFullName(),
                 item_name: 'Don supplémentaire',
-                item_number: "_{$user->getId()}",
-                invoice: "INV" . '-' . $user->getId(),
+                item_number: "_{$donation->getId()}",
+                invoice: "INV" . '-' . $donation->getId(),
                 custom: json_encode([
                     'donation_id' => $donation->getId(),
                     'payment_type' => 'supplementary'
                 ]),
-                ipn_url: $this->router->generate('app.payment.webhook', ['method' => self::PAYMENT_PROVIDER], UrlGeneratorInterface::ABSOLUTE_URL)
+                ipn_url: $ipn
             );
 
             if ($result['error'] !== 'ok') {

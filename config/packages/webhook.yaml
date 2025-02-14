@@ -4,3 +4,6 @@ framework:
       stripe:
         service: App\Webhook\StripeRequestParser
         secret: "%env(STRIPE_WEBHOOK_SECRET)%"
+      coinpayments:
+        service: App\Webhook\CoinPaymentsRequestParser
+        secret: "%env(COINPAYMENTS_IPN_SECRET)%"
