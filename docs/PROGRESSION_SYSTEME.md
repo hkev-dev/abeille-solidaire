@@ -9,7 +9,7 @@
 
 ## Introduction
 
-Le système Abeilles Solidaires fonctionne sur un modèle de matrice 4x4 avec progression par fleurs. Chaque utilisateur commence dans la même fleur que son parent, avec un don initial fixe de 25€.
+Le système Abeille Solidaires fonctionne sur un modèle de matrice 4x4 avec progression par fleurs. Chaque utilisateur commence dans la même fleur que son parent, avec un don initial fixe de 25€.
 
 ## Exemple Complet: Utilisateur Racine
 

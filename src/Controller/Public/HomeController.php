@@ -62,10 +62,26 @@ class HomeController extends AbstractController
             [
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
+                'name' => 'Kevin H.',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Grâce à Abeille Solidaires, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Sarah Lelouche',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Une plateforme exceptionnelle pour le financement participatif. Le processus est simple et l\'équipe de support est incroyablement réactive tout au long du parcours.'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
                 'name' => 'Kevin Cooper',
                 'position' => 'Abeille',
                 'rating' => 5,
-                'content' => 'Grâce à Abeilles Solidaires, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
+                'content' => 'Rejoindre Abeille Solidaire, c\'est donner du sens à ses actions. Ensemble, créons des projets qui font la différence !'
             ],
             [
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
@@ -73,7 +89,55 @@ class HomeController extends AbstractController
                 'name' => 'Sarah Albert',
                 'position' => 'Abeille',
                 'rating' => 5,
-                'content' => 'Une plateforme exceptionnelle pour le financement participatif. Le processus est simple et l\'équipe de support est incroyablement réactive tout au long du parcours.'
+                'content' => 'Un petit geste, un grand impact ! Venez découvrir un club où la solidarité rime avec créativité.'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Gabriel',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Ici, chaque idée compte et chaque don fait avancer des projets inspirants. Rejoignez-nous !'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Raphaël',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Vous avez envie d\’aider et d\’innover ? Abeille Solidaire est fait pour vous '
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Noah',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Plus qu\’un club, une famille engagée pour un monde meilleur. Faites partie de l\’aventure !'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Sacha',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Abeille Solidaire, c\’est du partage, du soutien et des projets concrets. On vous attend !'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Sacha',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Ensemble, nous bâtissons des initiatives qui changent des vies. Venez voir par vous-même !'
+            ],
+            [
+                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
+                'name' => 'Sacha',
+                'position' => 'Abeille',
+                'rating' => 5,
+                'content' => 'Votre générosité a du pouvoir. Chez Abeille Solidaire, elle devient action!'
             ],
             // Add more testimonials...
         ];
@@ -107,7 +171,7 @@ class HomeController extends AbstractController
         // Video Section
         $videoContent = [
             'videoUrl' => 'https://www.youtube.com/watch?v=ToRJ1pkr7WQ',
-            'videoTitle' => 'Abeilles Solidaires révolutionne la façon<br>dont les individus s\'entraident'
+            'videoTitle' => 'Abeille Solidaires révolutionne la façon<br>dont les individus s\'entraident'
         ];
 
         return $this->render('public/pages/home.html.twig', [
