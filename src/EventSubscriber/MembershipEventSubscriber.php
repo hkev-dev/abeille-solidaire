@@ -66,7 +66,7 @@ class MembershipEventSubscriber implements EventSubscriberInterface
     {
         try {
             $email = (new Email())
-                ->from('no-reply@abeilleolidaire.com')
+                ->from('no-reply@abeillesolidaire.com')
                 ->to($user->getEmail())
                 ->subject('Your Abeille Solidaire Membership Has Expired')
                 ->html(sprintf(
@@ -93,7 +93,7 @@ class MembershipEventSubscriber implements EventSubscriberInterface
     {
         try {
             $email = (new Email())
-                ->from('no-reply@abeilleolidaire.com')
+                ->from('no-reply@abeillesolidaire.com')
                 ->to($user->getEmail())
                 ->subject('Your Abeille Solidaire Membership is Active')
                 ->html(sprintf(
