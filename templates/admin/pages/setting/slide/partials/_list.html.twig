@@ -32,11 +32,13 @@
                                 <i class="ki-duotone ki-pencil text-primary"></i>
                                 Modifier
                             </a>
-                            <a href="{{ path('app.admin.setting.slide.delete', {id: item.id}) }}"
-                               class="btn btn-sm btn-clear btn-danger">
-                                <i class="ki-duotone ki-trash text-danger"></i>
-                                Supprimer
-                            </a>
+                            <form method="POST" action="{{ path('app.admin.setting.slide.delete', {id: item.id}) }}">
+                                <button type="submit"
+                                   class="btn btn-sm btn-clear btn-danger">
+                                    <i class="ki-duotone ki-trash text-danger"></i>
+                                    Supprimer
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
