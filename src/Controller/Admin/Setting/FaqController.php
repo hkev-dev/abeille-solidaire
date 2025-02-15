@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin\Setting;
 
+use App\Entity\FAQ;
 use App\Entity\MainSlider;
+use App\Form\FaqType;
 use App\Form\MainSliderType;
 use App\Repository\FAQRepository;
 use App\Repository\MainSliderRepository;
@@ -39,14 +41,15 @@ class FaqController extends AbstractController
     #[Route('/new', name: '.new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $slide = new MainSlider();
-        $form = $this->createForm(MainSliderType::class, $slide);
+        $entity = new FAQ();
+        $form = $this->createForm(FaqType::class, $entity);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($slide);
+            $entityManager->persist($entity);
             $entityManager->flush();
 
+            $this->addFlash('success', 'La question a été ajouter avec succès.');
             return $this->redirectToRoute('app.admin.setting.faq');
         }
 
@@ -56,28 +59,28 @@ class FaqController extends AbstractController
     }
 
     #[Route('/{id}/update', name: '.update', methods: ['GET', 'POST'])]
-    public function update(MainSlider $slide, Request $request, EntityManagerInterface $entityManager): Response
+    public function update(FAQ $entity, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(MainSliderType::class, $slide);
+        $form = $this->createForm(FaqType::class, $entity);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Votre projet a été mis à jour avec succès.');
+            $this->addFlash('success', 'La question a été mis à jour avec succès.');
             return $this->redirectToRoute('app.admin.setting.faq');
         }
 
 
         return $this->render('admin/pages/setting/faq/update.html.twig', [
-            'faq' => $slide,
+            'faq' => $entity,
             'form' => $form->createView(),
         ]);
     }
 
     #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
-    public function delete(MainSlider $slide, EntityManagerInterface $entityManager): Response
+    public function delete(FAQ $entity, EntityManagerInterface $entityManager): Response
     {
-        $entityManager->remove($slide);
+        $entityManager->remove($entity);
         $entityManager->flush();
 
         return $this->redirectToRoute('app.admin.setting.faq');

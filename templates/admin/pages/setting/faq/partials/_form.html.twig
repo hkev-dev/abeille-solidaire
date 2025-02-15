@@ -1,0 +1,79 @@
+<div class="card">
+    <div class="p-6">
+        {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+        {# Title #}
+        <div>
+            {{ form_label(form.question, null, {
+                'label_attr': {
+                    'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                }
+            }) }}
+            {{ form_widget(form.question, {
+                'attr': {
+                    'class': 'input'
+                }
+            }) }}
+            {{ form_errors(form.question) }}
+        </div>
+
+        {# Subtitle #}
+        <div>
+            {{ form_label(form.answer, null, {
+                'label_attr': {
+                    'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                }
+            }) }}
+            {{ form_widget(form.answer, {
+                'attr': {
+                    'class': 'textarea'
+                }
+            }) }}
+            {{ form_errors(form.answer) }}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {# position #}
+            <div class="col-span-1">
+                {{ form_label(form.position, null, {
+                    'label_attr': {
+                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                    }
+                }) }}
+                {{ form_widget(form.position, {
+                    'attr': {
+                        'class': 'input',
+                    }
+                }) }}
+                {{ form_errors(form.position) }}
+            </div>
+
+            {# Is ACtive #}
+            <div class="col-span-1">
+                {{ form_label(form.isActive, null, {
+                    'label_attr': {
+                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                    }
+                }) }}
+                {{ form_widget(form.isActive, {
+                    'attr': {
+                        'class': 'select'
+                    }
+                }) }}
+                {{ form_errors(form.isActive) }}
+            </div>
+        </div>
+
+        {# Submit Buttons #}
+        <div class="flex justify-end space-x-4 pt-4">
+            <div class="flex-grow"></div>
+            <a href="{{ path('app.admin.setting.slide') }}" class="btn btn-light">
+                Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="ki-duotone ki-save-2 fs-2 me-2"></i>
+                Enregistrer les modifications
+            </button>
+        </div>
+        {{ form_end(form) }}
+    </div>
+</div>

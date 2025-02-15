@@ -1,3 +1,4 @@
+{% set listPath = listPath|default('')  %}
 <div class="card-footer justify-center md:justify-between flex-col md:flex-row gap-3 text-gray-600 text-2sm font-medium">
     <div class="flex items-center gap-2">
         <form method="GET" id="paginationForm" class="flex items-center gap-2">
@@ -18,7 +19,7 @@
         <div class="pagination">
             {% if paginationData.pagesInRange|length > 1 %}
                 <a
-                        href="{{ path('app.admin.user.index', {'page': paginationData.previous|default(1), 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '') }) }}"
+                        href="{{ path(listPath, {'page': paginationData.previous|default(1), 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '') }) }}"
                         class="btn"
                         {{ paginationData.previous|default(false) ? '' : 'disabled' }}
                 >
@@ -29,12 +30,12 @@
                     {% if page == paginationData.current %}
                         <button class="btn active">{{ page }}</button>
                     {% else %}
-                        <a href="{{ path('app.admin.user.index', {'page': page, 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '')}) }}"
+                        <a href="{{ path(listPath, {'page': page, 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '')}) }}"
                            class="btn">{{ page }}</a>
                     {% endif %}
                 {% endfor %}
 
-                <a href="{{ path('app.admin.user.index', {'page': paginationData.next|default(1), 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '') }) }}"
+                <a href="{{ path(listPath, {'page': paginationData.next|default(1), 'perpage': paginationData.numItemsPerPage, 'q': app.request.query.get('q', '') }) }}"
                    class="btn"
                         {{ paginationData.next|default(false) ? '' : 'disabled' }}
                 >
