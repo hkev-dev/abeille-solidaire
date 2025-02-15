@@ -13145,3 +13145,6 @@ body.boxed-wrapper {
 .page-header{
   padding: 50px 0 50px;
 }
+#testimonials-one__carousel-pagination {
+  display: none;
+}
