@@ -45,7 +45,7 @@
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-			routes: ['app.admin.setting.general', 'app.admin.setting.slide'],
+			routes: ['app.admin.setting.general','app.admin.setting.slide','app.admin.setting.slide.update','app.admin.setting.slide.create','app.admin.setting.faq','app.admin.setting.faq.update','app.admin.setting.faq.create',],
 			submenu: [
 				{
 					label: 'General',
@@ -54,6 +54,13 @@
 				{
 					label: 'Slide',
 					route: 'app.admin.setting.slide',
+					routes: ['app.admin.setting.slide','app.admin.setting.slide.update','app.admin.setting.slide.create']
+				},
+				{
+					label: 'Faq',
+					route: 'app.admin.setting.faq',
+					routes: ['app.admin.setting.faq','app.admin.setting.faq.update','app.admin.setting.faq.create']
+
 				}
 			]
         }) }}
