@@ -1,7 +1,7 @@
 framework:
     cache:
         # Unique name of your app: used to compute stable namespaces for cache keys
-        prefix_seed: abeille_solidaires
+        prefix_seed: abeille_solidaire
 
         # System cache
         system: cache.adapter.system

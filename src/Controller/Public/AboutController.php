@@ -16,7 +16,7 @@ class AboutController extends AbstractController
                 'name' => 'Sarah Albert',
                 'position' => 'Abeillee',
                 'image' => 'testimonial-two-client-img-1.jpg',
-                'text' => 'Grâce à Abeille Solidaires, notre communauté grandit chaque jour. Le système de dons cycliques permet à chacun de réaliser ses projets dans un esprit de solidarité.',
+                'text' => 'Grâce à Abeille Solidaire, notre communauté grandit chaque jour. Le système de dons cycliques permet à chacun de réaliser ses projets dans un esprit de solidarité.',
                 'rating' => 5
             ],
             [
