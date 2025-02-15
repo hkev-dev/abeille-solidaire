@@ -30,7 +30,7 @@ class PaymentMethodService
         try {
             // Get all local payment methods
             $localMethods = $this->entityManager->getRepository(PaymentMethod::class)
-                ->findBy(['user' => $user]);
+                ->findBy(['owner' => $user]);
 
             // Process local methods and sync with Stripe if needed
             foreach ($localMethods as $method) {
