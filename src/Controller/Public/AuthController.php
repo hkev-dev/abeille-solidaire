@@ -124,7 +124,13 @@ class AuthController extends AbstractController
 
             try {
                 $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+                if (isset($data['currency'])) {
+                    $user->setPaymentCurrency($data['currency']);
+                }
                 $paymentData = $paymentService->createRegistrationPayment($user, $includeAnnualMembership);
+                if (isset($data['currency'])) {
+                    $paymentData["currency"] = $data['currency'];
+                }
 
                 // Store payment preferences in session
                 $request->getSession()->set('payment_method', $paymentMethod);
@@ -171,13 +177,26 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('app.registration.payment');
         }
 
-        return $this->render('public/pages/auth/waiting-room.html.twig', [
+        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
+        $params = [
             'user' => $user,
-            'payment_method' => $request->getSession()->get('payment_method', 'stripe'),
+            'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.registration.payment'),
             'payment_reference' => $request->getSession()->get('payment_reference'),
-            'donation' => $donation
-        ]);
+            'donation' => $donation,
+        ];
+
+        if ($data = $request->query->get('cp_data')){
+            $params['cp_data'] = json_decode($data, true);
+
+            return $this->render('public/pages/auth/coinpayments-waiting-room.html.twig', $params);
+        }else if ($paymentMethod === 'stripe'){
+
+            return $this->render('public/pages/auth/waiting-room.html.twig', $params);
+        }else{
+            $this->addFlash('error', 'Payment method not supported');
+            return $this->redirectToRoute('app.user.dashboard');
+        }
     }
 
     #[Route('/register/check-payment-status/{id}', name: 'app.check_payment_status')]

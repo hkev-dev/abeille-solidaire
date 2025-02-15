@@ -55,13 +55,13 @@ class CoinPaymentsService extends AbstractPaymentService
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: $amount,
                 currency1: 'EUR',
-                currency2: 'BTC',
+                currency2: $user->getPaymentCurrency(),
                 buyer_email: $user->getEmail(),
                 address: "",
                 buyer_name: $user->getFullName(),
                 item_name: $includeMembership ? 'Registration + Annual Membership' : 'Registration',
-                item_number: "_{$user->getId()}",
-                invoice: "INV" . '-' . $user->getId(),
+                item_number: "_{$donation->getId()}",
+                invoice: "INV" . '-' . $donation->getId() . ($includeMembership ? '-M' : ''),
                 custom: json_encode([
                     'include_membership' => $includeMembership,
                     'donation_id' => $donation->getId(),
@@ -93,13 +93,13 @@ class CoinPaymentsService extends AbstractPaymentService
             $result = $this->coinPayments->CreateComplexTransaction(
                 amount: 25.00,
                 currency1: 'EUR',
-                currency2: 'BTC',
+                currency2: $user->getPaymentCurrency(),
                 buyer_email: $user->getEmail(),
                 address: "",
                 buyer_name: $user->getFullName(),
                 item_name: 'Annual Membership Renewal',
-                item_number: "M_{$user->getId()}",
-                invoice: "MEM-" . uniqid(),
+                item_number: "M_{$membership->getId()}",
+                invoice: "MEM-" .$membership->getId().'-'. uniqid(),
                 custom: json_encode([
                     'membership_id' => $membership->getId(),
                     'payment_type' => 'membership'

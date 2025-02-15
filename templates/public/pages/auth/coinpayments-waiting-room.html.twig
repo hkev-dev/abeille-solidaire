@@ -1,0 +1,149 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}
+    En atttente du paiement
+    {% if context is defined and context == 'membership' %}
+        du Renouvellement
+    {% elseif context is defined and context == 'supplementary' %}
+        de l'Inscription
+    {% else %}
+        de l'Inscription
+    {% endif %}
+    - Abeille Solidaire
+{% endblock %}
+
+{% block content %}
+    {% if context is defined and context == 'membership' %}
+        {% set breadcrumbs =  [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Mon Compte', path: 'app.user.dashboard'},
+            {label: 'Renouvellement', path: null}
+        ] %}
+
+        {% set title = 'Renouvellement' %}
+    {% elseif context is defined and context == 'supplementary' %}
+        {% set breadcrumbs =  [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Don supplémentaire', path: 'app.user.donations.make_supplementary'},
+            {label: 'En attente de payment', path: null}
+        ] %}
+        {% set title = 'Don supplémentaire' %}
+    {% else %}
+        {% set breadcrumbs =  [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Inscription', path: 'app.register'},
+            {label: 'Traitement', path: null}
+        ] %}
+        {% set title = 'Inscription' %}
+    {% endif %}
+
+    {% include 'public/components/page-header.html.twig' with {
+        title: title,
+        breadcrumbs: breadcrumbs
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    {% include 'public/components/flash-messages.html.twig' %}
+
+                    <div class="waiting-room mb-5">
+                        <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4"
+                             height="120">
+
+                        <h3 class="login-register__title">
+                            En atttente du paiement
+                            {% if context is defined and context == 'membership' %}
+                                d'Adhésion
+                            {% elseif context is defined and context == 'supplementary' %}
+                                du don supplémentaire
+                            {% else %}
+                                d'Inscription
+                            {% endif %}
+                        </h3>
+
+                        <p>En attente de confirmation de la transaction cryptomonnaie.</p>
+                        <div class="qr-code mb-3">
+                            <img src="{{ cp_data.qrcode_url }}"
+                                 alt="Payment QR Code">
+                        </div>
+                        <div class="payment-details">
+                            <div class="alert alert-warning mb-3">
+                                <strong>Important:</strong> Envoyez exactement le montant spécifié pour garantir un
+                                traitement approprié
+                            </div>
+                            <p class="mb-2">Montant à envoyer:
+                                <strong>{{ cp_data.amount }} {{ cp_data.currency }}</strong></p>
+                            <p class="mb-2">A l'adresse:<br><code class="select-all">{{ cp_data.address }}</code></p>
+                            <button class="btn btn-sm btn-secondary mb-3"
+                                    onclick="navigator.clipboard.writeText('{{ cp_data.address }}')">
+                                Copier l'adresse
+                            </button>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Le paiement sera confirmé après {{ cp_data.confirms_needed }} confirmations du
+                                    réseau<br>
+                                    La transaction expirera dans {{ (cp_data.timeout // 60) | default(0) }} minutes
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="progress mt-4 mb-4">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%"></div>
+                        </div>
+
+                        <p class="text-muted">
+                            Vous recevrez un email de confirmation dès que votre paiement sera validé.<br>
+                            Merci de ne pas fermer cette fenêtre.
+                        </p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
+                            Besoin d'Aide ?
+                        </a>
+                        <a target="_blank" href="{{ cp_data.status_url }}" class="thm-btn thm-btn--outline btn-info">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Vérifier l'état du paiement ?
+                        </a>
+                        {% if payment_method == 'crypto' %}
+                            <a href="{{ payment_url }}" class="thm-btn ml-3">
+                                Retour au Paiement
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        const checkPaymentStatus = async () => {
+            try {
+                const response = await fetch('{{ context is defined and context == "membership"
+                ? path("app.membership.check_payment", {id: app.request.query.get('id')})
+                : path("app.check_payment_status", {id: app.request.query.get('id')}) }}');
+                const data = await response.json();
+
+                if (data.status === 'completed' && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (data.status === 'failed') {
+                    window.location.href = '{{ payment_url }}';
+                }
+            } catch (error) {
+                console.error('Error checking payment status:', error);
+            }
+        };
+
+        // Initial check after 2 seconds
+        setTimeout(checkPaymentStatus, 2000);
+        // Then check every 5 seconds
+        setInterval(checkPaymentStatus, 5000);
+    </script>
+{% endblock %}

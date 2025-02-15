@@ -215,17 +215,30 @@ class DonationController extends AbstractController
 
         // If payment failed, redirect back to payment page
         if ($donation->getPaymentStatus() === 'failed') {
-            return $this->redirectToRoute('app.membership.renew');
+            return $this->redirectToRoute('app.user.donations.make_supplementary');
         }
 
-        return $this->render('public/pages/auth/waiting-room.html.twig', [
+        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
+        $params = [
             'user' => $user,
-            'payment_method' => $request->getSession()->get('payment_method', 'stripe'),
+            'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.user.donations.make_supplementary'),
             'payment_reference' => $request->getSession()->get('payment_reference'),
             'donation' => $donation,
-            'context' => 'supplementary'
-        ]);
+            'context' => 'supplementary',
+        ];
+
+        if ($data = $request->query->get('cp_data')){
+            $params['cp_data'] = json_decode($data, true);
+
+            return $this->render('public/pages/auth/coinpayments-waiting-room.html.twig', $params);
+        }else if ($paymentMethod === 'stripe'){
+
+            return $this->render('public/pages/auth/waiting-room.html.twig', $params);
+        }else{
+            $this->addFlash('error', 'Payment method not supported');
+            return $this->redirectToRoute('app.user.dashboard');
+        }
     }
 
     /**

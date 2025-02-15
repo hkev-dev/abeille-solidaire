@@ -202,7 +202,7 @@ export class PaymentProcessor {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': this.config.csrf.stripeToken,
+                    'X-CSRF-TOKEN': this.config.csrf.cryptoToken,
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
@@ -221,12 +221,10 @@ export class PaymentProcessor {
             // Store transaction details in session storage
             sessionStorage.setItem('cp_txn_id', data.txn_id);
             sessionStorage.setItem('cp_status_url', data.status_url);
+            sessionStorage.setItem('coinpayments_data', data);
+            const queryString = encodeURIComponent(JSON.stringify(data));
 
-            // Show QR code and payment details modal
-            this.showCryptoPaymentModal(data);
-
-            // Start polling for payment status
-            this.startPaymentStatusPolling(data.txn_id);
+            window.location.href = this.config.returnUrl + "?id=" + data.entityId + "&cp_data=" +queryString;
 
         } catch (error) {
             this.handleCryptoError(error);

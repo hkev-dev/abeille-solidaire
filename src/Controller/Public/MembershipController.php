@@ -84,7 +84,14 @@ class MembershipController extends AbstractController
             $paymentMethod = $data['payment_method'] ?? 'stripe';
 
             $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+
+            if (isset($data['currency'])) {
+                $user->setPaymentCurrency($data['currency']);
+            }
             $paymentData = $paymentService->createMembershipPayment($user);
+            if (isset($data['currency'])) {
+                $paymentData["currency"] = $data['currency'];
+            }
 
             // Store payment info in session
             $session = $request->getSession();
@@ -165,15 +172,27 @@ class MembershipController extends AbstractController
         }
 
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
-
-        return $this->render('public/pages/auth/waiting-room.html.twig', [
+        $params = [
             'user' => $user,
             'payment_method' => $paymentMethod,
             'payment_url' => $this->generateUrl('app.membership.renew'),
             'payment_reference' => $request->getSession()->get('payment_reference'),
-            'context' => 'membership', // Add this to differentiate from registration in template
-            'membership' => $membership
-        ]);
+            'membership' => $membership,
+            'context' => 'membership',
+        ];
+
+        if ($data = $request->query->get('cp_data')){
+            $params['cp_data'] = json_decode($data, true);
+
+            return $this->render('public/pages/auth/coinpayments-waiting-room.html.twig', $params);
+        }else if ($paymentMethod === 'stripe'){
+
+            return $this->render('public/pages/auth/waiting-room.html.twig', $params);
+        }else{
+            $this->addFlash('error', 'Payment method not supported');
+            return $this->redirectToRoute('app.user.dashboard');
+        }
+
     }
 
     #[Route('/membership/check-payment/{id}', name: 'app.membership.check_payment')]
