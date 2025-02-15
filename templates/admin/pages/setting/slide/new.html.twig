@@ -99,23 +99,19 @@
                         <input type="hidden" name="image_remove"/>
 
                         {# Remove button #}
-                        <span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10"
-                              data-image-input-remove>
+                        <span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10" data-image-input-remove>
                                         <i class="ki-duotone ki-cross fs-2"></i>
                                     </span>
 
                         {# Placeholder with preview #}
                         <div class="image-input-placeholder w-full h-full border-2 border-dashed border-gray-300 rounded-lg">
-                            {% if slide is defined and slide.imageName %}
-                                <div class="image-input-preview w-full h-full bg-cover bg-center bg-no-repeat"
-                                     style="background-image: url('{{ vich_uploader_asset(slide, 'imageFile') }}')"></div>
-                            {% endif %}
+                            <div class="image-input-preview w-full h-full bg-cover bg-center bg-no-repeat"></div>
 
                             {# Upload icon overlay #}
-                            <div class="{% if slide is defined and  slide.imageName %}hidden{% else %}flex{% endif %} image-input-empty:flex items-center justify-center absolute inset-0 cursor-pointer">
+                            <div class="hidden image-input-empty:flex items-center justify-center absolute inset-0 cursor-pointer">
                                 <div class="text-center p-4">
                                     <i class="ki-duotone ki-picture fs-3x text-gray-400 mb-4"></i>
-                                    <p class="text-sm text-gray-600">Cliquez pour modifier</p>
+                                    <p class="text-sm text-gray-600">Cliquez pour sélectionner</p>
                                     <p class="text-xs text-gray-400 mt-1">JPG, PNG (max 5MB)</p>
                                 </div>
                             </div>

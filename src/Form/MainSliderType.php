@@ -4,11 +4,12 @@ namespace App\Form;
 
 use App\Entity\MainSlider;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Vich\UploaderBundle\Form\Type\VichImageType;
@@ -19,13 +20,24 @@ class MainSliderType extends AbstractType
     {
         $builder
             ->add('imageFile', VichImageType::class, [
+                'label' => 'Image du slide',
                 'required' => false,
-                'allow_delete' => true,
-                'delete_label' => 'Delete image',
-                'download_uri' => false,
-                'image_uri' => true,
-                'asset_helper' => true,
-                'label' => 'Image'
+                'allow_delete' => false,
+                'delete_label' => 'Supprimer l\'image',
+                'download_label' => false,
+                'image_uri' => false,
+                'attr' => [
+                    'accept' => 'image/jpeg,image/png'
+                ],
+                'constraints' => [
+                    new Assert\File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png'
+                        ],
+                    ])
+                ]
             ])
             ->add('subtitle', TextType::class,[
                 'label' => 'Sous-titre',
@@ -59,10 +71,16 @@ class MainSliderType extends AbstractType
                     'class' => 'input'
                 ]
             ])
-            ->add('isActive', CheckboxType::class, [
+            ->add('isActive', ChoiceType::class, [
                 'required' => false,
+                'choices' => [
+                    'Oui' => true,
+                    'Non' => false
+                ],
+                'expanded' => false,
+                'multiple' => false,
                 'attr' => [
-                    'placeholder' => 'Entrez la position du slide',
+                    'placeholder' => 'Selectionner un status',
                     'maxlength' => 255,
                     'class' => 'select'
                 ]
