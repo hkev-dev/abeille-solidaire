@@ -5,11 +5,11 @@
             <div class="col-xl-12">
                 <div class="faq-search__inner">
                     <div class="section-title text-center">
-                        <span class="section-title__tagline">Frequently asked questions</span>
-                        <h2 class="section-title__title">How can We Help you?</h2>
+                        <span class="section-title__tagline">Questions fréquemment posées</span>
+                        <h2 class="section-title__title">Comment pouvons-nous vous aider ?</h2>
                     </div>
                     <form action="{{ path('landing.faq') }}" method="GET" class="faq__search-form">
-                        <input type="search" name="q" value="{{ searchQuery|default('') }}" placeholder="Search here anything...">
+                        <input type="search" name="q" value="{{ searchQuery|default('') }}" placeholder="Recherche">
                         <button type="submit"><i class="icon-magnifying-glass"></i></button>
                     </form>
                 </div>
