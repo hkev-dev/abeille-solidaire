@@ -39,12 +39,12 @@
                                     <p class="main-slider__sub-title">{{ slide.subtitle|default('Collecter des fonds n\'a jamais été aussi simple !')|raw }}</p>
                                     <h2 class="main-slider__title">{{ slide.title|default('La Plateforme <br> de Financement <br> Solidaire')|raw }}</h2>
                                     <div class="main-slider__btn-box">
-                                        <a href="#" class="thm-btn main-slider__btn">
+                                        <a href="{{ path('app.register') }}" class="thm-btn main-slider__btn">
                                             Lancer mon Projet
                                         </a>
-                                        <a href="#" class="main-slider__btn-two">
+                                        {#<a href="#" class="main-slider__btn-two">
                                             Parler à un Expert
-                                        </a>
+                                        </a>#}
                                     </div>
                                 </div>
                             </div>
