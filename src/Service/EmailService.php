@@ -31,7 +31,7 @@ class EmailService
         $this->queueEmail(
             'emails/registration/welcome.html.twig',
             $user->getEmail(),
-            'Welcome to Abeille Solidaires - Complete Your Registration',
+            'Welcome to Abeille Solidaire - Complete Your Registration',
             [
                 'user' => $user,
                 'paymentUrl' => $this->router->generate(
@@ -56,7 +56,7 @@ class EmailService
         $this->queueEmail(
             'emails/registration/matrix_placement.html.twig',
             $user->getEmail(),
-            'Your Matrix Position Confirmed - Abeille Solidaires',
+            'Your Matrix Position Confirmed - Abeille Solidaire',
             [
                 'user' => $user,
                 'matrixPosition' => $position,
@@ -71,7 +71,7 @@ class EmailService
         $this->queueEmail(
             'emails/registration/payment_confirmed.html.twig',
             $user->getEmail(),
-            'Payment Confirmed - Welcome to Abeille Solidaires',
+            'Payment Confirmed - Welcome to Abeille Solidaire',
             [
                 'user' => $user,
                 'paymentMethod' => $paymentMethod,
@@ -85,7 +85,7 @@ class EmailService
         $this->queueEmail(
             'emails/donation/receipt.html.twig',
             $user->getEmail(),
-            'Your Donation Receipt - Abeille Solidaires',
+            'Your Donation Receipt - Abeille Solidaire',
             [
                 'user' => $user,
                 'receipt' => $receipt
@@ -126,7 +126,7 @@ class EmailService
         $this->queueEmail(
             'emails/membership/confirmation.html.twig',
             $user->getEmail(),
-            'Your Annual Membership Confirmation - Abeille Solidaires',
+            'Your Annual Membership Confirmation - Abeille Solidaire',
             [
                 'user' => $user,
                 'membership' => $membership,
@@ -163,7 +163,7 @@ class EmailService
         $this->queueEmail(
             'emails/membership/confirmation.html.twig',
             $user->getEmail(),
-            'Membership Renewal Confirmation - Abeille Solidaires',
+            'Membership Renewal Confirmation - Abeille Solidaire',
             [
                 'user' => $user,
                 'membership' => $membership,

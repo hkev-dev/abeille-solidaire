@@ -65,7 +65,7 @@ class HomeController extends AbstractController
                 'name' => 'Kevin H.',
                 'position' => 'Abeille',
                 'rating' => 5,
-                'content' => 'Grâce à Abeille Solidaires, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
+                'content' => 'Grâce à Abeille Solidaire, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
             ],
             [
                 'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
@@ -171,7 +171,7 @@ class HomeController extends AbstractController
         // Video Section
         $videoContent = [
             'videoUrl' => 'https://www.youtube.com/watch?v=ToRJ1pkr7WQ',
-            'videoTitle' => 'Abeille Solidaires révolutionne la façon<br>dont les individus s\'entraident'
+            'videoTitle' => 'Abeille Solidaire révolutionne la façon<br>dont les individus s\'entraident'
         ];
 
         return $this->render('public/pages/home.html.twig', [
