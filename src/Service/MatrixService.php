@@ -38,6 +38,10 @@ class MatrixService
 
     public function placeDonationInMatrix(Donation $donation): void
     {
+        if ($donation->getMatrixPosition() !== null) {
+            throw new \RuntimeException('Donation is already placed in matrix');
+        }
+
         try {
             // Find available parent
             $parent = $this->findAvailableParent();

@@ -101,7 +101,7 @@
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-            routes: ['app.user.settings.profile', 'app.user.settings.kyc', 'app.user.settings.membership'],
+            routes: ['app.user.settings.profile', 'app.user.settings.kyc', 'app.user.settings.membership', 'app.user.settings.payment_methods'],
             submenu: [
                 {
                     label: 'Mon Profil',
@@ -114,6 +114,10 @@
                         text: 'À valider',
                         class: 'badge-warning'
                     } : null
+                },
+                {
+                    label: 'Méthodes de paiement',
+                    route: 'app.user.settings.payment_methods',
                 },
                 {
                     label: 'Adhésion',

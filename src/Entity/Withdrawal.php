@@ -13,6 +13,7 @@ class Withdrawal
     use TimestampableTrait;
 
     public const METHOD_STRIPE = 'stripe';
+    public const METHOD_RIB = 'rib';
     public const METHOD_CRYPTO = 'crypto';
 
     public const STATUS_PENDING = 'pending';
@@ -34,9 +35,6 @@ class Withdrawal
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $amount;
-
-    #[ORM\Column(length: 20)]
-    private string $withdrawalMethod;
 
     #[ORM\Column(length: 20)]
     private string $status = self::STATUS_PENDING;
@@ -63,7 +61,11 @@ class Withdrawal
     private ?string $cryptoCurrency = null;  // Add cryptocurrency for withdrawal
 
     #[ORM\Column(type: 'decimal', precision: 18, scale: 8, nullable: true)]
-    private ?float $cryptoAmount = null;  // Add crypto amount for withdrawal
+    private ?float $cryptoAmount = null;
+
+    #[ORM\ManyToOne(inversedBy: 'withdrawals')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?PaymentMethod $withdrawalMethod = null;  // Add crypto amount for withdrawal
 
     public function __construct()
     {
@@ -108,20 +110,6 @@ class Withdrawal
         }
         $this->amount = $amount;
         $this->calculateFee();
-        return $this;
-    }
-
-    public function getWithdrawalMethod(): string
-    {
-        return $this->withdrawalMethod;
-    }
-
-    public function setWithdrawalMethod(string $withdrawalMethod): self
-    {
-        if (!in_array($withdrawalMethod, [self::METHOD_STRIPE, self::METHOD_CRYPTO])) {
-            throw new \InvalidArgumentException('Invalid withdrawal method');
-        }
-        $this->withdrawalMethod = $withdrawalMethod;
         return $this;
     }
 
@@ -287,4 +275,21 @@ class Withdrawal
         $this->cryptoAmount = $amount;
         return $this;
     }
+
+//    public function withdrawalMethodInfo(): ?PaymentMethod
+//    {
+//        return $this->withdrawalMethodInfo ?? $this->getUser()->getWithdrawalMethod($this->getWithdrawalMethod());
+//    }
+
+public function getWithdrawalMethod(): ?PaymentMethod
+{
+    return $this->withdrawalMethod;
+}
+
+public function setWithdrawalMethod(?PaymentMethod $withdrawalMethod): static
+{
+    $this->withdrawalMethod = $withdrawalMethod;
+
+    return $this;
+}
 }

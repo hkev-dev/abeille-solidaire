@@ -22,28 +22,28 @@
                     <div class="card-header border-b">
                         <h3 class="flex items-center gap-2 text-lg font-medium">
                             <i class="ki-duotone ki-credit-cart fs-2"></i>
-                            Cartes Bancaires
+                            RIB
                         </h3>
                     </div>
 
                     <div class="card-body p-6">
-                        {% if paymentMethods.cards is empty %}
+                        {% if paymentMethods.ribs is empty %}
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <div class="w-20 h-20 bg-light/50 rounded-full flex items-center justify-center mb-4">
                                     <i class="ki-duotone ki-credit-cart text-[60px] text-gray-400"></i>
                                 </div>
-                                <h4 class="text-lg font-medium text-gray-800 mb-2">Aucune carte enregistrée</h4>
-                                <p class="text-gray-500 mb-6">Ajoutez une carte bancaire pour effectuer vos paiements en
+                                <h4 class="text-lg font-medium text-gray-800 mb-2">Aucun rib enregistré</h4>
+                                <p class="text-gray-500 mb-6">Ajoutez vos informations bancaire pour recevoir vos paiements en
                                     toute sécurité</p>
                                 <button type="button" class="btn btn-light-primary"
                                         data-modal-toggle="#payment-method-modal">
                                     <i class="ki-duotone ki-plus fs-2 me-2"></i>
-                                    Ajouter une carte
+                                    Ajouter un RIB
                                 </button>
                             </div>
                         {% else %}
                             <div class="divide-y divide-gray-100">
-                                {% for card in paymentMethods.cards %}
+                                {% for rib in paymentMethods.ribs %}
                                     <div class="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
                                         <div class="flex items-center gap-4">
                                             <div class="w-14 h-14 bg-light rounded-xl flex items-center justify-center">
@@ -51,28 +51,16 @@
                                             </div>
                                             <div>
                                                 <div class="flex items-center gap-3">
-													<span class="font-medium text-gray-900">••••
-														{{ card.last4 }}</span>
-                                                    {% if card.isDefault %}
-                                                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-success/10 text-success">
-															Par défaut
-														</span>
-                                                    {% endif %}
+													<span class="font-medium text-gray-900">Titulaire : {{ rib.ribOwner }}</span>
                                                 </div>
-                                                <p class="text-sm text-gray-500 mt-0.5">Expire
-                                                    {{ card.expMonth }}/{{ card.expYear }}</p>
+                                                <p class="text-sm text-gray-500 mt-0.5">IBAN: {{ rib.ribIBAN }}</p>
+                                                <p class="text-sm text-gray-500 mt-0.5">BIC: {{ rib.ribBIC }}</p>
                                             </div>
                                         </div>
 
                                         <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {% if not card.isDefault %}
-                                                <button type="button" class="btn btn-sm btn-light-primary"
-                                                        data-action="set-default" data-id="{{ card.id }}">
-                                                    Définir par défaut
-                                                </button>
-                                            {% endif %}
                                             <button type="button" class="btn btn-sm btn-icon btn-light-danger"
-                                                    data-action="delete" data-id="{{ card.id }}"
+                                                    data-action="delete" data-id="{{ rib.id }}"
                                                     data-bs-tooltip="Supprimer">
                                                 <i class="ki-duotone ki-trash fs-2"></i>
                                             </button>
@@ -159,18 +147,13 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="https://js.stripe.com/v3/"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const modalEl = document.querySelector('#payment-method-modal');
             const modal = KTModal.getInstance(modalEl);
 
-            const stripe = Stripe('{{ stripe_public_key }}');
-            let cardElement = null;
-
             const state = {
                 form: document.getElementById('payment-method-form'),
-                cardErrors: document.getElementById('card-errors'),
                 submitButton: document.querySelector('#payment-method-form button[type="submit"]'),
                 loading: false,
                 selectedType: null
@@ -212,30 +195,8 @@
                     const selectedForm = document.getElementById(`${type}-form`);
                     if (selectedForm) {
                         selectedForm.classList.remove('hidden');
-
-                        if (type === 'card' && !cardElement) {
-                            initializeStripeElements();
-                        }
                     }
                 }
-            }
-
-            function initializeStripeElements() {
-                const elements = stripe.elements();
-                cardElement = elements.create('card');
-
-                cardElement.mount('#card-element');
-
-                cardElement.on('change', ({error}) => {
-                    const displayError = state.cardErrors;
-                    if (error) {
-                        displayError.textContent = error.message;
-                        displayError.classList.remove('hidden');
-                    } else {
-                        displayError.textContent = '';
-                        displayError.classList.add('hidden');
-                    }
-                });
             }
 
             function initializeFormSubmission() {
@@ -245,10 +206,6 @@
                     if (state.loading)
                         return;
 
-
-                    state.cardErrors.classList.add('hidden');
-                    state.cardErrors.textContent = '';
-
                     if (!state.selectedType) {
                         showError('Veuillez sélectionner un type de paiement');
                         return;
@@ -257,8 +214,8 @@
                     setLoading(true);
 
                     try {
-                        if (state.selectedType === 'card') {
-                            await handleCardSubmission();
+                        if (state.selectedType === 'rib') {
+                            await handleRibSubmission();
                         } else {
                             await handleCryptoSubmission();
                         }
@@ -276,14 +233,21 @@
                 });
             }
 
-            async function handleCardSubmission() {
-                const {paymentMethod, error} = await stripe.createPaymentMethod({type: 'card', card: cardElement});
+            async function handleRibSubmission() {
 
-                if (error)
-                    throw new Error(error.message);
+                const ribOwner= state.form.querySelector('[name="payment_method[ribOwner]"]').value,
+                    ribIban= state.form.querySelector('[name="payment_method[ribIban]"]').value,
+                    ribBic= state.form.querySelector('[name="payment_method[ribBic]"]').value
+                if (!ribOwner)
+                    throw new Error('Veuillez renseigner le titulaire du compte');
 
+                if (!ribIban)
+                    throw new Error('Veuillez renseigner l\'IBAN');
 
-                await submitPaymentMethod({type: 'card', paymentMethodId: paymentMethod.id});
+                if (!ribBic)
+                    throw new Error('Veuillez renseigner le BIC');
+
+                await submitPaymentMethod({type: 'rib', ribOwner, ribIban, ribBic});
             }
 
             async function handleCryptoSubmission() {
@@ -387,23 +351,16 @@
             }
 
             function showError(message) {
-                state.cardErrors.textContent = message;
-                state.cardErrors.classList.remove('hidden');
-
                 state.submitButton.classList.add('animate-shake');
                 setTimeout(() => {
                     state.submitButton.classList.remove('animate-shake');
                 }, 500);
-
-                state.cardErrors.scrollIntoView({behavior: 'smooth', block: 'nearest'});
             }
 
             modalEl.addEventListener('hidden.bs.modal', () => {
                 state.form.reset();
                 state.selectedType = null;
                 state.submitButton.classList.remove('btn-success', 'submitting');
-                state.cardErrors.classList.add('hidden');
-                state.cardErrors.textContent = '';
 
                 document.querySelectorAll('.payment-type-option').forEach(option => {
                     option.querySelector('.border-dashed').classList.remove('border-primary', 'bg-light-primary/50');

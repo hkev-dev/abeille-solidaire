@@ -122,6 +122,10 @@ class StripePaymentService extends AbstractPaymentService
                 throw new Exception('Membership not found');
             }
 
+            if ($membership->getPaymentStatus() === Donation::PAYMENT_COMPLETED){
+                throw new Exception('Membership payment already processed');
+            }
+
             $user = $membership->getUser();
             $this->processMembershipPayment($membership, $paymentIntent->id);
         }else{
@@ -129,6 +133,10 @@ class StripePaymentService extends AbstractPaymentService
 
             if (!$donation) {
                 throw new Exception('Donation not found');
+            }
+
+            if ($donation->getPaymentStatus() === Donation::PAYMENT_COMPLETED){
+                throw new Exception('Donation payment already processed');
             }
 
             $user = $donation->getDonor();

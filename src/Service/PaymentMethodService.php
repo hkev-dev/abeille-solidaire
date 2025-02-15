@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use App\Entity\PaymentMethod;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\Payment\CoinPaymentsService;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class PaymentMethodService
 {
@@ -22,7 +23,7 @@ class PaymentMethodService
     public function getUserPaymentMethods(User $user): array
     {
         $methods = [
-            'cards' => [],
+            'ribs' => [],
             'crypto' => []
         ];
 
@@ -33,39 +34,19 @@ class PaymentMethodService
 
             // Process local methods and sync with Stripe if needed
             foreach ($localMethods as $method) {
-                if ($method->getMethodType() === PaymentMethod::TYPE_CARD) {
-                    // Add card to methods array
-                    $cardData = [
-                        'id' => $method->getId(),
-                        'last4' => $method->getLastFour(),
-                        'brand' => $method->getCardBrand(),
-                        'expMonth' => null,
-                        'expYear' => null,
-                        'isDefault' => $method->isDefault(),
-                        'stripeId' => $method->getStripePaymentMethodId()
-                    ];
-
-                    // If there's a Stripe ID, try to get expiration details
-                    if ($method->getStripePaymentMethodId() && $stripeCustomerId = $this->getStripeCustomerId($user)) {
-                        try {
-                            $stripeCard = $this->stripe->paymentMethods->retrieve($method->getStripePaymentMethodId());
-                            $cardData['expMonth'] = $stripeCard->card->exp_month;
-                            $cardData['expYear'] = $stripeCard->card->exp_year;
-                        } catch (\Exception $e) {
-                            $this->logger->warning('Error fetching Stripe card details', [
-                                'user_id' => $user->getId(),
-                                'stripe_payment_method_id' => $method->getStripePaymentMethodId(),
-                                'error' => $e->getMessage()
-                            ]);
-                        }
-                    }
-
-                    $methods['cards'][] = $cardData;
-                } elseif ($method->getMethodType() === PaymentMethod::TYPE_CRYPTO) {
+                if ($method->getMethodType() === PaymentMethod::TYPE_CRYPTO) {
                     $methods['crypto'][] = [
                         'id' => $method->getId(),
                         'currency' => $method->getCryptoCurrency(),
                         'address' => $method->getCryptoAddress(),
+                        'isDefault' => $method->isDefault()
+                    ];
+                } elseif ($method->getMethodType() === PaymentMethod::TYPE_RIB) {
+                    $methods['ribs'][] = [
+                        'id' => $method->getId(),
+                        'ribIBAN' => $method->getRibIban(),
+                        'ribBIC' => $method->getRibBic(),
+                        'ribOwner' => $method->getRibOwner(),
                         'isDefault' => $method->isDefault()
                     ];
                 }
@@ -79,27 +60,6 @@ class PaymentMethodService
                 'error' => $e->getMessage()
             ]);
             throw $e;
-        }
-    }
-
-    private function createLocalCardRecord(User $user, $stripeCard): void
-    {
-        try {
-            $method = new PaymentMethod();
-            $method->setUser($user)
-                ->setMethodType(PaymentMethod::TYPE_CARD)
-                ->setStripePaymentMethodId($stripeCard->id)
-                ->setLastFour($stripeCard->card->last4)
-                ->setCardBrand($stripeCard->card->brand);
-
-            $this->entityManager->persist($method);
-            $this->entityManager->flush();
-        } catch (\Exception $e) {
-            $this->logger->error('Error creating local card record', [
-                'user_id' => $user->getId(),
-                'stripe_card_id' => $stripeCard->id,
-                'error' => $e->getMessage()
-            ]);
         }
     }
 
@@ -153,16 +113,6 @@ class PaymentMethodService
     public function addCryptoWallet(User $user, string $currency, string $address): bool
     {
         try {
-            // Validate address with CoinPayments
-            $isValid = $this->coinPayments->validateAddress([
-                'currency' => $currency,
-                'address' => $address
-            ]);
-
-            if (!$isValid) {
-                throw new \InvalidArgumentException('Invalid cryptocurrency address');
-            }
-
             $method = new PaymentMethod();
             $method->setUser($user)
                 ->setMethodType('crypto')
@@ -285,6 +235,29 @@ class PaymentMethodService
             return $customer->id;
         } catch (\Exception $e) {
             $this->logger->error('Error creating Stripe customer', [
+                'user_id' => $user->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function addRibPaymentMethod(?UserInterface $user, string $ribIban, string $ribBic, string $ribOwner): true
+    {
+        try {
+            $method = new PaymentMethod();
+            $method->setUser($user)
+                ->setMethodType('rib')
+                ->setRibBic($ribBic)
+                ->setRibOwner($ribOwner)
+                ->setRibIban($ribIban);
+
+            $this->entityManager->persist($method);
+            $this->entityManager->flush();
+
+            return true;
+        } catch (\Exception $e) {
+            $this->logger->error('Error adding rib payment method', [
                 'user_id' => $user->getId(),
                 'error' => $e->getMessage()
             ]);

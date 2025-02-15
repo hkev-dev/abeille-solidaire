@@ -13,15 +13,15 @@
 			{# Payment Type Selection #}
 			<div class="grid grid-cols-2 gap-6">
 				{% set paymentTypes = {
-                    'card': {
-                        'title': 'Carte bancaire',
+                    'rib': {
+                        'title': 'Information bancaire',
                         'icon': 'ki-duotone ki-credit-cart',
-                        'description': 'Paiement sécurisé par carte bancaire'
+                        'description': 'Paiement sécurisé par virement bancaire'
                     },
                     'crypto': {
                         'title': 'Cryptomonnaie',
                         'icon': 'ki-duotone ki-bitcoin',
-                        'description': 'Paiement en cryptomonnaie via CoinPayments'
+                        'description': 'Paiement en cryptomonnaie'
                     }
                 } %}
 
@@ -51,17 +51,6 @@
 				{% endfor %}
 			</div>
 
-			{# Card Form #}
-			<div id="card-form" class="payment-method-form hidden space-y-4">
-				<div class="card bg-light-light">
-					<div class="card-body space-y-2">
-						<label class="block text-sm font-medium text-gray-700 required">Informations de la carte</label>
-						<div id="card-element" class="input p-3 !block"></div>
-						<div id="card-errors" class="text-danger text-sm mt-2 hidden"></div>
-					</div>
-				</div>
-			</div>
-
 			{# Crypto Form #}
 			<div id="crypto-form" class="payment-method-form hidden space-y-4">
 				<div class="card bg-light-light">
@@ -81,6 +70,38 @@
                             'attr': {
                                 'class': 'input bg-white',
                                 'placeholder': 'Ex: 0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
+                            },
+                            'row_attr': {'class': 'space-y-2'}
+                        }) }}
+					</div>
+				</div>
+			</div>
+
+			{# Crypto Form #}
+			<div id="rib-form" class="payment-method-form hidden space-y-4">
+				<div class="card bg-light-light">
+					<div class="card-body space-y-4">
+						{{ form_row(form.ribOwner, {
+                            'label_attr': {'class': 'block text-sm font-medium text-gray-700 required'},
+                            'attr': {
+                                'class': 'input bg-white',
+                            },
+                            'row_attr': {'class': 'space-y-2'}
+                        }) }}
+
+						{{ form_row(form.ribIban, {
+                            'label_attr': {'class': 'block text-sm font-medium text-gray-700 required'},
+                            'attr': {
+                                'class': 'input bg-white',
+                                'placeholder': 'Ex: FRXXXXXXXXXXXXXXXXXXXXXXX'
+                            },
+                            'row_attr': {'class': 'space-y-2'}
+                        }) }}
+						{{ form_row(form.ribBic, {
+                            'label_attr': {'class': 'block text-sm font-medium text-gray-700 required'},
+                            'attr': {
+                                'class': 'input bg-white',
+                                'placeholder': 'Ex: BNPXXXXXXXX'
                             },
                             'row_attr': {'class': 'space-y-2'}
                         }) }}

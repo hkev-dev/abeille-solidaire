@@ -45,8 +45,8 @@ class WalletController extends AbstractController
                     new \DateTime('-30 days'),
                     new \DateTime()
                 ),
-                'weeklyLimit' => \App\Entity\Withdrawal::MAX_AMOUNT,
-                'minWithdrawal' => \App\Entity\Withdrawal::MIN_AMOUNT,
+                'weeklyLimit' => Withdrawal::MAX_AMOUNT,
+                'minWithdrawal' => Withdrawal::MIN_AMOUNT,
             ],
             'cryptoCurrencies' => $this->coinPaymentsService->getAcceptedCryptoCurrencies()
         ];
@@ -77,7 +77,7 @@ class WalletController extends AbstractController
             $entityManager->persist($withdrawal);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Votre projet a été créé avec succès.');
+            $this->addFlash('success', 'Votre demande de retrait a été envoyer.');
 
             return $this->redirectToRoute('app.user.dashboard');
         }

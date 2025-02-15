@@ -98,6 +98,7 @@ class ProjectController extends AbstractController
             return $this->redirectToRoute('app.user.project.index');
         }
 
+        dump($project);
         return $this->render('user/pages/project/update.html.twig', [
             'form' => $form->createView(),
             'project' => $project

@@ -119,6 +119,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: KycVerification::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $kycVerifications;
+
+    /**
+     * @var Collection<int, PaymentMethod>
+     */
+    #[ORM\OneToMany(targetEntity: PaymentMethod::class, mappedBy: 'owner', orphanRemoval: true)]
+    private Collection $paymentMethods;
     
     public function __construct()
     {
@@ -127,6 +133,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->withdrawals = new ArrayCollection();
         $this->memberships = new ArrayCollection();
         $this->kycVerifications = new ArrayCollection();
+        $this->paymentMethods = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -803,5 +810,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return array_find($verifications, fn($verification) => $verification->getStatus() === KycService::STATUS_PENDING);
 
+    }
+
+    public function getWithdrawalMethod(string $withdrawalMethod)
+    {
+        $criteria = Criteria::create()
+            ->where(Criteria::expr()->eq('methodType', $withdrawalMethod))
+            ->orderBy(['isDefault' => Order::Ascending]);
+
+        $filtereds = $this->paymentMethods->matching($criteria);
+
+        return $filtereds->first() ?: null;
+    }
+
+    /**
+     * @return Collection<int, PaymentMethod>
+     */
+    public function getPaymentMethods(): Collection
+    {
+        return $this->paymentMethods;
+    }
+
+    public function addPaymentMethod(PaymentMethod $paymentMethod): static
+    {
+        if (!$this->paymentMethods->contains($paymentMethod)) {
+            $this->paymentMethods->add($paymentMethod);
+            $paymentMethod->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removePaymentMethod(PaymentMethod $paymentMethod): static
+    {
+        if ($this->paymentMethods->removeElement($paymentMethod)) {
+            // set the owning side to null (unless already changed)
+            if ($paymentMethod->getOwner() === $this) {
+                $paymentMethod->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }
