@@ -26,10 +26,29 @@
                         <div class="text-sm text-gray-900">{{ item.amount|number_format(2) }} €</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium">
-                            {{ item.withdrawalMethod }}
-                        </span>
-                        <p>{{ item.withdrawalMethodInfo }}</p>
+                        <div class="flex flex-col">
+                            <span class="badge badge-light-warning text-sm text-gray-800 font-medium">
+                                {{ item.withdrawalMethod.methodType == 'rib' ? 'Virement' : 'Crypto' }}
+                            </span>
+                            {% if item.withdrawalMethod.methodType == 'rib' %}
+                                <span class="text-xs text-gray-600">
+                                    {{ item.withdrawalMethod.ribOwner }}
+                                </span>
+                                <span class="text-xs text-gray-600">
+                                    Iban : {{ item.withdrawalMethod.ribIban }}
+                                </span>
+                                <span class="text-xs text-gray-600">
+                                    Bic : {{ item.withdrawalMethod.ribBic }}
+                                </span>
+                            {% elseif item.withdrawalMethod.methodType == 'crypto' %}
+                                <span class="text-xs text-gray-600">
+                                    {{ item.withdrawalMethod.cryptoCurrency }}
+                                </span>
+                                <span class="text-xs text-gray-600">
+                                    {{ item.withdrawalMethod.cryptoAddress }}
+                                </span>
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span class="text-sm font-medium badge {{ item.status == 'pending' ? 'badge-warning' : 'badge-success' }}">

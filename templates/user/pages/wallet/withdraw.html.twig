@@ -3,280 +3,272 @@
 {% set page_title = 'Retrait de Fonds' %}
 
 {% block content %}
-	<div class="container-fixed">
-		<div class="card">
-			<div class="card-header">
-				<h3 class="card-title">Demande de Retrait</h3>
-			</div>
-			<div
-				class="card-body">
-				{# Display prerequisites status #}
-				<div class="mb-8">
-					<h4 class="text-lg font-semibold mb-4">Prérequis</h4>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-						<div class="flex items-center p-4 bg-light rounded-lg">
-							<i class="ki-duotone ki-verify text-2xl {{ app.user.isKycVerified ? 'text-success' : 'text-warning' }} me-3"></i>
-							<div>
-								<div class="font-medium">KYC</div>
-								<div class="text-sm text-gray-600">
-									{% if app.user.isKycVerified %}
-										Vérifié
-									{% else %}
-										Requis
-									{% endif %}
-								</div>
-							</div>
-						</div>
-						<div class="flex items-center p-4 bg-light rounded-lg">
-							<i class="ki-duotone ki-document text-2xl {{ app.user.project ? 'text-success' : 'text-warning' }} me-3"></i>
-							<div>
-								<div class="font-medium">Description du Projet</div>
-								<div class="text-sm text-gray-600">
-									{% if app.user.project %}
-										Complété
-									{% else %}
-										Requis
-									{% endif %}
-								</div>
-							</div>
-						</div>
-						<div class="flex items-center p-4 bg-light rounded-lg">
-							<i class="ki-duotone ki-user-square text-2xl {{ app.user.hasPaidAnnualFee ? 'text-success' : 'text-warning' }} me-3"></i>
-							<div>
-								<div class="font-medium">Adhésion Annuelle</div>
-								<div class="text-sm text-gray-600">
-									{% if app.user.hasPaidAnnualFee %}
-										Active
-									{% else %}
-										À renouveler
-									{% endif %}
-								</div>
-							</div>
-						</div>
-						<div class="flex items-center p-4 bg-light rounded-lg">
-							<i class="ki-duotone ki-wallet text-2xl {{ app.user.walletBalance >= 50 ? 'text-success' : 'text-warning' }} me-3"></i>
-							<div>
-								<div class="font-medium">Solde Minimum</div>
-								<div class="text-sm text-gray-600">
-									{% if app.user.walletBalance >= 50 %}
-										Suffisant
-									{% else %}
-										Insuffisant
-									{% endif %}
-								</div>
-							</div>
-						</div>
-						<div class="flex items-center p-4 bg-light rounded-lg">
-							<i class="ki-duotone ki-wallet text-2xl {{ app.user.walletBalance >= 50 ? 'text-success' : 'text-warning' }} me-3"></i>
-							<div>
-								<div class="font-medium">Niveau de fleur Minimum (#4)</div>
-								<div class="text-sm text-gray-600">
-									{% if app.user.hasRequiredMatrixDepthForWithdrawal %}
-										Suffisant
-									{% else %}
-										Insuffisant
-									{% endif %}
-									({{ app.user.currentFlower.name }} #{{ app.user.currentFlower.level }})
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+    <div class="container-fixed">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Demande de Retrait</h3>
+            </div>
+            <div
+                    class="card-body">
+                {# Display prerequisites status #}
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold mb-4">Prérequis</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-verify text-2xl {{ app.user.isKycVerified ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">KYC</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.isKycVerified %}
+                                        Vérifié
+                                    {% else %}
+                                        Requis
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-document text-2xl {{ app.user.project ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">Description du Projet</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.project %}
+                                        Complété
+                                    {% else %}
+                                        Requis
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-user-square text-2xl {{ app.user.hasPaidAnnualFee ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">Adhésion Annuelle</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.hasPaidAnnualFee %}
+                                        Active
+                                    {% else %}
+                                        À renouveler
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-wallet text-2xl {{ app.user.walletBalance >= 50 ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">Solde Minimum</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.walletBalance >= 50 %}
+                                        Suffisant
+                                    {% else %}
+                                        Insuffisant
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-wallet text-2xl {{ app.user.hasRequiredMatrixDepthForWithdrawal ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">Niveau de fleur (#4)</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.hasRequiredMatrixDepthForWithdrawal %}
+                                        Suffisant
+                                    {% else %}
+                                        Insuffisant
+                                    {% endif %}
+                                    ({{ app.user.currentFlower.name }} #{{ app.user.currentFlower.level }})
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-light rounded-lg">
+                            <i class="ki-duotone ki-wallet text-2xl {{ app.user.hasPaymentMethods ? 'text-success' : 'text-warning' }} me-3"></i>
+                            <div>
+                                <div class="font-medium">Méthode de paiement</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if app.user.hasPaymentMethods %}
+                                        Complété
+                                    {% else %}
+                                        Requis
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-				{# Withdrawal Form #}
-				{% if canWithdraw %}
-					{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
-					<div
-						class="grid grid-cols-1 md:grid-cols-2 gap-6">
-						{# Amount Field #}
-						<div>
-							{{ form_label(form.amount, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-							<div class="input-group">
-								{{ form_widget(form.amount, {
-									'attr': {
-										'class': 'input',
-										'placeholder': '0.00',
-										'min': '0',
-										'data-control': 'input'
-									}
-								}) }}
-								<span class="btn btn-secondary">€</span>
-							</div>
-							{{ form_errors(form.amount) }}
-						</div>
+                {# Withdrawal Form #}
+                {% if canWithdraw %}
+                    {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                    <div
+                            class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {# Amount Field #}
+                        <div>
+                            {{ form_label(form.amount, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                            <div class="input-group">
+                                {{ form_widget(form.amount, {
+                                    'attr': {
+                                        'class': 'input',
+                                        'placeholder': '0.00',
+                                        'min': '0',
+                                        'data-control': 'input'
+                                    }
+                                }) }}
+                                <span class="btn btn-secondary">€</span>
+                            </div>
+                            {{ form_errors(form.amount) }}
+                        </div>
 
-						{# Withdrawal Method #}
-						<div>
-							{{ form_label(form.withdrawalMethod, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-							{{ form_widget(form.withdrawalMethod, {'attr': {'class': 'space-y-2 select'}}) }}
-							{{ form_errors(form.withdrawalMethod) }}
-						</div>
-					</div>
+                        {# Withdrawal Method #}
+                        <div>
+                            {{ form_label(form.withdrawalMethod, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                            {{ form_widget(form.withdrawalMethod, {'attr': {'class': 'space-y-2 select'}}) }}
+                            {{ form_errors(form.withdrawalMethod) }}
+                        </div>
+                    </div>
 
-					{# Crypto Fields (shown/hidden based on method) #}
-					<div id="crypto-fields" class="hidden space-y-6">
-						<div
-							class="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{# Cryptocurrency Selection #}
-							<div>
-								{{ form_label(form.cryptoCurrency, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-								{{ form_widget(form.cryptoCurrency, {'attr': {'class': 'form-select'}}) }}
-								{{ form_errors(form.cryptoCurrency) }}
-							</div>
+                    <div class="bg-light rounded-lg p-4 mt-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600">Montant demandé</span>
+                            <span class="font-semibold" id="requested-amount">€0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600">Commission (6%)</span>
+                            <span class="font-semibold text-danger" id="fee-amount">-€0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                            <span class="text-gray-800 font-medium">Montant net</span>
+                            <span class="font-bold text-primary" id="net-amount">€0,00</span>
+                        </div>
+                    </div>
 
-							{# Crypto Address #}
-							<div>
-								{{ form_label(form.cryptoAddress, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-								{{ form_widget(form.cryptoAddress, {'attr': {'class': 'form-control', 'placeholder': 'Votre adresse de portefeuille'}}) }}
-								{{ form_errors(form.cryptoAddress) }}
-							</div>
-						</div>
-					</div>
-
-					<div class="bg-light rounded-lg p-4 mt-6">
-						<div class="flex justify-between items-center mb-2">
-							<span class="text-gray-600">Montant demandé</span>
-							<span class="font-semibold" id="requested-amount">€0,00</span>
-						</div>
-						<div class="flex justify-between items-center mb-2">
-							<span class="text-gray-600">Commission (6%)</span>
-							<span class="font-semibold text-danger" id="fee-amount">-€0,00</span>
-						</div>
-						<div class="flex justify-between items-center pt-2 border-t border-gray-200">
-							<span class="text-gray-800 font-medium">Montant net</span>
-							<span class="font-bold text-primary" id="net-amount">€0,00</span>
-						</div>
-					</div>
-
-					<div class="flex justify-end space-x-4 mt-6">
-						<a href="{{ path('app.user.wallet.index') }}" class="btn btn-light">
-							Annuler
-						</a>
-						<button type="submit" class="btn btn-primary">
-							Confirmer le retrait
-						</button>
-					</div>
-					{{ form_end(form) }}
-				{% else %}
-					<div class="notice d-flex rounded bg-light-warning border-warning border border-dashed mb-12 p-6">
-						<i class="ki-duotone ki-information-5 fs-2tx text-warning me-4">
-							<span class="path1"></span>
-							<span class="path2"></span>
-							<span class="path3"></span>
-						</i>
-						<div class="d-flex flex-stack flex-grow-1">
-							<div class="fw-semibold">
-								<h4 class="text-gray-900 fw-bold">Retrait Impossible</h4>
-								<div class="fs-6 text-gray-700">
-									<p class="mb-4">Pour effectuer un retrait, vous devez remplir les conditions suivantes :</p>
-									<ul class="list-unstyled space-y-2">
-										{% if not app.user.isKycVerified %}
-											<li class="d-flex align-items-center text-danger">
-												<i class="ki-duotone ki-cross-circle fs-7 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-												Vérification KYC complétée
-											</li>
-										{% endif %}
-										{% if not app.user.project %}
-											<li class="d-flex align-items-center text-danger">
-												<i class="ki-duotone ki-cross-circle fs-7 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-												Description du projet renseignée
-											</li>
-										{% endif %}
-										{% if not app.user.hasPaidAnnualFee %}
-											<li class="d-flex align-items-center text-danger">
-												<i class="ki-duotone ki-cross-circle fs-7 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-												Adhésion annuelle active
-											</li>
-										{% endif %}
-										{% if not app.user.hasRequiredMatrixDepthForWithdrawal %}
-											<li class="d-flex align-items-center text-danger">
-												<i class="ki-duotone ki-cross-circle fs-7 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-												Niveau de fleur insuffisant
-											</li>
-										{% endif %}
-										{% if app.user.walletBalance < constant('App\\Entity\\Withdrawal::MIN_AMOUNT') %}
-											<li class="d-flex align-items-center text-danger">
-												<i class="ki-duotone ki-cross-circle fs-7 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>
-												Solde minimum de
-												{{ constant('App\\Entity\\Withdrawal::MIN_AMOUNT')|number_format(2, ',', ' ') }}€
-											</li>
-										{% endif %}
-									</ul>
-									<div class="border-top border-warning border-dashed my-4"></div>
-									<div class="d-flex flex-stack">
-										<div class="me-4">
-											<p class="text-gray-600 mb-0">Si vous avez besoin d'aide, n'hésitez pas à contacter notre support.</p>
-										</div>
-										<a href="{{ path('landing.contact') }}" class="btn btn-warning btn-sm">
-											<i class="ki-duotone ki-message-text-2 fs-7 me-1">
-												<span class="path1"></span>
-												<span class="path2"></span>
-											</i>
-											Contacter le Support
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				{% endif %}
-			</div>
-		</div>
-	</div>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <a href="{{ path('app.user.wallet.index') }}" class="btn btn-light">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Confirmer le retrait
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                {% else %}
+                    <div class="notice d-flex rounded bg-light-warning border-warning border border-dashed mb-12 p-6">
+                        <i class="ki-duotone ki-information-5 fs-2tx text-warning me-4">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                        <div class="d-flex flex-stack flex-grow-1">
+                            <div class="fw-semibold">
+                                <h4 class="text-gray-900 fw-bold">Retrait Impossible</h4>
+                                <div class="fs-6 text-gray-700">
+                                    <p class="mb-4">Pour effectuer un retrait, vous devez remplir les conditions
+                                        suivantes :</p>
+                                    <ul class="list-unstyled space-y-2">
+                                        {% if not app.user.isKycVerified %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Vérification KYC complétée
+                                            </li>
+                                        {% endif %}
+                                        {% if not app.user.project %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Description du projet renseignée
+                                            </li>
+                                        {% endif %}
+                                        {% if not app.user.hasPaidAnnualFee %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Adhésion annuelle active
+                                            </li>
+                                        {% endif %}
+                                        {% if not app.user.hasPaymentMethods %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Methode de paiement réquis
+                                            </li>
+                                        {% endif %}
+                                        {% if not app.user.hasRequiredMatrixDepthForWithdrawal %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Niveau de fleur insuffisant
+                                            </li>
+                                        {% endif %}
+                                        {% if app.user.walletBalance < constant('App\\Entity\\Withdrawal::MIN_AMOUNT') %}
+                                            <li class="d-flex align-items-center text-danger">
+                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Solde minimum de
+                                                {{ constant('App\\Entity\\Withdrawal::MIN_AMOUNT')|number_format(2, ',', ' ') }}
+                                                €
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                    <div class="border-top border-warning border-dashed my-4"></div>
+                                    <div class="d-flex flex-stack">
+                                        <div class="me-4">
+                                            <p class="text-gray-600 mb-0">Si vous avez besoin d'aide, n'hésitez pas à
+                                                contacter notre support.</p>
+                                        </div>
+                                        <a href="{{ path('landing.contact') }}" class="btn btn-warning btn-sm">
+                                            <i class="ki-duotone ki-message-text-2 fs-7 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Contacter le Support
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-const methodRadios = document.querySelectorAll('[name="  {{ form.withdrawalMethod.vars.full_name }}"]');
-const cryptoFields = document.getElementById('crypto-fields');
-const amountInput = document.querySelector('[name="  {{ form.amount.vars.full_name }}"]');
-const requestedAmount = document.getElementById('requested-amount');
-const feeAmount = document.getElementById('fee-amount');
-const netAmount = document.getElementById('net-amount');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const amountInput = document.querySelector('[name="{{ form.amount.vars.full_name }}"]');
+            const requestedAmount = document.getElementById('requested-amount');
+            const feeAmount = document.getElementById('fee-amount');
+            const netAmount = document.getElementById('net-amount');
 
-// Handle withdrawal method change
-methodRadios.forEach(radio => {
-radio.addEventListener('change', function () {
-if (this.value === 'crypto') {
-cryptoFields.classList.remove('hidden');
-} else {
-cryptoFields.classList.add('hidden');
-}
-});
-});
+            // Handle amount changes
+            amountInput.addEventListener('input', function () {
+                const amount = parseFloat(this.value) || 0;
+                const fee = amount * 0.06;
+                const net = amount - fee;
 
-// Handle amount changes
-amountInput.addEventListener('input', function () {
-const amount = parseFloat(this.value) || 0;
-const fee = amount * 0.06;
-const net = amount - fee;
-
-requestedAmount.textContent = `€${
-amount.toFixed(2)
-}`;
-feeAmount.textContent = `-€${
-fee.toFixed(2)
-}`;
-netAmount.textContent = `€${
-net.toFixed(2)
-}`;
-});
-});
-	</script>
+                requestedAmount.textContent = `€${
+                    amount.toFixed(2)
+                }`;
+                feeAmount.textContent = `-€${
+                    fee.toFixed(2)
+                }`;
+                netAmount.textContent = `€${
+                    net.toFixed(2)
+                }`;
+            });
+        });
+    </script>
 {% endblock %}

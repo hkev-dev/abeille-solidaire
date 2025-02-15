@@ -82,11 +82,6 @@ class KycService
         }
     }
 
-    private function hasPendingVerification(User $user): bool
-    {
-        return !$user->isKycVerified();
-    }
-
     private function storeKycDocuments(User $user, array $files): array
     {
         $paths = [];
@@ -106,7 +101,7 @@ class KycService
         return $paths;
     }
 
-    public function approveVerification(string $referenceId, string $adminComment = null): void
+    public function approveVerification(string $referenceId, ?string $adminComment = null): void
     {
         $verification = $this->getVerification($referenceId);
         $user = $verification->getUser();
