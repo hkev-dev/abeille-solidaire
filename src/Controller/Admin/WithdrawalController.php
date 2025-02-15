@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Entity\Withdrawal;
 use App\Repository\DonationRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\WithdrawalRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,6 +36,26 @@ class WithdrawalController extends AbstractController
             'pagination' => $pagination
         ]);
     }
+
+    #[Route('/request/{id}/update-status', name: 'request.update_status', methods: 'POST')]
+    public function requestValidate(Request $request, Withdrawal $withdrawal, EntityManagerInterface $entityManager): Response
+    {
+        $newStatus= $request->request->get('status');
+
+        if (!in_array($newStatus, Withdrawal::VALID_STATUS)) {
+            $this->addFlash('error', 'Invalid status');
+            return $this->redirectToRoute('app.admin.withdrawal.request');
+        }
+
+        $withdrawal->setStatus($newStatus);
+        $entityManager->persist($withdrawal);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Status mis à jour avec succès');
+
+        return $this->redirectToRoute('app.admin.withdrawal.request');
+    }
+
     #[Route('/charge', name: 'charge')]
     public function charge(Request $request, WithdrawalRepository $withdrawalRepository, PaginatorInterface $paginator): Response
     {
