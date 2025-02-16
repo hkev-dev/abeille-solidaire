@@ -23,7 +23,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->join('p.creator', 'u')
             ->where('p.isActive = :active')
             ->setParameter('active', true)
-            ->orderBy('p.receivedAmount', 'DESC')
+            ->orderBy('u.receivedAmount', 'DESC')
             ->getQuery()
             ->getResult();
     }
