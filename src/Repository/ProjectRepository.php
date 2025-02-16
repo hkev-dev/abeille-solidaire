@@ -20,7 +20,7 @@ class ProjectRepository extends ServiceEntityRepository
     public function findActive(): array
     {
         return $this->createQueryBuilder('p')
-            ->join('p.creator_id', 'u')
+            ->join('p.creator', 'u')
             ->where('p.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('p.receivedAmount', 'DESC')
