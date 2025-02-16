@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Doctrine\DBAL\Type\Enum\ProjectStateEnumType;
+use App\Type\Enum\Order\OrderStateEnumType;
 use Serializable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -53,7 +55,7 @@ class Project implements Serializable
     #[ORM\JoinColumn(nullable: false)]
     private ?ProjectCategory $category = null;
 
-    #[ORM\OneToOne(inversedBy: 'project')]
+    #[ORM\OneToOne(inversedBy: 'currentProject')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 
@@ -73,6 +75,12 @@ class Project implements Serializable
 
     #[ORM\Column(type: 'boolean')]
     private bool $isActive = true;
+
+    #[ORM\ManyToOne(inversedBy: 'projects')]
+    private ?User $owner = null;
+
+    #[ORM\Column(type: ProjectStateEnumType::NAME, nullable: true)]
+    private $status = null;
 
     public function __construct()
     {
@@ -332,6 +340,37 @@ class Project implements Serializable
 
     public function getReceivedAmount(): float
     {
-        return $this->getCreator()?->getReceivedAmount();
+        return $this->getPledged() && $this->getPledged() !== 0 ? $this->getPledged() : $this->getCreator()?->getReceivedAmount();
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function addPledged(?float $amount): static
+    {
+        $this->pledged += $amount;
+
+        return $this;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    public function setStatus($status): static
+    {
+        $this->status = $status;
+
+        return $this;
     }
 }

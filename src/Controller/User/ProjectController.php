@@ -31,7 +31,7 @@ class ProjectController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $project = $user->getProject();
+        $project = $user->getCurrentProject();
 
         if (!$project) {
             return $this->redirectToRoute('app.user.project.create');
@@ -109,7 +109,7 @@ class ProjectController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $project = $user->getProject();
+        $project = $user->getCurrentProject();
 
         if (!$project) {
             $this->addFlash('error', 'Projet introuvable.');
@@ -135,7 +135,7 @@ class ProjectController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $project = $user->getProject();
+        $project = $user->getCurrentProject();
 
         if (!$project) {
             $this->addFlash('error', 'Vous n\'avez pas encore de projet.');
@@ -152,7 +152,7 @@ class ProjectController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $project = $user->getProject();
+        $project = $user->getCurrentProject();
 
         if (!$project) {
             $this->addFlash('error', 'Vous n\'avez pas encore de projet.');
@@ -169,7 +169,7 @@ class ProjectController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $project = $user->getProject();
+        $project = $user->getCurrentProject();
 
         if (!$project) {
             $this->addFlash('error', 'Vous n\'avez pas encore de projet.');

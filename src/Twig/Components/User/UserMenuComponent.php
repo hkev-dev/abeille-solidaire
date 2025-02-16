@@ -114,6 +114,6 @@ class UserMenuComponent
     #[ExposeInTemplate]
     public function getUserProject(): ?Project
     {
-        return $this->getCurrentUser()->getProject();
+        return $this->getCurrentUser()->getCurrentProject();
     }
 }
