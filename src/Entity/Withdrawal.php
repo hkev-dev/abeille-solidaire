@@ -18,7 +18,15 @@ class Withdrawal
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_PROCESSED = 'processed';
+    public const STATUS_REJECTED = 'rejected';
     public const STATUS_FAILED = 'failed';
+
+    public const VALID_STATUS= [
+        self::STATUS_FAILED,
+        self::STATUS_PROCESSED,
+        self::STATUS_FAILED,
+        self::STATUS_REJECTED,
+    ];
 
     public const FEE_PERCENTAGE = 0.06; // 6%
     public const MIN_AMOUNT = 50.00;
@@ -120,7 +128,7 @@ class Withdrawal
 
     public function setStatus(string $status): self
     {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_PROCESSED, self::STATUS_FAILED])) {
+        if (!in_array($status, self::VALID_STATUS)) {
             throw new \InvalidArgumentException('Invalid status');
         }
         $this->status = $status;

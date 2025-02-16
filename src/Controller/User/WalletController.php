@@ -2,6 +2,7 @@
 
 namespace App\Controller\User;
 
+use App\Entity\User;
 use App\Entity\Withdrawal;
 use App\Form\WithdrawalFormType;
 use App\Repository\WithdrawalRepository;
@@ -57,6 +58,7 @@ class WalletController extends AbstractController
     #[Route('/withdraw', name: 'withdraw')]
     public function withdraw(Request $request, EntityManagerInterface $entityManager): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
 
         // Check all withdrawal prerequisites
@@ -64,7 +66,7 @@ class WalletController extends AbstractController
 
         $withdrawal = new Withdrawal();
         $form = $this->createForm(WithdrawalFormType::class, $withdrawal, [
-            'crypto_currencies' => $this->coinPaymentsService->getAcceptedCryptoCurrencies()
+            'payment_methods' => $user->getPaymentMethods()
         ]);
 
         $form->handleRequest($request);
@@ -79,7 +81,7 @@ class WalletController extends AbstractController
 
             $this->addFlash('success', 'Votre demande de retrait a été envoyer.');
 
-            return $this->redirectToRoute('app.user.dashboard');
+            return $this->redirectToRoute('app.user.wallet.index');
         }
 
         return $this->render('user/pages/wallet/withdraw.html.twig', [

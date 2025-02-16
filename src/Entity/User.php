@@ -306,6 +306,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return !$currentMembership->isExpired();
     }
 
+    public function hasPaymentMethods(): bool
+    {
+        return $this->getPaymentMethods()->count() > 0;
+    }
+
     public function getLastMembership(): ?Membership
     {
         return $this->memberships->first() ?: null;
@@ -533,6 +538,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isEligibleForWithdrawal(): bool
     {
         return $this->isKycVerified &&      // KYC verification completed
+            $this->hasPaymentMethods() &&    // Annual membership is active
             $this->hasPaidAnnualFee() &&    // Annual membership is active
             $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth
             $this->hasProject();             // Has at least one project

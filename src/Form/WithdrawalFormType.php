@@ -2,11 +2,11 @@
 
 namespace App\Form;
 
+use App\Entity\PaymentMethod;
 use App\Entity\Withdrawal;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -29,40 +29,26 @@ class WithdrawalFormType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('withdrawalMethod', ChoiceType::class, [
+            ->add('withdrawalMethod', EntityType::class, [
                 'label' => 'Méthode de retrait',
-                'choices' => [
-                    'Virement bancaire' => Withdrawal::METHOD_RIB,
-                    'Crypto-monnaie' => Withdrawal::METHOD_CRYPTO,
-                ],
+                'class' => PaymentMethod::class,
+                'choices' => $options['payment_methods'], // Injecté dynamiquement
+                'choice_label' => function (PaymentMethod $method) {
+                    if ($method->getMethodType() === 'rib') {
+                        return sprintf('Virement bancaire (IBAN: %s, BIC: %s)',
+                            $method->getRibIban(),
+                            $method->getRibBic()
+                        );
+                    } elseif ($method->getMethodType() === 'crypto') {
+                        return sprintf('Crypto (%s: %s)',
+                            $method->getCryptoCurrency(),
+                            substr($method->getCryptoAddress(), 0, 16) . '...'
+                        );
+                    }
+                    return 'Méthode inconnue';
+                },
                 'expanded' => false,
                 'multiple' => false,
-            ])
-            ->add('cryptoAddress', TextType::class, [
-                'label' => 'Adresse crypto',
-                'required' => false,
-                'constraints' => [
-                    new Assert\When([
-                        'expression' => 'this.getParent().get("withdrawalMethod").getData() === "crypto"',
-                        'constraints' => [
-                            new Assert\NotBlank(),
-                            new Assert\Length(['min' => 26, 'max' => 100]),
-                        ],
-                    ]),
-                ],
-            ])
-            ->add('cryptoCurrency', ChoiceType::class, [
-                'label' => 'Crypto-monnaie',
-                'required' => false,
-                'choices' => $options['crypto_currencies'],
-                'constraints' => [
-                    new Assert\When([
-                        'expression' => 'this.getParent().get("withdrawalMethod").getData() === "crypto"',
-                        'constraints' => [
-                            new Assert\NotBlank(),
-                        ],
-                    ]),
-                ],
             ]);
     }
 
@@ -70,7 +56,7 @@ class WithdrawalFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Withdrawal::class,
-            'crypto_currencies' => [],
+            'payment_methods' => [],
         ]);
     }
 }

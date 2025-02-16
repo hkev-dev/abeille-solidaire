@@ -131,7 +131,7 @@
                                     <td>{{ withdrawal.requestedAt|date('d/m/Y H:i') }}</td>
                                     <td class="text-primary fw-bold">€{{ withdrawal.amount|number_format(2, ',', ' ') }}</td>
                                     <td>
-                                        {% if withdrawal.withdrawalMethod == 'stripe' %}
+                                        {% if withdrawal.withdrawalMethod.methodType == 'rib' %}
                                             <span class="badge badge-light-primary">Virement</span>
                                         {% else %}
                                             <span class="badge badge-light-warning">Crypto</span>
