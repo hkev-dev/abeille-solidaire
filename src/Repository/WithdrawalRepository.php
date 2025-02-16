@@ -79,7 +79,7 @@ class WithdrawalRepository extends ServiceEntityRepository
     public function getGraphData()
     {
         return $this->createQueryBuilder('w')
-            ->select('SUM(w.amount) as totalAmount, YEAR(w.processedAt) as year, MONTH(w.processedAt) as month')
+            ->select('SUM(w.amount) as totalAmount, YEAR(w.requestedAt) as year, MONTH(w.requestedAt) as month')
             ->where('w.status = :status')
             ->setParameter('status', Withdrawal::STATUS_PROCESSED)
             ->groupBy('year, month')

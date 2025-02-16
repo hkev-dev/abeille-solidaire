@@ -17,13 +17,23 @@ class ProjectRepository extends ServiceEntityRepository
         parent::__construct($registry, Project::class);
     }
 
-    public function findActive(): array
+    public function findActiveOrderByReceivedAmount(?int $limit = null): array
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.isActive = :active')
+         $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.creator', 'creator')
+            ->leftJoin('creator.donationsMade', 'donations')
+            ->leftJoin('donations.earnings', 'earnings')
+            ->andWhere('p.isActive = :active')
+            ->addSelect('COALESCE(SUM(earnings.amount), 0) AS HIDDEN receivedAmount')
             ->setParameter('active', true)
-            ->orderBy('p.pledged', 'DESC')
-            ->getQuery()
+            ->groupBy('p.id')
+            ->orderBy('receivedAmount', 'DESC');
+
+         if ($limit){
+             $qb->setMaxResults($limit);
+         }
+
+           return $qb->getQuery()
             ->getResult();
     }
 }
