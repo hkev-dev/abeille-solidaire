@@ -21,6 +21,12 @@
                     <div class="col-xl-4 col-lg-6 col-md-6">
                         {% include 'public/components/project-card.html.twig' with { project: project } %}
                     </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            Aucun projet trouvé.
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
 
