@@ -4,7 +4,7 @@
 
     {# Search Content #}
     <div class="search-popup__content">
-        <form action="#" method="get">
+        <form action="{{ path('landing.projects.index') }}" method="get">
             <label for="search" class="sr-only">rechercher ici</label>
             <input
                     type="text"
@@ -12,6 +12,7 @@
                     name="q"
                     placeholder="Rechercher ici..."
                     required
+                    value="{{ app.request.query.get('q') }}"
             />
             <button type="submit" aria-label="soumettre la recherche" class="thm-btn">
                 <i class="icon-magnifying-glass"></i>

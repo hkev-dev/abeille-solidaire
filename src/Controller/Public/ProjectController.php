@@ -31,6 +31,11 @@ class ProjectController extends AbstractController
                 ->setParameter('category', $request->query->get('category'));
         }
 
+        if ($request->query->has('q')) {
+            $query->andWhere('LOWER(p.title) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . $request->query->get('q') . '%');
+        }
+
         $projects = $this->paginator->paginate(
             $query->getQuery(),
             $request->query->getInt('page', 1),
