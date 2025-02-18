@@ -17,6 +17,7 @@ class ProjectListener
 
     public function postUpdate(Project $project): void
     {
+
 //        if ($project->getPledged() >= $project->getGoal()) {
 //            $project->setIsActive(false);
 //        }
