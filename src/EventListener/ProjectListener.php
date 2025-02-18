@@ -17,10 +17,10 @@ class ProjectListener
 
     public function postUpdate(Project $project): void
     {
-        if ($project->getPledged() >= $project->getGoal()) {
-            $project->setIsActive(false);
-        }
-        $project = $earning->getDonor()->getDonor()->getCurrentProject();
-        $project->addPledged($earning->getAmount());
+//        if ($project->getPledged() >= $project->getGoal()) {
+//            $project->setIsActive(false);
+//        }
+//        $project = $earning->getDonor()->getDonor()->getCurrentProject();
+//        $project->addPledged($earning->getAmount());
     }
 }
