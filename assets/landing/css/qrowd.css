@@ -4580,6 +4580,7 @@ ul {
   background-color: var(--qrowd-primary);
   z-index: 1;
   border: 10px solid var(--qrowd-primary);
+  display: none;
 }
 
 #testimonials-one__thumb {
@@ -13147,4 +13148,8 @@ body.boxed-wrapper {
 }
 #testimonials-one__carousel-pagination {
   display: none;
+}
+
+#card-element {
+  border: 1px solid #626262;
 }
