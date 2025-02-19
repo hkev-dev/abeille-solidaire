@@ -89,7 +89,7 @@ class AuthController extends AbstractController
                     $this->authenticator,
                     $request
                 );
-
+ 
                 $this->addFlash('success', 'Registration successful! Please complete your payment to be placed in the matrix system.');
                 return $this->redirectToRoute('app.registration.payment');
             } catch (\Exception $e) {
