@@ -24,10 +24,20 @@ class ProjectController extends AbstractController
     {
         $query = $this->projectRepository->createQueryBuilder('p')
             ->orderBy('p.createdAt', 'DESC')
-            ->getQuery();
+            ;
+
+        if ($request->query->has('category')) {
+            $query->andWhere('p.category = :category')
+                ->setParameter('category', $request->query->get('category'));
+        }
+
+        if ($request->query->has('q')) {
+            $query->andWhere('LOWER(p.title) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . $request->query->get('q') . '%');
+        }
 
         $projects = $this->paginator->paginate(
-            $query,
+            $query->getQuery(),
             $request->query->getInt('page', 1),
             9 // Number of items per page
         );

@@ -4,6 +4,7 @@ namespace App\Twig\Components\User;
 use App\Entity\User;
 use App\Entity\Flower;
 use App\Entity\Project;
+use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;
@@ -20,6 +21,7 @@ class UserMenuComponent
     public function __construct(
         private readonly Security $security,
         private readonly DonationRepository $donationRepository,
+        private readonly ProjectRepository $projectRepository,
         private readonly FlowerRepository $flowerRepository,
         private readonly UserRepository $userRepository,
     ) {
@@ -57,6 +59,12 @@ class UserMenuComponent
             $this->getCurrentUser(),
             10
         );
+    }
+
+    #[ExposeInTemplate]
+    public function hasCompletedProject(): bool
+    {
+        return count($this->projectRepository->findCompletedByUser($this->getCurrentUser())) > 0;
     }
 
     #[ExposeInTemplate]
@@ -114,6 +122,6 @@ class UserMenuComponent
     #[ExposeInTemplate]
     public function getUserProject(): ?Project
     {
-        return $this->getCurrentUser()->getProject();
+        return $this->getCurrentUser()->getCurrentProject();
     }
 }

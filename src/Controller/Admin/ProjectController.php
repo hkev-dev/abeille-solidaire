@@ -23,7 +23,12 @@ class ProjectController extends AbstractController
     public function index(Request $request, ProjectRepository $projectRepository, PaginatorInterface $paginator): Response
     {
         $query = $projectRepository->createQueryBuilder('project')
-            ->orderBy('project.updatedAt', 'DESC');
+            ->orderBy('project.createdAt', 'DESC');
+
+        if ($request->query->has('q')) {
+            $query->andWhere('LOWER(project.title) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . $request->query->get('q') . '%');
+        }
 
         $pagination = $paginator->paginate(
             $query,

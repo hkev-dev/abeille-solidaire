@@ -194,6 +194,7 @@ export class PaymentProcessor {
 
             let includeMembership = false;
 
+            console.log("includeMembership")
             if (document.querySelector('[name="payment_selection[include_annual_membership]"]')) {
                 includeMembership =  document.querySelector('[name="payment_selection[include_annual_membership]"]').checked;
             }
@@ -208,7 +209,7 @@ export class PaymentProcessor {
                 body: JSON.stringify({
                     payment_method: 'coinpayments',
                     currency: selectedCurrency,
-                    include_annual_membership: includeMembership ? includeMembership.checked : false
+                    include_annual_membership: includeMembership ? includeMembership : false
                 })
             });
 

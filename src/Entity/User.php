@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Constant\Enum\Project\State;
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
 use App\Service\FlowerService;
@@ -79,7 +80,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $organizationNumber = null;
 
     #[ORM\OneToOne(targetEntity: Project::class, mappedBy: 'creator')]
-    private ?Project $project = null;
+    private ?Project $currentProject = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $walletBalance = 0.0;
@@ -125,6 +126,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: PaymentMethod::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $paymentMethods;
+
+    /**
+     * @var Collection<int, Project>
+     */
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'owner')]
+    private Collection $projects;
     
     public function __construct()
     {
@@ -134,6 +141,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->memberships = new ArrayCollection();
         $this->kycVerifications = new ArrayCollection();
         $this->paymentMethods = new ArrayCollection();
+        $this->projects = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -157,22 +165,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProject(): ?Project
+    public function getCurrentProject(): ?Project
     {
-        return $this->project;
+        return $this->currentProject;
     }
 
-    public function setProject(?Project $project): self
+    public function setCurrentProject(?Project $currentProject): self
     {
-        if ($project === null && $this->project !== null) {
-            $this->project->setCreator(null);
+        if ($currentProject === null && $this->currentProject !== null) {
+            $this->currentProject->setCreator(null);
         }
 
-        if ($project !== null && $project->getCreator() !== $this) {
-            $project->setCreator($this);
+        if ($currentProject !== null && $currentProject->getCreator() !== $this) {
+            $currentProject->setCreator($this);
         }
 
-        $this->project = $project;
+        $this->currentProject = $currentProject;
         return $this;
     }
 
@@ -503,7 +511,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasProject(): bool
     {
-        return $this->project !== null;
+        return $this->currentProject !== null;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->getCurrentProject();
     }
 
     // Payment-related methods
@@ -620,6 +633,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $total;
+    }
+
+    public function getRemaininngAmountAvailableForProject(): float
+    {
+        $amountSpendOnProject = $this->getProjects()->reduce(function(float $carry, Project $project) {
+            return $carry + $project->getPledged();
+        }, 0.0);
+
+        return $this->getReceivedAmount() - $amountSpendOnProject;
     }
 
     public function getTotalReceivedInCurrentCycle(): float
@@ -853,6 +875,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($paymentMethod->getOwner() === $this) {
                 $paymentMethod->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Project>
+     */
+    public function getProjects(): Collection
+    {
+        return $this->projects;
+    }
+
+    public function addProject(Project $project): static
+    {
+        if (!$this->projects->contains($project)) {
+            $this->projects->add($project);
+            $project->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProject(Project $project): static
+    {
+        if ($this->projects->removeElement($project)) {
+            // set the owning side to null (unless already changed)
+            if ($project->getOwner() === $this) {
+                $project->setOwner(null);
             }
         }
 

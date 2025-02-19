@@ -31,7 +31,7 @@ class HomeController extends AbstractController
         $projectCategories = $categoryRepository->findActiveCategories();
 
         // Get featured projects from database (3 most funded active projects)
-        $featuredProjects = $projectRepository->findActive();
+        $featuredProjects = $projectRepository->findActiveOrderByReceivedAmount(limit: 3);
 
         // Get total of donations
         $totalDonation = $donationRepository->countCompleted();
@@ -55,7 +55,7 @@ class HomeController extends AbstractController
         ];
 
         // Get recommended projects from database
-        $recommendedProjectsList = $projectRepository->findActive();
+        $recommendedProjectsList = $projectRepository->findActiveOrderByReceivedAmount(limit: 4);
 
         // Testimonials
         $testimonialsList = [
