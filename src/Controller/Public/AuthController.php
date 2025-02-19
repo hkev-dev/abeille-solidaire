@@ -66,6 +66,10 @@ class AuthController extends AbstractController
     {
 //        $this->securityService->checkRegistrationThrottle();
 
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app.user.dashboard');
+        }
+        
         $dto = new RegistrationDTO();
         $form = $this->createForm(RegistrationType::class, $dto);
         $form->handleRequest($request);
