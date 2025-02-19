@@ -1461,7 +1461,15 @@
         padding: 35px 0;
     }
 
-    .main-header__top {
+    /*.main-header__top {
+        display: none;
+    }*/
+
+    .main-header__login {
+        background-color: #fff;
+    }
+
+    .main-header__top-inner .main-header__top-left {
         display: none;
     }
 
