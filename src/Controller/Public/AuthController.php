@@ -64,7 +64,7 @@ class AuthController extends AbstractController
     #[Route('/register', name: 'app.register')]
     public function register(Request $request): Response
     {
-//        $this->securityService->checkRegistrationThrottle();
+        $this->securityService->checkRegistrationThrottle();
 
         if ($this->getUser()) {
             return $this->redirectToRoute('app.user.dashboard');
