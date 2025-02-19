@@ -66,19 +66,19 @@ class AuthController extends AbstractController
     {
 //        $this->securityService->checkRegistrationThrottle();
 
-        /*if ($this->getUser()) {
+        if ($this->getUser()) {
             return $this->redirectToRoute('app.user.dashboard');
-        }*/
+        }
         
         $dto = new RegistrationDTO();
         $form = $this->createForm(RegistrationType::class, $dto);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-//            if (!$this->securityService->verifyRecaptcha($dto->recaptcha)) {
-//                $this->addFlash('error', 'Invalid reCAPTCHA. Please try again.');
-//                return $this->redirectToRoute('app.register');
-//            }
+            if (!$this->securityService->verifyRecaptcha($dto->recaptcha)) {
+                $this->addFlash('error', 'Invalid reCAPTCHA. Please try again.');
+                return $this->redirectToRoute('app.register');
+            }
 
             try {
                 $user = $this->userRegistrationService->registerUser($dto);
