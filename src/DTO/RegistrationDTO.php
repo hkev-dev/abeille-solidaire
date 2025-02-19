@@ -31,7 +31,7 @@ class RegistrationDTO
     #[Assert\IsTrue(message: 'You must agree to our terms.')]
     public bool $agreeTerms = false;
 
-    #[Assert\NotBlank(message: 'Please complete the reCAPTCHA verification')]
+//    #[Assert\NotBlank(message: 'Please complete the reCAPTCHA verification')]
     public ?string $recaptcha = null;
 
     #[Assert\NotBlank]
