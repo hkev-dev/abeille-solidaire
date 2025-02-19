@@ -171,7 +171,7 @@ class HomeController extends AbstractController
         // Video Section
         $videoContent = [
             'videoUrl' => 'https://www.youtube.com/watch?v=MhpYOIhOMsA',
-            'videoTitle' => 'Abeille Solidaire révolutionne la façon<br>dont les individus s\'entraident'
+            'videoTitle' => 'Abeille Solidaire révolutionne la façon<br>dont les individus s\'entraident' 
         ];
 
         return $this->render('public/pages/home.html.twig', [
