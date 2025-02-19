@@ -16,7 +16,7 @@ abstract class AbstractEnumType extends Type
         return $this->schema . ".\"" . $this->getName() . "\"";
     }
 
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
         if ($value instanceof BackedEnum) {
             return $value->value;
@@ -25,7 +25,7 @@ abstract class AbstractEnumType extends Type
         return null;
     }
 
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue($value, AbstractPlatform $platform)
     {
         if (false === enum_exists($this::getEnumsClass())) {
             throw new LogicException("Class {$this::getEnumsClass()} should be an enum");
@@ -37,6 +37,13 @@ abstract class AbstractEnumType extends Type
     public function requiresSQLCommentHint(AbstractPlatform $platform): bool
     {
         return true;
+    }
+
+    public function getMappedDatabaseTypes(AbstractPlatform $platform): array
+    {
+        return [
+            $this->getSQLDeclaration([], $platform) => $this->getName()
+        ];
     }
 
     abstract public static function getEnumsClass(): string;

@@ -10,6 +10,7 @@ use App\Entity\ProjectUpdate;
 use App\Form\ProjectUpdateType;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -39,6 +40,32 @@ class ProjectController extends AbstractController
 
         return $this->render('user/pages/project/index.html.twig', [
             'project' => $project
+        ]);
+    }
+
+
+    #[Route('/old', name: 'old', methods: ['GET'])]
+    public function old(Request $request, ProjectRepository $projectRepository, PaginatorInterface $paginator): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $query = $projectRepository->createQueryBuilder('project')
+            ->andWhere('project.creator = :user OR project.owner = :user')
+            ->setParameter('user', $user)
+            ->orderBy('project.completedAt', 'DESC');
+
+        if ($request->query->has('q')) {
+            $query->andWhere('LOWER(project.title) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . $request->query->get('q') . '%');
+        }
+
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            $request->query->getInt('perpage', 10),
+        );
+        return $this->render('user/pages/project/old.html.twig', [
+            'pagination' => $pagination
         ]);
     }
 

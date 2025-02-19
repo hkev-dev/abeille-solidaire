@@ -70,10 +70,10 @@
 
 		{# Project Management - Single Project #}
 		{{ menuItem.render({
-            label: 'Mon Projet',
+            label: 'Projet',
             icon: 'ki-duotone ki-rocket',
             routes: ['app.user.project.index', 'app.user.project.create', 'app.user.project.update', 'app.user.project.updates', 'app.user.project.updates.create', 'app.user.project.updates.update' , 'app.user.project.faqs'],
-            submenu: userProject ? [
+            submenu: (userProject ? [
                 {
                     label: 'Détails du Projet',
                     route: 'app.user.project.index'
@@ -94,7 +94,12 @@
                     disabled: not withdrawalEligibility.hasKyc,
                     tooltip: not withdrawalEligibility.hasKyc ? 'Validation KYC requise' : null
                 }
-            ]
+            ])|merge(hasCompletedProject ? [
+				{
+					label: 'Mes anciens projets',
+					route: 'app.user.project.old'
+				}
+			] : [])
         }) }}
 
 		{# Profile & Settings #}

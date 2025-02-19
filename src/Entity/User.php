@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Constant\Enum\Project\State;
 use App\Entity\Trait\TimestampableTrait;
 use App\Repository\UserRepository;
 use App\Service\FlowerService;
@@ -627,6 +628,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $total;
+    }
+
+    public function getRemaininngAmountAvailableForProject(): float
+    {
+        $amountSpendOnProject = $this->getProjects()->reduce(function(float $carry, Project $project) {
+            return $carry + $project->getPledged();
+        }, 0.0);
+
+        return $this->getReceivedAmount() - $amountSpendOnProject;
     }
 
     public function getTotalReceivedInCurrentCycle(): float

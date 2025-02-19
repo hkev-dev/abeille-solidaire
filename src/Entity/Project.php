@@ -2,8 +2,11 @@
 
 namespace App\Entity;
 
+use App\Constant\Enum\Project\State;
 use App\Doctrine\DBAL\Type\Enum\ProjectStateEnumType;
 use App\Type\Enum\Order\OrderStateEnumType;
+use BackedEnum;
+use LogicException;
 use Serializable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -51,12 +54,15 @@ class Project implements Serializable
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $endDate = null;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeInterface $completedAt = null;
+
     #[ORM\ManyToOne(inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: false)]
     private ?ProjectCategory $category = null;
 
     #[ORM\OneToOne(inversedBy: 'currentProject')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $creator = null;
 
     #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectUpdate::class)]
@@ -80,7 +86,7 @@ class Project implements Serializable
     private ?User $owner = null;
 
     #[ORM\Column(type: ProjectStateEnumType::NAME, nullable: true)]
-    private $status = null;
+    private ?State $status = State::IN_PROGRESS;
 
     public function __construct()
     {
@@ -135,6 +141,7 @@ class Project implements Serializable
     public function setPledged(?float $pledged): static
     {
         $this->pledged = $pledged;
+
         return $this;
     }
 
@@ -340,7 +347,7 @@ class Project implements Serializable
 
     public function getReceivedAmount(): float
     {
-        return $this->getPledged() && $this->getPledged() !== 0 ? $this->getPledged() : $this->getCreator()?->getReceivedAmount();
+        return $this->getPledged();
     }
 
     public function getOwner(): ?User
@@ -355,22 +362,67 @@ class Project implements Serializable
         return $this;
     }
 
+    /**
+     * @param float|null $amount
+     * @return $this
+     * @throws LogicException
+     */
     public function addPledged(?float $amount): static
     {
+        if ($this->getPledged() >= $this->getGoal()) {
+            throw new LogicException('Can only add pledged amount if the project is not completed');
+        }
+
         $this->pledged += $amount;
+
+        if ($this->getPledged() > $this->getGoal()) {
+            $this->pledged = $this->getGoal();
+        }
 
         return $this;
     }
 
-    public function getStatus()
+    public function getStatus(): ?BackedEnum
     {
         return $this->status;
     }
 
-    public function setStatus($status): static
+    public function setStatus(State $status): static
     {
         $this->status = $status;
 
         return $this;
+    }
+
+    public function getCompletedAt(): ?\DateTimeInterface
+    {
+        return $this->completedAt;
+    }
+
+    public function setCompletedAt(?\DateTimeInterface $completedAt): static
+    {
+        $this->completedAt = $completedAt;
+
+        return $this;
+    }
+
+    public function getStatusLabel(): string
+    {
+        return match ($this->status) {
+            State::IN_PROGRESS => 'En cours',
+            State::COMPLETED => 'Terminé',
+            State::CANCELED => 'Annulé',
+            default => 'Inconnu'
+        };
+    }
+
+    public function getStatusBadge(): string
+    {
+        return match ($this->status) {
+            State::IN_PROGRESS => 'badge-primary',
+            State::COMPLETED => 'badge-success',
+            State::CANCELED => 'badge-danger',
+            default => 'badge-secondary'
+        };
     }
 }

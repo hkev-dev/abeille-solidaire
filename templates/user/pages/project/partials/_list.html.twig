@@ -3,7 +3,7 @@
         <div class="card-header flex-wrap gap-2">
             <h3 class="card-title text-gray-600 text-2sm font-medium">
                 Affichage de {{ pagination.getPaginationData.currentItemCount }}
-                sur {{ pagination.getPaginationData.totalCount }} projets
+                sur {{ pagination.getPaginationData.totalCount }} ancien projets
             </h3>
             <div class="flex flex-wrap gap-2 lg:gap-5">
                 <div class="flex">
@@ -35,10 +35,6 @@
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auteur
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
-                    </th>
                 </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -60,28 +56,11 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ project.creator.fullName|default(project.owner.fullName|default('')) }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span class="badge {{ project.statusBadge }}">{{ project.statusLabel }}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2">
-                                <a href="{{ path('app.admin.project.detail', {id: project.id}) }}"
-                                   class="btn btn-sm btn-light-primary">
-                                    <i class="ki-duotone ki-pencil text-primary"></i>
-                                    Detail
-                                </a>
-                                <a href="{{ path('app.admin.project.delete', {id: project.id}) }}"
-                                   class="btn btn-sm btn-light-danger">
-                                    <i class="ki-duotone ki-trash text-danger"></i>
-                                    Supprimer
-                                </a>
-                            </div>
-                        </td>
                     </tr>
                 {% else %}
                     <tr>
                         <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                            Aucun projet disponible
+                            Aucun ancien projet
                         </td>
                     </tr>
                 {% endfor %}
@@ -96,3 +75,4 @@
         'listPath': 'app.admin.project.index'
     } %}
 </div>
+
