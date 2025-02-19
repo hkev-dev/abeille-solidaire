@@ -2,15 +2,15 @@
 <div class="project-details-top__person">
 	<div class="project-details-top__person-img">
 		{% if project.creator.avatar %}
-			<img src="{{ vich_uploader_asset(project.creator, 'avatarFile') }}" alt="{{ project.creator.fullName }}">
+			<img src="{{ vich_uploader_asset(project.creator, 'avatarFile') }}" alt="{{ project.creator.username }}">
 		{% else %}
-			<img src="{{ asset('landing/images/project/project-details-top-person-img-1.jpg') }}" alt="{{ project.creator.fullName }}">
+			<img src="{{ asset('landing/images/project/project-details-top-person-img-1.jpg') }}" alt="{{ project.creator.username }}">
 		{% endif %}
 	</div>
 	<div class="project-details-top__person-content">
 		<h5>
 			<span>par</span>
-			{{ project.creator.name }}
+			{{ project.creator.username }}
 		</h5>
 	</div>
 </div>
