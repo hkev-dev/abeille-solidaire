@@ -13023,7 +13023,7 @@ body.boxed-wrapper {
 }
 
 .login-register__checkbox input[type="checkbox"]:checked + label::before {
-  box-shadow: inset 0 0 0 4px var(--qrowd-base);
+  box-shadow: inset 0 0 0 9px var(--qrowd-base);
 }
 
 .login-register__checkbox label a {
