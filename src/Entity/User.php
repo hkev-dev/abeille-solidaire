@@ -514,6 +514,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->currentProject !== null;
     }
 
+    public function getProject(): ?Project
+    {
+        return $this->getCurrentProject();
+    }
+
     // Payment-related methods
     public function getStripeCustomerId(): ?string
     {
