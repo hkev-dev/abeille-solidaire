@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\Entity\Donation;
 use App\Entity\Withdrawal;
 use App\Repository\DonationRepository;
+use App\Repository\MembershipRepository;
 use App\Repository\UserRepository;
 use App\Repository\WithdrawalRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,8 +22,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app.admin.dashboard')]
-    public function index(Session $session, DonationRepository $donationRepository, UserRepository $userRepository, WithdrawalRepository $withdrawalRepository): Response
-    {
+    public function index(
+        Session $session,
+        DonationRepository $donationRepository,
+        UserRepository $userRepository,
+        MembershipRepository $membershipRepository,
+        WithdrawalRepository $withdrawalRepository
+    ): Response {
         $justLoggedIn = $session->get('justLoggedIn', false);
         $session->remove('justLoggedIn');
 
@@ -30,6 +36,7 @@ class DashboardController extends AbstractController
             'recentUsers' => $userRepository->findRecent(),
             'users' => ['count' => $userRepository->count(), 'verifiedCount' => $userRepository->countVerified()],
             'donations' => ['count' => $donationRepository->countCompleted(), 'amount' => $donationRepository->getTotalAmount()],
+            'memberships' => ['count' => $membershipRepository->countCompleted(), 'amount' => $membershipRepository->getTotalAmount()],
             'withdraws' => ['amount' => $withdrawalRepository->getTotalAmount()],
             'graph' => [
                 'donations' => json_encode($this->formatToGraph($donationRepository->getGraphData())),

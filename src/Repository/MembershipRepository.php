@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Membership;
+use App\Service\MembershipService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,18 @@ class MembershipRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+    public function countCompleted()
+    {
+        return $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->where('m.paymentStatus = :status')
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getTotalAmount(): float|int
+    {
+        return $this->countCompleted() * MembershipService::MEMBERSHIP_FEE;
+    }
 }
