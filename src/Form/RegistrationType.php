@@ -158,14 +158,14 @@ class RegistrationType extends AbstractType
                 'attr' => [
                     'class' => 'custom-control-input'
                 ],
-                'row_attr' => ['class' => 'login-register__checkbox'],
-                'data' => true
+                'row_attr' => ['class' => 'login-register__checkbox']
             ])
-            ->add('recaptcha', HiddenType::class, [
-                'attr' => [
-                    'class' => 'g-recaptcha-response'
-                ]
-            ]);
+//            ->add('recaptcha', HiddenType::class, [
+//                'attr' => [
+//                    'class' => 'g-recaptcha-response'
+//                ]
+//            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -173,7 +173,7 @@ class RegistrationType extends AbstractType
         $resolver->setDefaults([
             'data_class' => RegistrationDTO::class,
             'referral_code' => null,
-            'csrf_protection' => true,
+            'csrf_protection' => false,
         ]);
     }
 }
