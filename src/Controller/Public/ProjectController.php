@@ -23,7 +23,7 @@ class ProjectController extends AbstractController
     public function index(Request $request): Response
     {
         $query = $this->projectRepository->createQueryBuilder('p')
-            ->orderBy('p.createdAt', 'DESC')
+            ->orderBy('p.id', 'DESC')
             ;
 
         if ($request->query->has('category')) {

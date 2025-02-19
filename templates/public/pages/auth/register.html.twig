@@ -5,119 +5,138 @@
 {% endblock %}
 
 {% block stylesheets %}
-	{{ parent() }}
-	<style>
-		.register-section {
-			padding: 60px 0;
-		}
-		.account-type-selector {
-			padding: 40px;
-			background-color: #f8f9fa;
-			margin-bottom: 30px;
-			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-		}
-		.account-type-selector .form-label {
-			font-size: 28px;
-			font-weight: 700;
-			color: #2c3e50;
-			margin-bottom: 30px;
-			text-align: center;
-		}
-		#registration_accountType {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 20px;
-			padding: 10px;
-		}
-		#registration_accountType input[type="radio"] {
-			display: none;
-		}
-		#registration_accountType label {
-			padding: 25px 20px;
-			background: white;
-			border: 2px solid #e9ecef;
-			cursor: pointer;
-			transition: all 0.3s ease;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			text-align: center;
-			position: relative;
-			min-height: 160px;
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-		}
-		#registration_accountType label i {
-			font-size: 2.5rem;
-			margin-bottom: 15px;
-			color: #6c757d;
-			transition: all 0.3s ease;
-		}
-		#registration_accountType label:hover {
-			border-color: var(--qrowd-primary);
-			transform: translateY(-3px);
-			box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-		}
-		#registration_accountType label:hover i {
-			color: var(--qrowd-primary);
-			transform: scale(1.1);
-		}
-		#registration_accountType input[type="radio"]:checked + label {
-			border-color: var(--qrowd-primary);
-			background-color: rgba(var(--qrowd-primary-rgb), 0.02);
-			box-shadow: 0 8px 20px rgba(var(--qrowd-primary-rgb), 0.15);
-		}
-		#registration_accountType input[type="radio"]:checked + label i {
-			color: var(--qrowd-primary);
-		}
-		#registration_accountType label span {
-			font-size: 18px;
-			font-weight: 600;
-			color: #2c3e50;
-			margin-bottom: 8px;
-		}
-		#registration_accountType label::after {
-			content: attr(data-description);
-			display: block;
-			font-size: 14px;
-			color: #6c757d;
-			font-weight: normal;
-			margin-top: 8px;
-		}
-		/* Responsive adjustments */
-		@media(max-width: 992px) {
-			#registration_accountType {
-				grid-template-columns: 1fr;
-				gap: 15px;
-			}
-			#registration_accountType label {
-				min-height: auto;
-				padding: 20px;
-			}
-		}
-		.phone-input-wrapper {
-			position: relative;
-		}
-		.phone-input-wrapper .phone-flag {
-			position: absolute;
-			left: 12px;
-			top: 50%;
-			transform: translateY(-50%);
-		}
-		.phone-input-wrapper input {
-			padding-left: 60px !important;
-		}
-		.phone-invalid {
-			border-color: #dc3545 !important;
-		}
-		.phone-valid {
-			border-color: #198754 !important;
-		}
-	</style>
+    {{ parent() }}
+    <style>
+        .register-section {
+            padding: 60px 0;
+        }
+
+        .account-type-selector {
+            padding: 40px;
+            background-color: #f8f9fa;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .account-type-selector .form-label {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #registration_accountType {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 10px;
+        }
+
+        #registration_accountType input[type="radio"] {
+            display: none;
+        }
+
+        #registration_accountType label {
+            padding: 25px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            min-height: 160px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        #registration_accountType label i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        #registration_accountType label:hover {
+            border-color: var(--qrowd-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        #registration_accountType label:hover i {
+            color: var(--qrowd-primary);
+            transform: scale(1.1);
+        }
+
+        #registration_accountType input[type="radio"]:checked + label {
+            border-color: var(--qrowd-primary);
+            background-color: rgba(var(--qrowd-primary-rgb), 0.02);
+            box-shadow: 0 8px 20px rgba(var(--qrowd-primary-rgb), 0.15);
+        }
+
+        #registration_accountType input[type="radio"]:checked + label i {
+            color: var(--qrowd-primary);
+        }
+
+        #registration_accountType label span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        #registration_accountType label::after {
+            content: attr(data-description);
+            display: block;
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: normal;
+            margin-top: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            #registration_accountType {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            #registration_accountType label {
+                min-height: auto;
+                padding: 20px;
+            }
+        }
+
+        .phone-input-wrapper {
+            position: relative;
+        }
+
+        .phone-input-wrapper .phone-flag {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .phone-input-wrapper input {
+            padding-left: 60px !important;
+        }
+
+        .phone-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .phone-valid {
+            border-color: #198754 !important;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-	{# Page Header #}
-	{% include 'public/components/page-header.html.twig' with {
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
         title: 'Inscription',
         breadcrumbs: [
             {label: 'Accueil', path: 'landing.home'},
@@ -125,134 +144,134 @@
         ]
     } %}
 
-	<section class="login-register register-section">
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-lg-12">
-					<div class="alert alert-info mb-4">
-					    <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Système de Don par Matrice</h5>
-					    <p class="mb-0">
-					        En rejoignant Abeille Solidaire, vous serez placé(e) dans notre système de matrice :
-					    </p>
-					    <ul class="mb-0 mt-2">
-					        <li>Frais d'inscription unique de 25€</li>
-					        <li>Adhésion annuelle optionnelle de 25€</li>
-					        <li>Placement automatique dans la matrice après paiement</li>
-					        <li>Progression à travers 10 niveaux de fleurs</li>
-					    </ul>
-					</div>
-					
-					{% include 'public/components/flash-messages.html.twig' %}
-					<h3 class="login-register__title text-center mb-4">Créer votre compte</h3>
+    <section class="login-register register-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-12">
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Système de Don par Matrice</h5>
+                        <p class="mb-0">
+                            En rejoignant Abeille Solidaire, vous serez placé(e) dans notre système de matrice :
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            <li>Frais d'inscription unique de 25€</li>
+                            <li>Adhésion annuelle optionnelle de 25€</li>
+                            <li>Placement automatique dans la matrice après paiement</li>
+                            <li>Progression à travers 10 niveaux de fleurs</li>
+                        </ul>
+                    </div>
 
-					{{ form_start(form, {'attr': {'class': 'login-register__form'}}) }}
-					{# Account Type Selection #}
-					<div class="row mb-4">
-						<div class="col-12">
-							<div class="account-type-selector">
-								<legend class="form-label">Choisir le Type de Compte</legend>
-								{{ form_widget(form.accountType) }}
-								{{ form_errors(form.accountType) }}
-							</div>
-						</div>
-					</div>
+                    {% include 'public/components/flash-messages.html.twig' %}
+                    <h3 class="login-register__title text-center mb-4">Créer votre compte</h3>
 
-					{# Organization section with initial hidden state #}
-					<div class="organization-details" style="display: none;">
-						<h4 class="mb-3">Détails de l'Organisation</h4>
-						<div class="row">
-							<div class="col-md-6">
-								{{ form_row(form.organizationName) }}
-							</div>
-							<div class="col-md-6">
-								{{ form_row(form.organizationNumber) }}
-							</div>
-						</div>
-					</div>
+                    {{ form_start(form, {'attr': {'class': 'login-register__form'}}) }}
+                    {# Account Type Selection #}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="account-type-selector">
+                                <legend class="form-label">Choisir le Type de Compte</legend>
+                                {{ form_widget(form.accountType) }}
+                                {{ form_errors(form.accountType) }}
+                            </div>
+                        </div>
+                    </div>
 
-					<div class="row">
-						<div class="col-12">
-						    <h4 class="mb-3">Informations Personnelles</h4>
-						    <div class="row">
-						        <div class="col-md-6">
-						            {{ form_row(form.firstName) }}
-						        </div>
-						        <div class="col-md-6">
-						            {{ form_row(form.lastName) }}
-						        </div>
-						    </div>
-						    <div class="row">
-						        <div class="col-md-6">
-						            {{ form_row(form.email) }}
-						        </div>
-						        <div class="col-md-6">
-						            {{ form_row(form.phone) }}
-						        </div>
-						    </div>
-						    <div class="row">
-						        <div class="col-md-6">
-						            {{ form_row(form.country) }}
-						        </div>
-						        <div class="col-md-6">
-						            {{ form_row(form.username) }}
-						        </div>
-						    </div>
-						</div>
-						
-						<div class="col-12 mt-4">
-						    <h4 class="mb-3">Sécurité du Compte</h4>
-						    <div class="row">
-						        <div class="col-md-6">
-						            {{ form_row(form.password) }}
-						        </div>
-						        <div class="col-md-6">
-						            {{ form_row(form.confirmPassword) }}
-						        </div>
-						    </div>
-						</div>
-					</div>
+                    {# Organization section with initial hidden state #}
+                    <div class="organization-details" style="display: none;">
+                        <h4 class="mb-3">Détails de l'Organisation</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.organizationName) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.organizationNumber) }}
+                            </div>
+                        </div>
+                    </div>
 
-					{# Terms and Submit #}
-					<div class="row mt-4">
-						<div class="col-12">
-							<div class="login-register__checkbox mb-3">
-								{{ form_widget(form.agreeTerms) }}
-								<label for="registration_agreeTerms">
-									J'accepte les
-									<a href="#">Conditions d'Utilisation</a>
-									&nbsp; et la
-									<a href="#">Politique de Confidentialité</a>
-								</label>
-								{{ form_errors(form.agreeTerms) }}
-							</div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-3">Informations Personnelles</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(form.firstName) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(form.lastName) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(form.email) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(form.phone) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(form.country) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(form.username) }}
+                                </div>
+                            </div>
+                        </div>
 
-							<button type="submit" class="thm-btn login-register__btn w-100">
-								<i class="fas fa-user-plus me-2"></i>S'inscrire
-							</button>
-							<div class="login-register__text text-center mt-3">
-								<a href="{{ path('app.login') }}">Déjà membre ? Connectez-vous</a>
-							</div>
-						</div>
-					</div>
+                        <div class="col-12 mt-4">
+                            <h4 class="mb-3">Sécurité du Compte</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(form.password) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(form.confirmPassword) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-					{{ form_end(form) }}
-				</div>
-			</div>
-		</div>
-	</section>
+                    {# Terms and Submit #}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="login-register__checkbox mb-3">
+                                {{ form_widget(form.agreeTerms) }}
+                                <label for="registration_agreeTerms">
+                                    J'accepte les
+                                    <a href="#">Conditions d'Utilisation</a>
+                                    &nbsp; et la
+                                    <a href="#">Politique de Confidentialité</a>
+                                </label>
+                                {{ form_errors(form.agreeTerms) }}
+                            </div>
+
+                            <button type="submit" class="thm-btn login-register__btn w-100">
+                                <i class="fas fa-user-plus me-2"></i>S'inscrire
+                            </button>
+                            <div class="login-register__text text-center mt-3">
+                                <a href="{{ path('app.login') }}">Déjà membre ? Connectez-vous</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
 
 {% block javascripts %}
-	{{ parent() }}
-	<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
-	<script src="https://unpkg.com/libphonenumber-js@1.10.55/bundle/libphonenumber-js.min.js"></script>
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-		    // Show matrix information modal on page load
-		    const matrixInfoDiv = document.createElement('div');
-		    matrixInfoDiv.className = 'modal fade';
-		    matrixInfoDiv.id = 'matrixInfoModal';
-		    matrixInfoDiv.innerHTML = `
+    {{ parent() }}
+    {#    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script> #}
+    <script src="https://unpkg.com/libphonenumber-js@1.10.55/bundle/libphonenumber-js.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Show matrix information modal on page load
+            const matrixInfoDiv = document.createElement('div');
+            matrixInfoDiv.className = 'modal fade';
+            matrixInfoDiv.id = 'matrixInfoModal';
+            matrixInfoDiv.innerHTML = `
 		        <div class="modal-dialog modal-lg">
 		            <div class="modal-content">
 		                <div class="modal-header">
@@ -277,129 +296,129 @@
 		            </div>
 		        </div>
 		    `;
-		    document.body.appendChild(matrixInfoDiv);
-		    
-		    // Add info button next to title
-		    const title = document.querySelector('.login-register__title');
-		    const infoButton = document.createElement('button');
-		    infoButton.className = 'btn btn-link text-info';
-		    infoButton.innerHTML = '<i class="fas fa-info-circle"></i>';
-		    infoButton.setAttribute('data-bs-toggle', 'modal');
-		    infoButton.setAttribute('data-bs-target', '#matrixInfoModal');
-		    title.appendChild(infoButton);
-		
-		    const form = document.querySelector('form[name="registration"]');
+            document.body.appendChild(matrixInfoDiv);
 
-if (form) {
-form.addEventListener('submit', function (e) {
-e.preventDefault();
+            // Add info button next to title
+            const title = document.querySelector('.login-register__title');
+            const infoButton = document.createElement('button');
+            infoButton.className = 'btn btn-link text-info';
+            infoButton.innerHTML = '<i class="fas fa-info-circle"></i>';
+            infoButton.setAttribute('data-bs-toggle', 'modal');
+            infoButton.setAttribute('data-bs-target', '#matrixInfoModal');
+            title.appendChild(infoButton);
 
-grecaptcha.ready(function () {
-grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'}).then(function (token) { // Look for existing input or create new one
-let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');
-recaptchaInput.value = token;
+            const form = document.querySelector('form[name="registration"]');
 
-// Submit the form
-form.removeEventListener('submit', arguments.callee);
-form.submit();
-}).catch(function (error) {
-console.error('reCAPTCHA error:', error);
-alert('Une erreur est survenue lors de la vérification de sécurité. Veuillez réessayer.');
-});
-});
-});
-}
+{#            if (form) {#}
+{#                form.addEventListener('submit', function (e) {#}
+{#                    e.preventDefault();#}
+
+{#                    grecaptcha.ready(function () {#}
+{#                        grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'registration'}).then(function (token) { // Look for existing input or create new one#}
+{#                            let recaptchaInput = document.querySelector('input[name="registration[recaptcha]"]');#}
+{#                            recaptchaInput.value = token;#}
+
+{#// Submit the form#}
+{#                            form.removeEventListener('submit', arguments.callee);#}
+{#                            form.submit();#}
+{#                        }).catch(function (error) {#}
+{#                            console.error('reCAPTCHA error:', error);#}
+{#                            alert('Une erreur est survenue lors de la vérification de sécurité. Veuillez réessayer.');#}
+{#                        });#}
+{#                    });#}
+{#                });#}
+{#            }#}
 
 // Add icons and descriptions to labels
-const accountTypeLabels = document.querySelectorAll('#registration_accountType label');
-accountTypeLabels.forEach(label => {
-const input = document.querySelector (`input[id="${
-label.getAttribute('for')
-}"]`);
-if (input) { // Create a bold wrapper for the text content
-const textNode = label.firstChild;
-const boldWrapper = document.createElement('b');
-boldWrapper.textContent = textNode.textContent;
-label.replaceChild(boldWrapper, textNode);
+            const accountTypeLabels = document.querySelectorAll('#registration_accountType label');
+            accountTypeLabels.forEach(label => {
+                const input = document.querySelector(`input[id="${
+                    label.getAttribute('for')
+                }"]`);
+                if (input) { // Create a bold wrapper for the text content
+                    const textNode = label.firstChild;
+                    const boldWrapper = document.createElement('b');
+                    boldWrapper.textContent = textNode.textContent;
+                    label.replaceChild(boldWrapper, textNode);
 
 // Add icon
-const icon = document.createElement('i');
-icon.className = `fas ${
-input.dataset.icon
-}`;
-label.insertBefore(icon, boldWrapper);
+                    const icon = document.createElement('i');
+                    icon.className = `fas ${
+                        input.dataset.icon
+                    }`;
+                    label.insertBefore(icon, boldWrapper);
 
 // Add description
-if (input.dataset.description) {
-label.innerHTML += `<small class="d-block mt-2 text-muted">${
-input.dataset.description
-}</small>`;
-}
-}
-});
+                    if (input.dataset.description) {
+                        label.innerHTML += `<small class="d-block mt-2 text-muted">${
+                            input.dataset.description
+                        }</small>`;
+                    }
+                }
+            });
 
 // Organization fields visibility control
-const accountTypeInputs = document.querySelectorAll('input[name="registration[accountType]"]');
-const organizationSection = document.querySelector('.organization-details');
+            const accountTypeInputs = document.querySelectorAll('input[name="registration[accountType]"]');
+            const organizationSection = document.querySelector('.organization-details');
 
 // Initial check for pre-selected value
-const checkOrganizationVisibility = () => {
-const selectedType = document.querySelector('input[name="registration[accountType]"]:checked') ?. value;
-organizationSection.style.display = (selectedType === 'ENTERPRISE' || selectedType === 'ASSOCIATION') ? 'block' : 'none';
-};
+            const checkOrganizationVisibility = () => {
+                const selectedType = document.querySelector('input[name="registration[accountType]"]:checked')?.value;
+                organizationSection.style.display = (selectedType === 'ENTERPRISE' || selectedType === 'ASSOCIATION') ? 'block' : 'none';
+            };
 
 // Add change event listeners to radio buttons
-accountTypeInputs.forEach(input => {
-input.addEventListener('change', checkOrganizationVisibility);
+            accountTypeInputs.forEach(input => {
+                input.addEventListener('change', checkOrganizationVisibility);
 
 // Add visual feedback for selected account type
-input.addEventListener('change', function () { // Remove active class from all form-check divs
-document.querySelectorAll('.account-type-selector .form-check').forEach(el => el.classList.remove('active'));
-});
-});
+                input.addEventListener('change', function () { // Remove active class from all form-check divs
+                    document.querySelectorAll('.account-type-selector .form-check').forEach(el => el.classList.remove('active'));
+                });
+            });
 
 // Check initial state
-checkOrganizationVisibility();
+            checkOrganizationVisibility();
 
 // Phone number formatting and validation
-const phoneInput = document.querySelector('input[name="registration[phone]"]');
-const countrySelect = document.querySelector('select[name="registration[country]"]');
+            const phoneInput = document.querySelector('input[name="registration[phone]"]');
+            const countrySelect = document.querySelector('select[name="registration[country]"]');
 
-if (phoneInput && countrySelect) {
-function updatePhoneValidation() {
-const phoneNumber = phoneInput.value.trim();
-const countryCode = countrySelect.value;
+            if (phoneInput && countrySelect) {
+                function updatePhoneValidation() {
+                    const phoneNumber = phoneInput.value.trim();
+                    const countryCode = countrySelect.value;
 
-try {
-const parsedNumber = libphonenumber.parsePhoneNumber(phoneNumber, countryCode);
-const isValid = parsedNumber.isValid();
+                    try {
+                        const parsedNumber = libphonenumber.parsePhoneNumber(phoneNumber, countryCode);
+                        const isValid = parsedNumber.isValid();
 
-phoneInput.classList.remove('phone-invalid', 'phone-valid');
-phoneInput.classList.add(isValid ? 'phone-valid' : 'phone-invalid');
+                        phoneInput.classList.remove('phone-invalid', 'phone-valid');
+                        phoneInput.classList.add(isValid ? 'phone-valid' : 'phone-invalid');
 
 
 // Format the number as the user types
-if (isValid && phoneInput === document.activeElement) {
-const formattedNumber = parsedNumber.formatInternational();
-if (formattedNumber !== phoneInput.value) {
-phoneInput.value = formattedNumber;
-}
-}
+                        if (isValid && phoneInput === document.activeElement) {
+                            const formattedNumber = parsedNumber.formatInternational();
+                            if (formattedNumber !== phoneInput.value) {
+                                phoneInput.value = formattedNumber;
+                            }
+                        }
 
-return isValid;
-} catch (error) {
-phoneInput.classList.remove('phone-valid');
-phoneInput.classList.add('phone-invalid');
-return false;
-}
-}
+                        return isValid;
+                    } catch (error) {
+                        phoneInput.classList.remove('phone-valid');
+                        phoneInput.classList.add('phone-invalid');
+                        return false;
+                    }
+                }
 
-phoneInput.addEventListener('input', updatePhoneValidation);
-countrySelect.addEventListener('change', updatePhoneValidation);
+                phoneInput.addEventListener('input', updatePhoneValidation);
+                countrySelect.addEventListener('change', updatePhoneValidation);
 
 // Initial validation
-updatePhoneValidation();
-}
-});
-	</script>
+                updatePhoneValidation();
+            }
+        });
+    </script>
 {% endblock %}
