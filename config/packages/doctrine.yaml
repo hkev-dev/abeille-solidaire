@@ -31,6 +31,8 @@ doctrine:
         controller_resolver:
             auto_mapping: false
         dql:
+            string_functions:
+                CAST: DoctrineExtensions\Query\Mysql\Cast
             numeric_functions:
                 Random: App\Doctrine\DBAL\FunctionNode\Random
             datetime_functions:

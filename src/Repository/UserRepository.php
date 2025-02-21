@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Entity\Flower;
+use DateTime;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -34,7 +36,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Find users with expired registrations (unverified and waiting for more than specified days)
      */
-    public function findByExpiredRegistration(\DateTime $expiryDate): array
+    public function findByExpiredRegistration(DateTime $expiryDate): array
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.isKycVerified = :kyc')
@@ -70,10 +72,34 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->createQueryBuilder('u')
             ->select('u')
             ->andWhere('u.createdAt > :date')
-            ->setParameter('date', new \DateTime('-3 days'))
+            ->setParameter('date', new DateTime('-3 days'))
             ->orderBy('u.createdAt', 'DESC')
             ->setMaxResults(10)
             ->getQuery()
+            ->getResult();
+    }
+
+
+    /**
+     * @param DateTime $dateThreshold
+     * @return User[]
+     */
+    public function findUnactivatedUsers(DateTime $dateThreshold): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->leftJoin('u.donationsMade', 'd')
+            ->andWhere('u.createdAt < :dateThreshold')
+            ->andWhere('u.donationsMade IS EMPTY OR NOT EXISTS (
+                SELECT 1 FROM App\Entity\Donation d2 
+                WHERE d2.donor = u AND d2.paymentStatus = :completedStatus
+            )')
+            ->andWhere('CAST(u.roles AS TEXT) NOT LIKE :roleAdmin OR CAST(u.roles AS TEXT) NOT LIKE :roleSuperAdmin')
+            ->setParameter('dateThreshold', $dateThreshold)
+            ->setParameter('roleAdmin', '%ROLE_ADMIN%')
+            ->setParameter('roleSuperAdmin', '%ROLE_SUPER_ADMIN%')
+            ->setParameter('completedStatus', 'completed');
+
+        return $qb->getQuery()
             ->getResult();
     }
 }

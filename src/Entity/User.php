@@ -85,7 +85,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $walletBalance = 0.0;
 
-    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor')]
+    #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor', cascade: ['persist', 'remove'])]
     private Collection $donationsMade;
 
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'recipient')]
