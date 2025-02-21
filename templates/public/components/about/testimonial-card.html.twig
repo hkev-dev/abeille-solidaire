@@ -2,14 +2,14 @@
     <div class="testimonial-two__single">
         <div class="testimonial-two__client-info">
             <div class="testimonial-two__client-img">
-                <img src="{{ asset('landing/images/testimonial/' ~ testimonial.image) }}" alt="{{ testimonial.name }}">
+                <img src="{{ vich_uploader_asset(testimonial, 'imageFile')  }}" alt="{{ testimonial.name }}">
             </div>
             <div class="testimonial-two__client-content">
                 <h4 class="testimonial-two__client-name">{{ testimonial.name }}</h4>
                 <p class="testimonial-two__client-sub-title">{{ testimonial.position }}</p>
             </div>
         </div>
-        <p class="testimonial-two__text-2">{{ testimonial.text }}</p>
+        <p class="testimonial-two__text-2">{{ testimonial.content }}</p>
         <div class="testimonial-two__quote">
             <span class="icon-quotes"></span>
         </div>

@@ -80,7 +80,8 @@ RUN set -eux; \
 	chmod -R 777 var/cache var/log; \
 	composer dump-autoload; \
 	composer dump-env dev; \
-	composer run-script post-install-cmd; \
+	composer config --global process-timeout 600; \
+	COMPOSER_PROCESS_TIMEOUT=600 SYMFONY_PROCESS_TIMEOUT=600 composer run-script post-install-cmd; \
 	chmod +x bin/console; sync;
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
@@ -111,5 +112,6 @@ RUN set -eux; \
 	composer dump-env prod; \
 	APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup; \
 	APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup; \
-	composer run-script --no-dev post-install-cmd; \
+	composer config --global process-timeout 600; \
+	COMPOSER_PROCESS_TIMEOUT=600 SYMFONY_PROCESS_TIMEOUT=600 composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;

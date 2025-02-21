@@ -45,7 +45,18 @@
 		{{ menuItem.render({
             label: 'Paramètres',
             icon: 'ki-duotone ki-setting-2',
-			routes: ['app.admin.setting.general','app.admin.setting.slide','app.admin.setting.slide.update','app.admin.setting.slide.create','app.admin.setting.faq','app.admin.setting.faq.update','app.admin.setting.faq.create',],
+			routes: [
+				'app.admin.setting.general',
+				'app.admin.setting.slide',
+				'app.admin.setting.slide.update',
+				'app.admin.setting.slide.create',
+				'app.admin.setting.faq',
+				'app.admin.setting.faq.update',
+				'app.admin.setting.faq.create',
+				'app.admin.setting.testimonial',
+				'app.admin.setting.testimonial.update',
+				'app.admin.setting.testimonial.create',
+			],
 			submenu: [
 				{
 					label: 'General',
@@ -60,6 +71,12 @@
 					label: 'Faq',
 					route: 'app.admin.setting.faq',
 					routes: ['app.admin.setting.faq','app.admin.setting.faq.update','app.admin.setting.faq.create']
+
+				},
+				{
+					label: 'Avis',
+					route: 'app.admin.setting.testimonial.list',
+					routes: ['app.admin.setting.testimonial.list','app.admin.setting.testimonial.update','app.admin.setting.testimonial.create']
 
 				}
 			]

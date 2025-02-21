@@ -1,0 +1,53 @@
+{% extends 'admin/pages/setting/layout.html.twig' %}
+
+{% block page_title %}Paramètres - Avis - Mise à jour
+{% endblock %}
+
+{% block settings_content %}
+    <div class="container-fixed max-w-3xl mx-auto">
+        {# Page Header #}
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Modifier l'Avis</h1>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Mettez à jour l'avis.
+            </p>
+        </div>
+        {% include 'admin/pages/setting/testimonial/partials/_form.html.twig' %}
+    </div>
+
+    {% if testimonial is defined %}
+    {# Delete Confirmation Modal #}
+    <div class="modal fade" tabindex="-1" id="delete-faq-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                    <form method="POST" action="{{ path('app.admin.setting.testimonial.delete', {id: testimonial.id}) }}"
+                          class="d-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ testimonial.id) }}">
+                        <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Initialize image input
+        document.addEventListener('DOMContentLoaded', function () {
+            KTImageInput.init();
+        });
+    </script>
+{% endblock %}
+
