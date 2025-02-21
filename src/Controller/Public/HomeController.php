@@ -4,6 +4,7 @@ namespace App\Controller\Public;
 
 use App\Repository\MainSliderRepository;
 use App\Repository\NewsArticleRepository;
+use App\Repository\TestimonialRepository;
 use App\Repository\UserRepository;
 use App\Repository\ProjectCategoryRepository;
 use App\Repository\ProjectRepository;
@@ -21,7 +22,8 @@ class HomeController extends AbstractController
         UserRepository            $userRepository,
         DonationRepository        $donationRepository,
         ProjectRepository         $projectRepository,
-        NewsArticleRepository     $newsRepository
+        NewsArticleRepository     $newsRepository,
+        TestimonialRepository     $testimonialRepository
     ): Response
     {
         // Get active slides from database
@@ -58,89 +60,7 @@ class HomeController extends AbstractController
         $recommendedProjectsList = $projectRepository->findActiveOrderByReceivedAmount(limit: 4);
 
         // Testimonials
-        $testimonialsList = [
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
-                'name' => 'Kevin H.',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Grâce à Abeille Solidaire, j\'ai pu financer mon projet en quelques semaines. La communauté est très active et le système de dons cycliques fonctionne parfaitement.'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Sarah Lelouche',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Une plateforme exceptionnelle pour le financement participatif. Le processus est simple et l\'équipe de support est incroyablement réactive tout au long du parcours.'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-1.jpg',
-                'name' => 'Kevin Cooper',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Rejoindre Abeille Solidaire, c\'est donner du sens à ses actions. Ensemble, créons des projets qui font la différence !'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Sarah Albert',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Un petit geste, un grand impact ! Venez découvrir un club où la solidarité rime avec créativité.'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Gabriel',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Ici, chaque idée compte et chaque don fait avancer des projets inspirants. Rejoignez-nous !'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Raphaël',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Vous avez envie d\’aider et d\’innover ? Abeille Solidaire est fait pour vous '
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Noah',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Plus qu\’un club, une famille engagée pour un monde meilleur. Faites partie de l\’aventure !'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Sacha',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Abeille Solidaire, c\’est du partage, du soutien et des projets concrets. On vous attend !'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Sacha',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Ensemble, nous bâtissons des initiatives qui changent des vies. Venez voir par vous-même !'
-            ],
-            [
-                'image' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'thumbnail' => 'landing/images/testimonial/testimonial-one-client-img-2.jpg',
-                'name' => 'Sacha',
-                'position' => 'Abeille',
-                'rating' => 5,
-                'content' => 'Votre générosité a du pouvoir. Chez Abeille Solidaire, elle devient action!'
-            ],
-            // Add more testimonials...
-        ];
+        $testimonialsList = $testimonialRepository->findAll();
 
         // Brand Partners
         $brandPartners = [

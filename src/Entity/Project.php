@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Constant\Enum\Project\State;
 use App\Doctrine\DBAL\Type\Enum\ProjectStateEnumType;
-use App\Type\Enum\Order\OrderStateEnumType;
 use BackedEnum;
 use LogicException;
 use Serializable;

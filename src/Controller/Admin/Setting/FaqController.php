@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Admin\Setting;
 
 use App\Entity\FAQ;
-use App\Entity\MainSlider;
 use App\Form\FaqType;
-use App\Form\MainSliderType;
 use App\Repository\FAQRepository;
-use App\Repository\MainSliderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
