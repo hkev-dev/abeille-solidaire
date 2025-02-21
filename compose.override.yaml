@@ -7,7 +7,6 @@ services:
     environment:
       APP_ENV: dev
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
-      SYMFONY_PROCESS_TIMEOUT: 900
     extra_hosts:
       - host.docker.internal:host-gateway
     tty: true
