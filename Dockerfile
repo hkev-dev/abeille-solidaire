@@ -111,5 +111,5 @@ RUN set -eux; \
 	composer dump-env prod; \
 	APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup; \
 	APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup; \
-	composer run-script --no-dev post-install-cmd; \
+	COMPOSER_PROCESS_TIMEOUT=600 composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;
