@@ -7,3 +7,4 @@ services:
     environment:
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
+      SYMFONY_PROCESS_TIMEOUT: 900
