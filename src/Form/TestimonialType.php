@@ -30,7 +30,7 @@ class TestimonialType extends AbstractType
                 'constraints' => [
                     new NotBlank(['message' => 'Le nom est requis']),
                     new Length([
-                        'min' => 10,
+                        'min' => 4,
                         'max' => 255,
                         'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères',
                         'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères'
@@ -45,7 +45,7 @@ class TestimonialType extends AbstractType
                     'data-control' => 'textarea'
                 ],
                 'constraints' => [
-                    new NotBlank(['message' => 'Le message est requise']),
+                    new NotBlank(['message' => 'Le message est requis']),
                     new Length([
                         'min' => 50,
                         'minMessage' => 'Le message doit contenir au moins {{ limit }} caractères'
@@ -69,12 +69,12 @@ class TestimonialType extends AbstractType
                     'data-control' => 'input'
                 ],
                 'constraints' => [
+                    new NotBlank(['message' => 'La note est requise']),
                     new Assert\Range([
                         'min' => 0,
                         'max' => 5,
                     ]),
-                ],
-                'required' => false
+                ]
             ])
             ->add('imageFile', VichImageType::class, [
                 'label' => 'Image ',
