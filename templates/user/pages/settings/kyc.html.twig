@@ -60,31 +60,33 @@
                 <div class="max-w-3xl mx-auto">
                     {{ form_start(form, {'attr': {'class': 'space-y-8'}}) }}
 
-                    {# Document Info Section #}
-                    <div class="bg-gray-50 rounded-xl p-8 space-y-6">
-                        <h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <i class="ki-duotone ki-document-text text-gray-500"></i>
-                            Informations du Document
-                        </h4>
+                    {% if app.user.accountType == 'PRIVATE' %}
+                        {# Document Info Section #}
+                        <div class="bg-gray-50 rounded-xl p-8 space-y-6">
+                            <h4 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="ki-duotone ki-document-text text-gray-500"></i>
+                                Informations du Document
+                            </h4>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {% for field in ['documentType', 'documentNumber', 'issuingCountry', 'expiryDate'] %}
-                                <div class="space-y-2">
-                                    {{ form_label(attribute(form, field), null, {
-                                        'label_attr': {
-                                            'class': 'block text-sm font-medium text-gray-700'
-                                        }
-                                    }) }}
-                                    {{ form_widget(attribute(form, field)) }}
-                                    {{ form_errors(attribute(form, field), {
-                                        'attr': {
-                                            'class': 'text-sm text-danger mt-1'
-                                        }
-                                    }) }}
-                                </div>
-                            {% endfor %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {% for field in ['documentType', 'documentNumber', 'issuingCountry', 'expiryDate'] %}
+                                    <div class="space-y-2">
+                                        {{ form_label(attribute(form, field), null, {
+                                            'label_attr': {
+                                                'class': 'block text-sm font-medium text-gray-700'
+                                            }
+                                        }) }}
+                                        {{ form_widget(attribute(form, field)) }}
+                                        {{ form_errors(attribute(form, field), {
+                                            'attr': {
+                                                'class': 'text-sm text-danger mt-1'
+                                            }
+                                        }) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
 
                     {# Document Upload Section #}
                     <div class="bg-gray-50 rounded-xl p-8 space-y-6">
@@ -93,13 +95,21 @@
                             Documents Requis
                         </h4>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {% for info in [
+                        {% if app.user.accountType == 'PRIVATE' %}
+                            {% set fields = [
                                 {field: 'frontImage', icon: 'credit-card-front', label: 'Recto du Document'},
                                 {field: 'backImage', icon: 'credit-card-back', label: 'Verso du Document'},
                                 {field: 'selfieImage', icon: 'user-camera', label: 'Selfie avec Document'}
                             ] %}
-                                <div class="space-y-2">
+                        {% else %}
+                            {% set fields = [
+                                {field: 'frontImage', icon: 'credit-card-front', label: 'Document ' ~ app.user.accountTypeLabel},
+                            ] %}
+                        {% endif %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-{{ fields|length }} gap-6">
+                            {% for info in fields %}
+                                <div class="space-y-2 mx-auto">
                                     <label class="block text-sm font-medium text-gray-700">
                                         {{ info.label }}
                                     </label>
@@ -116,8 +126,7 @@
                                         }) }}
 
                                         {# Hidden input for remove action #}
-                                        <input
-                                                type="hidden" name="{{ info.field }}_remove"/>
+                                        <input type="hidden" name="{{ info.field }}_remove"/>
 
                                         {# Remove button #}
                                         <span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10"
@@ -154,8 +163,7 @@
                             Soumettre la Vérification
                         </button>
                     </div>
-                    {{ form_rest(form) }}
-                    {{ form_end(form) }}
+                    {{ form_end(form, {'render_rest': false}) }}
                 </div>
             </div>
         </div>

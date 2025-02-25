@@ -154,6 +154,8 @@ class KycVerification
     public function getDocumentTypeLabel()
     {
         return match($this->getDocumentType()){
+            'ENTERPRISE' => 'Document d\'entreprise',
+            'ASSOCIATION' => 'Document d\'association',
             'national_id' => 'Carte d\'identité nationale',
             'passport' => 'Passeport',
             'drivers_license' => 'Permis de conduire',

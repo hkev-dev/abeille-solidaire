@@ -16,20 +16,27 @@ class KycVerificationType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isPrivate = $options['user']->getAccountType() === 'PRIVATE';
+        if ($options['user']->getAccountType() !== 'PRIVATE') {
+            $documentTypes = [$options['user']->getAccountType()];
+        }else{
+            $documentTypes = [
+                'Carte d\'identité nationale' => 'national_id',
+                'Passeport' => 'passport',
+                'Permis de conduire' => 'drivers_license',
+                'Titre de séjour' => 'residence_permit'
+            ];
+        }
+
         $builder
             ->add('documentType', ChoiceType::class, [
-                'choices' => [
-                    'Carte d\'identité nationale' => 'national_id',
-                    'Passeport' => 'passport',
-                    'Permis de conduire' => 'drivers_license',
-                    'Titre de séjour' => 'residence_permit'
-                ],
+                'choices' => $documentTypes,
                 'attr' => [
                     'class' => 'select',
                 ],
                 'placeholder' => 'Choisir le type de document',
                 'label' => 'Type de Document',
-                'required' => true
+                'required' => $isPrivate
             ])
             ->add('documentNumber', TextType::class, [
                 'attr' => [
@@ -37,7 +44,7 @@ class KycVerificationType extends AbstractType
                     'placeholder' => 'Numéro du document'
                 ],
                 'label' => 'Numéro du Document',
-                'required' => true
+                'required' => $isPrivate
             ])
             ->add('issuingCountry', CountryType::class, [
                 'attr' => [
@@ -45,7 +52,7 @@ class KycVerificationType extends AbstractType
                     'placeholder' => 'Sélectionner le pays'
                 ],
                 'label' => 'Pays Émetteur',
-                'required' => true
+                'required' => $isPrivate
             ])
             ->add('expiryDate', DateType::class, [
                 'attr' => [
@@ -53,7 +60,7 @@ class KycVerificationType extends AbstractType
                 ],
                 'widget' => 'single_text',
                 'label' => 'Date d\'Expiration',
-                'required' => true
+                'required' => $isPrivate
             ])
             ->add('frontImage', FileType::class, [
                 'attr' => [
@@ -76,7 +83,7 @@ class KycVerificationType extends AbstractType
                     'accept' => 'image/jpeg,image/png'
                 ],
                 'label' => 'Verso du Document',
-                'required' => true,
+                'required' => $isPrivate,
                 'constraints' => [
                     new Assert\File([
                         'maxSize' => '5M',
@@ -92,7 +99,7 @@ class KycVerificationType extends AbstractType
                     'accept' => 'image/jpeg,image/png'
                 ],
                 'label' => 'Selfie avec Document',
-                'required' => true,
+                'required' => $isPrivate,
                 'constraints' => [
                     new Assert\File([
                         'maxSize' => '5M',
@@ -108,7 +115,10 @@ class KycVerificationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => null
+            'data_class' => null,
+            'allow_extra_fields' => true,
+            'csrf_protection' => false,
+            'user' => null
         ]);
     }
 }

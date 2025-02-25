@@ -29,7 +29,11 @@ class SettingsController extends AbstractController
     public function kyc(Request $request): Response
     {
         $user = $this->getUser();
-        $form = $this->createForm(KycVerificationType::class);
+        $form = $this->createForm(KycVerificationType::class, null, ['user' => $user]);
+
+        if ($user->getAccountType() !== 'PRIVATE') {
+            $form->get('documentType')->setData($user->getAccountType());
+        }
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
@@ -38,16 +42,20 @@ class SettingsController extends AbstractController
                 try {
                     // Validate document type
                     $documentType = $form->get('documentType')->getData();
-                    if (!in_array($documentType, ['national_id', 'passport', 'drivers_license', 'residence_permit'])) {
+
+                    if ($user->getAccountType() === 'PRIVATE' && !in_array($documentType, ['national_id', 'passport', 'drivers_license', 'residence_permit'])) {
                         throw new \InvalidArgumentException('Type de document invalide');
                     }
 
                     // Validate required files
                     $files = [
                         'frontImage' => $form['frontImage']->getData(),
-                        'backImage' => $form['backImage']->getData(),
-                        'selfieImage' => $form['selfieImage']->getData(),
                     ];
+
+                    if ($user->getAccountType() === 'PRIVATE') {
+                        $files['selfieImage'] = $form['selfieImage']->getData();
+                        $files['backImage'] = $form['backImage']->getData();
+                    }
 
                     foreach ($files as $type => $file) {
                         if (!$file) {
@@ -56,6 +64,9 @@ class SettingsController extends AbstractController
                     }
 
                     $formData = $form->getData();
+                    if ($user->getAccountType() !== 'PRIVATE'){
+                        $formData['documentType'] = $user->getAccountType();
+                    }
                     $success = $this->kycService->submitVerification($user, $formData, $files);
 
                     if ($success) {

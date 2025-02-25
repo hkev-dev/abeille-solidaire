@@ -25,6 +25,7 @@
                                         {{ kycVerification.getDocumentTypeLabel() }}
                                     </td>
                                 </tr>
+                                {% if submittedData.documentNumber %}
                                 <tr>
                                     <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
                                         Numéro du document:
@@ -33,6 +34,8 @@
                                         {{ submittedData.documentNumber }}
                                     </td>
                                 </tr>
+                                {% endif %}
+                                {% if submittedData.issuingCountry %}
                                 <tr>
                                     <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
                                         Pays Emetteur:
@@ -41,14 +44,17 @@
                                         {{ submittedData.issuingCountry }}
                                     </td>
                                 </tr>
+                                {% endif %}
+                                {% if submittedData.expiryDate %}
                                 <tr>
                                     <td class="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
                                         Date d'éxpiration:
                                     </td>
                                     <td class="text-sm text-gray-900 pb-3">
-                                        {{ submittedData.expiryDate.date|format_date }}
+                                        {{ submittedData.expiryDate ? submittedData.expiryDate.date|format_date : '' }}
                                     </td>
                                 </tr>
+                                {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -70,7 +76,7 @@
                                     <tr>
                                         <td class="text-left">
                                             <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.frontImage}) }}" download>
-                                                Recto du document
+                                                {{ kycVerification.getDocumentTypeLabel() }}
                                             </a>
                                         </td>
                                         <td class="text-left">
@@ -80,6 +86,7 @@
                                             </a>
                                         </td>
                                     </tr>
+                                    {% if documents["backImage"] is defined %}
                                     <tr>
                                         <td class="text-left">
                                             <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.backImage}) }}" download>
@@ -93,6 +100,8 @@
                                             </a>
                                         </td>
                                     </tr>
+                                    {% endif %}
+                                    {% if documents.selfieImage is defined%}
                                     <tr>
                                         <td class="text-left">
                                             <a class="text-sm font-medium text-gray-900 hover:text-primary" href="{{ path('admin_kyc_download', {filename : documents.selfieImage}) }}" download>
@@ -106,6 +115,7 @@
                                             </a>
                                         </td>
                                     </tr>
+                                    {% endif %}
                                     </tbody>
                                 </table>
                             </div>
