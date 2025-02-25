@@ -1,0 +1,64 @@
+{# templates/pages/auth/login.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Réinitialiser votre mot de passe - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Réinitialiser votre mot de passe',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Réinitialiser votre mot de passe', path: null}
+        ]
+    } %}
+
+
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="login-register__title">Réinitialisation de mot de passe</h3>
+
+                    {% include 'public/components/flash-messages.html.twig' %}
+
+                    {{ form_start(resetForm, {'attr': {'class': 'login-register__form'}}) }}
+                    {% for flash_error in app.flashes('reset_password_error') %}
+                        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <div class="flex-grow-1">{{ flash_error }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="contact-form__input-box">
+                        {#                            {{ form_row(requestForm.email) }} #}
+                        {{ form_widget(resetForm.plainPassword.first, {
+                            'attr': {
+                                'class': 'input',
+                                'placeholder': 'Nouveau mot de passe*'
+                            }
+                        }) }}
+                        {{ form_errors(resetForm.plainPassword.first) }}
+                    </div>
+
+                    <div class="contact-form__input-box">
+                        {{ form_widget(resetForm.plainPassword.second, {
+                            'attr': {
+                                'class': 'input',
+                                'placeholder': 'Confirmer mot de passe*'
+                            }
+                        }) }}
+                        {{ form_errors(resetForm.plainPassword.second) }}
+                    </div>
+
+                    <div class="login-register__info">
+                        <button type="submit" class="thm-btn login-register__btn">Réinitialiser</button>
+
+                    </div>
+                    {{ form_end(resetForm) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

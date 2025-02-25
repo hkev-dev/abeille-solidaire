@@ -1,0 +1,55 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Demande de réinitialisation de mot de passe - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Demande de réinitialisation de mot de passe',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Réinitialisation de mot de passe', path: null}
+        ]
+    } %}
+
+
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="login-register__title">Réinitialisation de mot de passe</h3>
+
+                    {% include 'public/components/flash-messages.html.twig' %}
+
+                    {{ form_start(requestForm, {'attr': {'class': 'login-register__form'}}) }}
+                        {% for flash_error in app.flashes('reset_password_error') %}
+                            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div class="flex-grow-1">{{ flash_error }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="contact-form__input-box">
+{#                            {{ form_row(requestForm.email) }}#}
+                            {{ form_widget(requestForm.email, {
+                                'attr': {
+                                    'class': 'input',
+                                    'placeholder': 'Email*'
+                                }
+                            }) }}
+                            {{ form_errors(requestForm.email) }}
+                        </div>
+
+                        <div class="login-register__info">
+                            <button type="submit" class="thm-btn login-register__btn">Envoyer le lien de réinitialisation</button>
+                            <div class="login-register__text">
+                                <a href="{{ path('app.login') }}">Retour à la page de connexion</a>
+                            </div>
+                        </div>
+                    {{ form_end(requestForm) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

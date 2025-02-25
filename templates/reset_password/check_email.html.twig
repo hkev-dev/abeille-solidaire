@@ -1,0 +1,43 @@
+{# templates/pages/auth/login.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Email de réinitialisation de mot de passe envoyé - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Connexion',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Email envoyé', path: null}
+        ]
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="login-register__title">Email de réinitialisation de mot de passe envoyé</h3>
+
+                    <div class="login-register__form">
+                        {% for flash_error in app.flashes('reset_password_error') %}
+                            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div class="flex-grow-1">{{ flash_error }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        <p>Si un compte correspondant à votre adresse email existe, un email vous a été envoyé qui
+                            contient un lien pour réinitialiser votre mot de passe.</p>
+                        <p>Ce lien expirera dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.</p>
+                        <p>Si vous ne recevez pas d'email, vérifiez votre dossier spam ou <a
+                                    href="{{ path('app_forgot_password_request') }}" style="text-decoration: underline">essayez de nouveau</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

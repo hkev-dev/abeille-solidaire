@@ -39,12 +39,16 @@
                         </div>
                         
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                        
-                        <div class="login-register__checkbox">
-                            <input type="checkbox" id="login-register__remember" name="_remember_me">
-                            <label for="login-register__remember">Se souvenir de moi</label>
+
+                        <div class="row align-items-end">
+                            <div class="login-register__checkbox col-md-6">
+                                <input type="checkbox" id="login-register__remember" name="_remember_me">
+                                <label for="login-register__remember">Se souvenir de moi</label>
+                            </div>
+                            <div class="login-register__forgot-password login-register__text col-md-6 text-right">
+                                <a href="{{ path('app_forgot_password_request') }}">Mot de passe oublié?</a>
+                            </div>
                         </div>
-                        
                         <div class="login-register__info">
                             <button type="submit" class="thm-btn login-register__btn">Connexion</button>
                             <div class="login-register__text">

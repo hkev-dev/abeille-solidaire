@@ -232,14 +232,14 @@
 				<p>©
 					{{ "now"|date("Y") }}
 					Abeille Solidaire. All rights reserved.</p>
-				<p>This email was sent to
-					{{ user.email }}</p>
 				<p>
+					{% if unsubscribe_url is defined %}
 					<small>
 						<a href="{{ unsubscribe_url }}" style="color: #666;">
 							Unsubscribe from these emails
 						</a>
 					</small>
+					{% endif %}
 				</p>
 			</div>
 		</div>
