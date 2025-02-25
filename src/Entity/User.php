@@ -553,7 +553,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->isKycVerified &&      // KYC verification completed
             $this->hasPaymentMethods() &&    // Annual membership is active
             $this->hasPaidAnnualFee() &&    // Annual membership is active
-            $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth
+//            $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth
             $this->hasProject();             // Has at least one project
     }
 

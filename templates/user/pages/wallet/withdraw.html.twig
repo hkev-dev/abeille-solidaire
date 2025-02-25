@@ -67,20 +67,6 @@
                             </div>
                         </div>
                         <div class="flex items-center p-4 bg-light rounded-lg">
-                            <i class="ki-duotone ki-wallet text-2xl {{ app.user.hasRequiredMatrixDepthForWithdrawal ? 'text-success' : 'text-warning' }} me-3"></i>
-                            <div>
-                                <div class="font-medium">Niveau de fleur (#4)</div>
-                                <div class="text-sm text-gray-600">
-                                    {% if app.user.hasRequiredMatrixDepthForWithdrawal %}
-                                        Suffisant
-                                    {% else %}
-                                        Insuffisant
-                                    {% endif %}
-                                    ({{ app.user.currentFlower.name }} #{{ app.user.currentFlower.level }})
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-4 bg-light rounded-lg">
                             <i class="ki-duotone ki-wallet text-2xl {{ app.user.hasPaymentMethods ? 'text-success' : 'text-warning' }} me-3"></i>
                             <div>
                                 <div class="font-medium">Méthode de paiement</div>
@@ -198,15 +184,6 @@
                                                     <span class="path2"></span>
                                                 </i>
                                                 Methode de paiement réquis
-                                            </li>
-                                        {% endif %}
-                                        {% if not app.user.hasRequiredMatrixDepthForWithdrawal %}
-                                            <li class="d-flex align-items-center text-danger">
-                                                <i class="ki-duotone ki-cross-circle fs-7 me-2">
-                                                    <span class="path1"></span>
-                                                    <span class="path2"></span>
-                                                </i>
-                                                Niveau de fleur insuffisant
                                             </li>
                                         {% endif %}
                                         {% if app.user.walletBalance < constant('App\\Entity\\Withdrawal::MIN_AMOUNT') %}
