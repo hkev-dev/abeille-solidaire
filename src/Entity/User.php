@@ -255,6 +255,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $balance += $donation->getEarningsAmount();
         }
 
+        foreach ($this->getProcessedWithdrawals() as $withdrawal) {
+            $balance -= $withdrawal->getAmount();
+        }
+
         return $balance;
     }
 
@@ -385,6 +389,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getWithdrawals(): Collection
     {
         return $this->withdrawals;
+    }
+
+    public function getProcessedWithdrawals(): Collection
+    {
+        return $this->getWithdrawals()->filter(function (Withdrawal $withdrawal) {
+            return $withdrawal->getStatus() === Withdrawal::STATUS_PROCESSED;
+        });
     }
 
     public function getFirstName(): ?string

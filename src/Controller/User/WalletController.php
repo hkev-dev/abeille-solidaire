@@ -66,7 +66,8 @@ class WalletController extends AbstractController
 
         $withdrawal = new Withdrawal();
         $form = $this->createForm(WithdrawalFormType::class, $withdrawal, [
-            'payment_methods' => $user->getPaymentMethods()
+            'payment_methods' => $user->getPaymentMethods(),
+            'max_amount' => max(Withdrawal::MIN_AMOUNT, min(Withdrawal::MAX_AMOUNT, $user->getWalletBalance())),
         ]);
 
         $form->handleRequest($request);

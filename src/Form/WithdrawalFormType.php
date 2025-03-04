@@ -25,7 +25,7 @@ class WithdrawalFormType extends AbstractType
                     new Assert\NotBlank(),
                     new Assert\Range([
                         'min' => Withdrawal::MIN_AMOUNT,
-                        'max' => Withdrawal::MAX_AMOUNT,
+                        'max' => $options['max_amount'],
                     ]),
                 ],
             ])
@@ -57,6 +57,7 @@ class WithdrawalFormType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Withdrawal::class,
             'payment_methods' => [],
+            'max_amount' => Withdrawal::MIN_AMOUNT,
         ]);
     }
 }
