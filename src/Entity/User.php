@@ -562,6 +562,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isEligibleForWithdrawal(): bool
     {
         return $this->isKycVerified &&      // KYC verification completed
+            $this->getWalletBalance() >= Withdrawal::MIN_AMOUNT &&    // Minimum withdrawal amount
             $this->hasPaymentMethods() &&    // Annual membership is active
             $this->hasPaidAnnualFee() &&    // Annual membership is active
 //            $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth

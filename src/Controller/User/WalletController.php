@@ -73,9 +73,11 @@ class WalletController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            //TODO on witdrawal submited
-            // Handle withdrawal submission
-            // This would be implemented in a service
+            if (!$user->isEligibleForWithdrawal()) {
+                $this->addFlash('error', 'Vous n\'avez pas le droit de faire un retrait.');
+                return $this->redirectToRoute('app.user.wallet.index');
+            }
+
             $withdrawal->setUser($user);
             $entityManager->persist($withdrawal);
             $entityManager->flush();
