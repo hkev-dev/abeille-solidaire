@@ -8,6 +8,8 @@ use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;
+use App\Service\UserService;
+use App\Service\WalletService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -19,11 +21,13 @@ class UserMenuComponent
     use DefaultActionTrait;
 
     public function __construct(
-        private readonly Security $security,
+        private readonly Security           $security,
         private readonly DonationRepository $donationRepository,
-        private readonly ProjectRepository $projectRepository,
-        private readonly FlowerRepository $flowerRepository,
-        private readonly UserRepository $userRepository,
+        private readonly ProjectRepository  $projectRepository,
+        private readonly FlowerRepository   $flowerRepository,
+        private readonly UserRepository     $userRepository,
+        private readonly WalletService      $walletService,
+        private readonly UserService $userService,
     ) {
     }
 
@@ -49,7 +53,7 @@ class UserMenuComponent
     #[ExposeInTemplate]
     public function getWalletBalance(): float
     {
-        return $this->getCurrentUser()->getWalletBalance();
+        return $this->walletService->getWalletBalance($this->getCurrentUser());
     }
 
     #[ExposeInTemplate]
@@ -84,7 +88,7 @@ class UserMenuComponent
     {
         $user = $this->getCurrentUser();
         return [
-            'isEligible' => $user->isEligibleForWithdrawal(),
+            'isEligible' => $this->userService->isEligibleForWithdrawal($user),
             'hasKyc' => $user->isKycVerified(),
             'hasAnnualFee' => $user->hasPaidAnnualFee(),
             'hasProject' => $user->hasProject(),

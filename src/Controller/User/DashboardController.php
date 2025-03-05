@@ -9,6 +9,8 @@ use App\Repository\DonationRepository;
 use App\Repository\EarningRepository;
 use App\Repository\UserRepository;
 use App\Repository\WithdrawalRepository;
+use App\Service\UserService;
+use App\Service\WalletService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -22,6 +24,8 @@ class DashboardController extends AbstractController
         private readonly UserRepository       $userRepository,
         private readonly WithdrawalRepository $withdrawalRepository,
         private readonly EarningRepository $earningRepository,
+        private readonly WalletService $walletService,
+        private readonly UserService $userService,
     ) {
     }
 
@@ -50,7 +54,7 @@ class DashboardController extends AbstractController
         ];
 
         // Calculate withdrawal eligibility
-        $canWithdraw = $user->isEligibleForWithdrawal();
+        $canWithdraw = $this->userService->isEligibleForWithdrawal($user);
 
         // Format recent activities
         $recentActivity = $this->formatRecentActivity($user);
@@ -62,7 +66,7 @@ class DashboardController extends AbstractController
             'user' => $user,
             'showChoiceModal' => $justLoggedIn,
             'currentFlower' => $currentFlower,
-            'walletBalance' => $user->getWalletBalance(),
+            'walletBalance' => $this->walletService->getWalletBalance($user),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
             'matrixChildren' => $user->getChildrenDonation(),
@@ -77,7 +81,7 @@ class DashboardController extends AbstractController
             ],
             'isKycVerified' => $user->isKycVerified(),
             'recentActivity' => $recentActivity,
-            'canWithdraw' => $canWithdraw && $user->getWalletBalance() >= 50.0,
+            'canWithdraw' => $canWithdraw,
         ];
 
         return $this->render('user/pages/dashboard/index.html.twig', $data);

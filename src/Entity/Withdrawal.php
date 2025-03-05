@@ -221,12 +221,6 @@ class Withdrawal
             return false;
         }
 
-        // Validate user has sufficient balance
-        if ($this->user->getWalletBalance() < $this->amount) {
-            $this->failureReason = 'Insufficient wallet balance';
-            return false;
-        }
-
         return true;
     }
 

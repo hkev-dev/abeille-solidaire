@@ -8,6 +8,8 @@ use App\Repository\UserRepository;
 use App\Repository\FlowerRepository;
 use App\Repository\DonationRepository;
 use App\Service\FlowerService;
+use App\Service\UserService;
+use App\Service\WalletService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +20,9 @@ class FlowerController extends AbstractController
         private readonly DonationRepository $donationRepository,
         private readonly FlowerRepository   $flowerRepository,
         private readonly UserRepository     $userRepository,
-        private readonly FlowerService $flowerService,
+        private readonly FlowerService      $flowerService,
+        private readonly WalletService      $walletService,
+        private readonly UserService $userService,
     ) {
     }
 
@@ -37,7 +41,7 @@ class FlowerController extends AbstractController
             'user' => $user,
             'flower' => $currentFlower,
             'allFlowers' => $this->flowerService->getFlowerProgression($currentFlower),
-            'walletBalance' => $user->getWalletBalance(),
+            'walletBalance' => $this->walletService->getWalletBalance($user),
             'totalDonationsReceived' => $this->donationRepository->getTotalReceivedByUser($user),
             'totalDonationsMade' => $this->donationRepository->getTotalMadeByUser($user),
             'matrixPositions' => array_pad($user->getChildren()->toArray(), 4, null),
@@ -53,7 +57,7 @@ class FlowerController extends AbstractController
             'completedCycles' => $this->donationRepository->countCompletedCycles($user, $currentFlower),
             'isKycVerified' => $user->isKycVerified(),
             'recentDonations' => $this->donationRepository->findRecentByUser($user, 5),
-            'canWithdraw' => $user->isEligibleForWithdrawal() && $user->getWalletBalance() >= 50.0,
+            'canWithdraw' => $this->userService->isEligibleForWithdrawal($user),
         ];
 
         return $this->render('user/pages/flower/current.html.twig', $data);

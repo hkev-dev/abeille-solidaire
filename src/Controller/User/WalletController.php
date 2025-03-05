@@ -7,6 +7,8 @@ use App\Entity\Withdrawal;
 use App\Form\WithdrawalFormType;
 use App\Repository\WithdrawalRepository;
 use App\Service\Payment\CoinPaymentsService;
+use App\Service\UserService;
+use App\Service\WalletService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +20,9 @@ class WalletController extends AbstractController
 {
     public function __construct(
         private readonly WithdrawalRepository $withdrawalRepository,
-        private readonly CoinPaymentsService $coinPaymentsService
+        private readonly CoinPaymentsService  $coinPaymentsService,
+        private readonly WalletService        $walletService,
+        private readonly UserService $userService,
     ) {
     }
 
@@ -33,7 +37,7 @@ class WalletController extends AbstractController
         );
 
         $data = [
-            'walletBalance' => $user->getWalletBalance(),
+            'walletBalance' => $this->walletService->getWalletBalance($user),
             'recentWithdrawals' => $recentWithdrawals,
             'lastWithdrawal' => !empty($recentWithdrawals) ? $recentWithdrawals[0] : null,
             'pendingWithdrawals' => $this->withdrawalRepository->findBy(
@@ -62,18 +66,18 @@ class WalletController extends AbstractController
         $user = $this->getUser();
 
         // Check all withdrawal prerequisites
-        $canWithdraw = $user->isEligibleForWithdrawal();
+        $canWithdraw = $this->userService->isEligibleForWithdrawal($user);
 
         $withdrawal = new Withdrawal();
         $form = $this->createForm(WithdrawalFormType::class, $withdrawal, [
             'payment_methods' => $user->getPaymentMethods(),
-            'max_amount' => max(Withdrawal::MIN_AMOUNT, min(Withdrawal::MAX_AMOUNT, $user->getWalletBalance())),
+            'max_amount' => max(Withdrawal::MIN_AMOUNT, min(Withdrawal::MAX_AMOUNT, $this->walletService->getWalletBalance($user))),
         ]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if (!$user->isEligibleForWithdrawal()) {
+            if (!$this->userService->isEligibleForWithdrawal($user)) {
                 $this->addFlash('error', 'Vous n\'avez pas le droit de faire un retrait.');
                 return $this->redirectToRoute('app.user.wallet.index');
             }

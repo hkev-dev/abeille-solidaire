@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
+use Doctrine\DBAL\Driver\PDO\Exception;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -82,8 +83,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(targetEntity: Project::class, mappedBy: 'creator')]
     private ?Project $currentProject = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $walletBalance = 0.0;
+    private ?float $walletBalance = null;
 
     #[ORM\OneToMany(targetEntity: Donation::class, mappedBy: 'donor', cascade: ['persist', 'remove'])]
     private Collection $donationsMade;
@@ -246,20 +246,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getWalletBalance(): float
+
+    public function getWalletBalance(): ?float
     {
-        $balance = 0.0;
-
-        /** @var Donation $donation */
-        foreach ($this->donationsMade as $donation) {
-            $balance += $donation->getEarningsAmount();
-        }
-
-        foreach ($this->getProcessedWithdrawals() as $withdrawal) {
-            $balance -= $withdrawal->getAmount();
-        }
-
-        return $balance;
+        return $this->walletBalance;
     }
 
     public function setWalletBalance(float $walletBalance): self
@@ -522,7 +512,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasProject(): bool
     {
-        return $this->currentProject !== null;
+        return $this->getProjects()->count() > 0;
     }
 
     public function getProject(): ?Project
@@ -557,16 +547,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return array_intersect(['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'], $this->getRoles()) ||
             $this->getMainDonation()?->getFlower()->getLevel() >= 4;
-    }
-
-    public function isEligibleForWithdrawal(): bool
-    {
-        return $this->isKycVerified &&      // KYC verification completed
-            $this->getWalletBalance() >= Withdrawal::MIN_AMOUNT &&    // Minimum withdrawal amount
-            $this->hasPaymentMethods() &&    // Annual membership is active
-            $this->hasPaidAnnualFee() &&    // Annual membership is active
-//            $this->hasRequiredMatrixDepthForWithdrawal() &&       // Has required matrix depth
-            $this->hasProject();             // Has at least one project
     }
 
     public function getFlowerProgress(): array
