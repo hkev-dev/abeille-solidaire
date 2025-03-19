@@ -8,6 +8,7 @@ use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -124,6 +125,23 @@ class UserUpdateType extends AbstractType
                     ])
                 ]
             ]);
+
+        if (!$options['data']->isKycVerified()) {
+            $builder->add('email', EmailType::class, [
+                'attr' => [
+                    'class' => 'input',
+                    'placeholder' => 'Email'
+                ],
+                'label' => 'Email',
+            ])
+                ->add('username', TextType::class, [
+                    'attr' => [
+                        'class' => 'input',
+                        'placeholder' => 'Nom d\'utilisateur'
+                    ],
+                    'label' => 'Nom d\'utilisateur',
+                ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

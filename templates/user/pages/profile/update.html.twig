@@ -26,7 +26,11 @@
                             </h4>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {% for field in ['accountType', 'firstName', 'lastName', 'organizationName', 'organizationNumber', 'country', 'phone'] %}
+                                {% set fields = ['accountType', 'firstName', 'lastName', 'organizationName', 'organizationNumber', 'country', 'phone'] %}
+                                {% if not user.isKycVerified %}
+                                    {% set fields = ['email', 'username']|merge(fields) %}
+                                {% endif %}
+                                {% for field in fields %}
                                     <div class="space-y-2 {{ field in ["organizationName", "organizationNumber"] ? "organization-field" : "" }}">
                                         {{ form_label(attribute(form, field), null, {
                                             'label_attr': {
