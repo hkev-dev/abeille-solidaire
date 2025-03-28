@@ -10,8 +10,11 @@ use App\Service\Payment\CoinPaymentsService;
 use App\Service\UserService;
 use App\Service\WalletService;
 use Doctrine\ORM\EntityManagerInterface;
+use Nucleos\DompdfBundle\Wrapper\DompdfWrapperInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -106,19 +109,37 @@ class WalletController extends AbstractController
         // Calculate simple stats
         $totalAmount = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getAmount(), 0.0);
         $totalFees = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getFeeAmount(), 0.0);
-        $stripeCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'stripe'));
-        $cryptoCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod() === 'crypto'));
-        $successCount = count(array_filter($withdrawals, fn($w) => $w->getStatus() === 'processed'));
+        $cryptoCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod()->getMethodType() === 'crypto'));
+        $successCount = count(array_filter($withdrawals, fn(Withdrawal $w) => $w->getStatus() === Withdrawal::STATUS_PROCESSED));
+        $ribCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod()->getMethodType() === 'rib'));
 
         return $this->render('user/pages/wallet/history.html.twig', [
             'withdrawals' => $withdrawals,
             'total_amount' => $totalAmount,
             'total_fees' => $totalFees,
             'stats' => [
-                'stripe_count' => $stripeCount,
+                'rib_count' => $ribCount,
                 'crypto_count' => $cryptoCount,
                 'success_rate' => count($withdrawals) > 0 ? ($successCount / count($withdrawals)) * 100 : 0
             ]
         ]);
+    }
+
+    #[Route('/withdraw/{id}/download', name: 'withdraw.download')]
+    public function download(Withdrawal $withdrawal, LoggerInterface $logger, DompdfWrapperInterface $dompdfWrapper): Response
+    {
+        if ($withdrawal->getStatus() !== Withdrawal::STATUS_PROCESSED) {
+            throw new NotFoundHttpException('Withdrawal not processed');
+        }
+
+        $content = $this->render('pdf/withdrawal/receipt.html.twig', [
+            'withdrawal' => $withdrawal,
+        ]);
+
+        $logger->info('generatePdf accounting Book for company ' . $withdrawal->getId());
+        $response = $dompdfWrapper->getStreamResponse($content, 'AbeilleSolidaire-Recu-de-retrait--' . $withdrawal->getId() . '--' . date('Y-m-d H:i:s') . '.pdf');
+        $logger->info('accounting Book pdf generated for company ' . $withdrawal->getId());
+
+        return $response;
     }
 }

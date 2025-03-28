@@ -169,6 +169,7 @@
                                     <th>Méthode</th>
                                     <th>Commission</th>
                                     <th>Statut</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,6 +192,17 @@
                                             <span class="badge badge-warning">En cours</span>
                                         {% else %}
                                             <span class="badge badge-danger">Échoué</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if withdrawal.status == 'processed' %}
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ path('app.user.wallet.withdraw.download', {id: withdrawal.id}) }}"
+                                                   class="btn btn-sm btn-light-primary">
+                                                    <i class="ki-duotone ki-document text-primary"></i>
+                                                    Reçu
+                                                </a>
+                                            </div>
                                         {% endif %}
                                     </td>
                                 </tr>

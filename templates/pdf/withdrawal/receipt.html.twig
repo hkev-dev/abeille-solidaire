@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .no-border {
+            border-collapse: collapse; /* Supprime l'espacement entre les cellules */
+        }
+
+        .no-border th,
+        .no-border td {
+            border: none; /* Supprime les bordures des cellules */
+        }
+
+        .header-title {
+            text-decoration: underline;
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+    </style>
+    <title>Reçu de retrait</title>
+</head>
+<body>
+<h3 style="text-align: left">Abeille Solidaire</h3>
+<h3>71-75 SHELTON STREET COVENT GARDEN</h3>
+<h3>LONDON ROYAUME-UNI WC2H 9JQ</h3>
+<h3>Company Number 15645026</h3>
+<h3>Mail: contact@abeillesolidaire.club</h3>
+<br>
+<br>
+<br>
+<br>
+<br>
+<h1 style="text-align: center">ATTESTATION DE RETRAIT DE DON</h1>
+<br>
+<br>
+<p>Je soussigné Abeille Solidaire, atteste que <strong>{{ withdrawal.user.fullName }}</strong> a retiré un don d’un
+    montant de <strong>{{ withdrawal.amount }} €</strong> en date du
+    <strong>{{ withdrawal.createdAt|date('d/m/Y') }}</strong>.</p>
+<br>
+<br>
+<p style="margin-top: 20px;">Pour faire valoir ce que de droit</p>
+<p>Fait à Londres, Royaume-Uni, le {{ "now"|date("d/m/Y") }}</p>
+<br>
+<br>
+<p>Signature</p>
+<p style="">Abeille Solidaire</p>
+<br>
+<br>
+<br>
+<br>
+<br>
+<p>Attestation de dons Perçu</p>
+</body>
+</html>
