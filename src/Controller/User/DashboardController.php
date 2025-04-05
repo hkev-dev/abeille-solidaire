@@ -53,6 +53,8 @@ class DashboardController extends AbstractController
             'daysUntilExpiration' => $user->getDaysUntilAnnualFeeExpiration()
         ];
 
+        var_dump($membershipInfo);die;
+
         // Calculate withdrawal eligibility
         $canWithdraw = $this->userService->isEligibleForWithdrawal($user);
 
