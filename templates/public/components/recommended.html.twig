@@ -44,7 +44,9 @@
 								<div class="recommended-one__img">
 									{% if project.image %}
 										<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
-									{% endif %}
+									{% else %}
+                                        <img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
+                                    {% endif %}
 								</div>
 
 								{# Favorite Icon #}
