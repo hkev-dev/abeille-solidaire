@@ -4,6 +4,8 @@
 		<div class="project-one__img">
 			{% if project.image %}
 				<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
+			{% else %}
+				<img src="/uploads/projects/_default.jpg" alt="">
 			{% endif %}
 		</div>
 		<div class="project-one__icon">
