@@ -26,6 +26,8 @@
 						<div class="project-details-top__img">
 							{% if project.image %}
 								<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
+							{% else %}
+								<img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
 							{% endif %}
 							<div class="project-details-top__icon">
 								<i class="far fa-heart"></i>
