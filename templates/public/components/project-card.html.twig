@@ -2,7 +2,7 @@
 <div class="project-one__single">
 	<div class="project-one__img-box">
 		<div class="project-one__img">
-			{% if project.image %}
+			{% if project.image and project.image != ' ' %}
 				<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
 			{% else %}
 				<img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">

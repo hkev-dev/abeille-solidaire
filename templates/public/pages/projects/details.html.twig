@@ -24,7 +24,7 @@
 				<div class="col-xl-7 col-lg-6 d-flex align-items-center justify-center">
 					<div class="project-details-top__left w-100">
 						<div class="project-details-top__img">
-							{% if project.image %}
+							{% if project.image and project.image != ' ' %}
 								<img src="{{ vich_uploader_asset(project, 'imageFile') }}" alt="{{ project.title }}">
 							{% else %}
 								<img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
