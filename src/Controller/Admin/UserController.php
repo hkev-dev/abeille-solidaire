@@ -90,7 +90,7 @@ class UserController extends AbstractController
 
     }
 
-    #[Route('/export', name: 'user_export')]
+    #[Route('/export', name: 'export')]
     public function export(Request $request, UserRepository $userRepository, ExcelExporterService $excelExporter): Response
     {
         $data = $userRepository->getAll();

@@ -15,6 +15,7 @@ class ExcelExporterService
         $columnIndex = 'A';
         foreach ($headers as $header) {
             $sheet->setCellValue($columnIndex . '1', $header);
+            $sheet->getColumnDimension($columnIndex)->setAutoSize(true);
             $columnIndex++;
         }
 
