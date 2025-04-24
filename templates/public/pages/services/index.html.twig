@@ -1,0 +1,88 @@
+{# templates/pages/services/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Services - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Nos Services',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Services', path: null}
+        ]
+    } %}
+
+    {# Project List Section #}
+    <section class="events-list">
+            <div class="container">
+                <div class="events-list__inner">
+                    <!--Events List Single Start-->
+                    <div class="events-list__single">
+                        <div class="events-list__left" style="max-width: inherit;">
+                            <div class="events-list__img">
+                                <img src="{{ asset('landing/images/services/nr-logo.png') }}" alt="">
+                                <div class="events-list__date">
+                                    <h3>Nova Regnum</h3>
+                                </div>
+                            </div>
+                            <div class="events-list__content">
+                                <h3 class="events-list__title">À Propos</h3>
+                                <p class="events-list__text">Expert en solutions digitales, je mets mon expertise au service de votre réussite en ligne. Spécialisé dans la création web, le référencement et le développement d'applications, je propose des solutions sur mesure pour optimiser votre présence numérique.</p>
+
+                                <h3 class="events-list__title">Expertise</h3>
+                                <p class="events-list__text"><b>Développement Web & Applications</b></p>
+                                <ul>
+                                    <li>Création de sites web modernes et responsifs</li>
+                                    <li>Développement d'applications digitales innovantes</li>
+                                    <li>Solutions e-commerce personnalisées</li>
+                                </ul>
+
+                                <p class="events-list__text"><b>Référencement & Marketing Digital</b></p>
+                                <ul>
+                                    <li>Optimisation SEO pour une meilleure visibilité</li>
+                                    <li>Gestion de campagnes SEA (Google Ads) + SMO ( Réseaux sociaux)</li>
+                                    <li>Stratégies de marketing digital globales</li>
+                                </ul>
+
+                                <h3 class="events-list__title">Réalisations</h3>
+                                <p class="events-list__text"><b>Applications web</b></p>
+                                <ul>
+                                    <li>Abeille Solidaire - Application communautaire</li>
+                                    <li>Star du Prono - Plateforme de pronostics</li>
+                                </ul>
+
+                                <p class="events-list__text"><b>Sites Web</b></p>
+                                <ul>
+                                    <li>Blablassur - Site d'assurance</li>
+                                    <li>Assuvalo - Services d'assurance</li>
+                                    <li>Assurtime - Courtage en assurance</li>
+                                    <li>Magneeducation - Sites de cours en ligne</li>
+                                    <li>Staging Artofdentistry - Site Magne Education propose des formations avancées en dentisterie restauratrice biomimétique, avec des cours, conférences et ressources pour perfectionner les techniques esthétiques et fonctionnelles des dentistes.</li>
+                                </ul>
+
+                                <p class="events-list__text"><b>E-commerce</b></p>
+                                <ul>
+                                    <li>Idéco Jardin - Boutique de décoration jardin</li>
+                                    <li>Bijoux Tidy - Boutique de bijoux en ligne</li>
+                                    <li>henkatoys.com - Boutique Kids</li>
+                                </ul>
+
+                                <p class="events-list__text"><b>Contact</b></p>
+                                <p>Disponible pour nouveaux projets 📞 0618283713 <br/>Contactez-moi pour discuter de votre projet digital 📧 contact@nova-regnum.com</p>
+
+                                <p class="events-list__text"><b>Services Proposés</b></p>
+                                <ul>
+                                    <li>🌐 Création de Sites Web</li>
+                                    <li>🔍 SEO & SEA & SMO</li>
+                                    <li>📱 Développement d'Applications</li>
+                                </ul>
+
+                                <p class="events-list__text">Site web: <a href="https://nova-regnum.com/">nova-regnum</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+{% endblock %}
