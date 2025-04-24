@@ -34,7 +34,7 @@ RUN set -eux; \
 	zip \
 	pdo_pgsql \
 	pgsql \
-	iconv \
+    iconv \
 	;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
@@ -70,7 +70,7 @@ COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 # Copy composer files first
 COPY --link composer.* symfony.* ./
 RUN set -eux; \
-	composer install --no-cache --prefer-dist
+	composer install --no-cache --prefer-dist --no-scripts --no-progress
 
 # Copy sources after initial install
 COPY --link . ./
@@ -101,7 +101,7 @@ COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 # prevent the reinstallation of vendors at every changes in the source code
 COPY --link composer.* symfony.* ./
 RUN set -eux; \
-	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts
+	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
 # copy sources
 COPY --link . ./

@@ -308,6 +308,7 @@ class InitializeSystemCommand extends Command
             'JSON Extension' => extension_loaded('json'),
             'Ctype Extension' => extension_loaded('ctype'),
             'APCu Extension' => extension_loaded('apcu'),
+            'iconv Extension' => extension_loaded('iconv'),
             'var/ Directory Writable' => is_writable($this->getProjectDir() . '/var'),
             'public/ Directory Writable' => is_writable($this->getProjectDir() . '/public'),
             '.env File Exists' => file_exists($this->getProjectDir() . '/.env'),
