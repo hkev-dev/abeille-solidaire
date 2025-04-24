@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\ExcelExporterService;
 
 #[Route('/admin/user', name: 'app.admin.user.')]
 #[IsGranted('ROLE_ADMIN')]
@@ -87,5 +88,28 @@ class UserController extends AbstractController
             'documents' => $kycVerification->getDocuments(),
         ]);
 
+    }
+
+    #[Route('/export', name: 'user_export')]
+    public function export(Request $request, UserRepository $userRepository, ExcelExporterService $excelExporter): Response
+    {
+        $data = $this->userRepository->getAll();
+
+        $formattedData = [];
+        foreach ($data as $entity) {
+            $formattedData[] = [
+                $entity->getId(),
+                $entity->getName(),
+                $entity->getEmail(),
+                $entity->getPhone()
+            ];
+        }
+
+        $headers = ['ID', 'Nom d\'utilisateur', 'Email', 'Phone'];
+        $filename = 'export.xlsx';
+
+        $this->excelExporter->export($formattedData, $headers, $filename);
+
+        return $this->file($filename);
     }
 }

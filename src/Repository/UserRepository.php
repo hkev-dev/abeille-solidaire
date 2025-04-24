@@ -79,6 +79,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    public function getAll()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u')
+            ->getQuery()
+            ->getResult();
+    }
+
 
     /**
      * @param DateTime $dateThreshold
