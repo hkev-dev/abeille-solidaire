@@ -93,7 +93,7 @@ class UserController extends AbstractController
     #[Route('/export', name: 'user_export')]
     public function export(Request $request, UserRepository $userRepository, ExcelExporterService $excelExporter): Response
     {
-        $data = $this->userRepository->getAll();
+        $data = $userRepository->getAll();
 
         $formattedData = [];
         foreach ($data as $entity) {
@@ -108,7 +108,7 @@ class UserController extends AbstractController
         $headers = ['ID', 'Nom d\'utilisateur', 'Email', 'Phone'];
         $filename = 'export.xlsx';
 
-        $this->excelExporter->export($formattedData, $headers, $filename);
+        $excelExporter->export($formattedData, $headers, $filename);
 
         return $this->file($filename);
     }
