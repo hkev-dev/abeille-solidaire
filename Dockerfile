@@ -35,6 +35,7 @@ RUN set -eux; \
 	pdo_pgsql \
 	pgsql \
     iconv \
+    gd \
 	;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
