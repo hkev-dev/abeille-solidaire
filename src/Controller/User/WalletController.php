@@ -105,10 +105,11 @@ class WalletController extends AbstractController
     {
         $user = $this->getUser();
         $withdrawals = $this->withdrawalRepository->findUserWithdrawals($user);
+        $acceptedWithdrawals = $this->withdrawalRepository->findUserAcceptedWithdrawals($user);
 
         // Calculate simple stats
-        $totalAmount = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getAmount(), 0.0);
-        $totalFees = array_reduce($withdrawals, fn($carry, $withdrawal) => $carry + $withdrawal->getFeeAmount(), 0.0);
+        $totalAmount = array_reduce($acceptedWithdrawals, fn($carry, $acceptedWithdrawals) => $carry + $acceptedWithdrawals->getAmount(), 0.0);
+        $totalFees = array_reduce($acceptedWithdrawals, fn($carry, $acceptedWithdrawals) => $carry + $acceptedWithdrawals->getFeeAmount(), 0.0);
         $cryptoCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod()->getMethodType() === 'crypto'));
         $successCount = count(array_filter($withdrawals, fn(Withdrawal $w) => $w->getStatus() === Withdrawal::STATUS_PROCESSED));
         $ribCount = count(array_filter($withdrawals, fn($w) => $w->getWithdrawalMethod()->getMethodType() === 'rib'));

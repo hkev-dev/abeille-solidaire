@@ -45,6 +45,18 @@ class WithdrawalRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findUserAcceptedWithdrawals(User $user): array
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.user = :user')
+            ->andWhere('w.status = :status')
+            ->setParameter('status', Withdrawal::STATUS_PROCESSED)
+            ->setParameter('user', $user)
+            ->orderBy('w.requestedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findRecentByUser(User $user, int $limit = 5): array
     {
         return $this->createQueryBuilder('w')
