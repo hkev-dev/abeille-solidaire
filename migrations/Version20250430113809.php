@@ -20,7 +20,7 @@ final class Version20250430113809 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-
+        $this->addSql('CREATE TYPE cause_state_enum_type AS ENUM (\'completed\', \'in_progress\', \'canceled\')');
         $this->addSql('ALTER TABLE cause ADD status public."cause_state_enum_type" DEFAULT NULL');
         $this->addSql('COMMENT ON COLUMN cause.status IS \'(DC2Type:cause_state_enum_type)\'');
     }
