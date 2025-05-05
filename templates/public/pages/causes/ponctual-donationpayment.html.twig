@@ -116,7 +116,7 @@
                                             }
                                         }) }}
                                         <div>
-                                            <label class="form-check-label fw-bold" for="include_annual_membership">
+                                            <label class="form-check-label fw-bold" for="">
                                                 {#<i class="fas fa-star text-warning me-2"></i>#}
                                                 Donation annonyme
                                             </label>
@@ -269,7 +269,7 @@
             environment: '{{ app.environment }}',
             amount: 25,
             returnUrl: '{{ path("app.waiting_room") }}',
-            createIntentUrl: '{{ path("app.registration.payment") }}',
+            createIntentUrl: '{{ path("app.pdonation.payment") }}',
             currenciesUrl: '{{ path("app.registration.crypto.currencies") }}',
             csrf: {
                 stripeToken: '{{ csrf_token('stripe_payment') }}',
@@ -278,5 +278,18 @@
         });
 
         processor.initialize();
+
+        $(document).ready(function () {
+            function getUrlParam(param) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
+
+            const amount = getUrlParam('amount');
+
+            if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+                $('input[name$="[amount]"]').val(parseFloat(amount));
+            }
+        });
     </script>
 {% endblock %}

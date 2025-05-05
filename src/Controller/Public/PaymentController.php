@@ -112,22 +112,96 @@ class PaymentController extends AbstractController
         }
     }
 
-    /**
-     * @throws ApiErrorException
-     */
-    #[Route(path: "/donation", name: "app.payment.ponctualdonation")]
-    public function depositForm(Request $request): Response
+    #[Route('/ponctual-donation/payment', name: 'app.pdonation.payment', methods: ['GET', 'POST'])]
+    public function paymentSelection(Request $request): Response
     {
-        $amount = (float)$request->request->get('amount');
+        $user = $this->getUser();
+        if (!$user) {
+            $user = null;
+        }
 
-        if ($amount < 20)
-            $amount = 20.0;
+        // Handle AJAX requests for payment creation
+        if ($request->isXmlHttpRequest() && $request->getContent()) {
+            $data = json_decode($request->getContent(), true);
 
-        $user = $this->getUser() ? $this->getUser() : NULL;
+            dd($request);
 
-        $returnUrl = $this->generateUrl('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL);
-        $session = $this->paymentService->checkoutPayment($amount, 'Donation', 'Donation Abeille Solidaire', $returnUrl);
+            $paymentMethod = $data['payment_method'] ?? 'stripe';
 
-        return $this->redirect($session->url);
+            try {
+                $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
+                if (isset($data['currency'])) {
+                    $user->setPaymentCurrency($data['currency']);
+                }
+                $paymentData = $paymentService->createRegistrationPayment($user, $includeAnnualMembership);
+                if (isset($data['currency'])) {
+                    $paymentData["currency"] = $data['currency'];
+                }
+
+                // Store payment preferences in session
+                $request->getSession()->set('payment_method', $paymentMethod);
+                $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
+
+                if (isset($paymentData['payment_reference']) || isset($paymentData['txn_id'])) {
+                    $request->getSession()->set('payment_reference', $paymentData['payment_reference'] ?? $paymentData['txn_id']);
+                }
+
+                return $this->json($paymentData);
+            } catch (\Exception $e) {
+                return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $form = $this->createForm(PaymentSelectionType::class);
+        $form->handleRequest($request);
+
+        return $this->render('public/pages/auth/payment-selection.html.twig', [
+            'form' => $form->createView(),
+            'user' => $user,
+            'stripe_public_key' => $this->getParameter('stripe.public_key'),
+        ]);
+    }
+
+    #[Route('/ponctual-donation/waiting-room', name: 'app.pdonation.waiting_room')]
+    public function waitingRoom(Request $request, DonationRepository $donationRepository): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('app.login');
+        }
+
+        $donation = $donationRepository->find($request->query->get('id'));
+
+        if (!$donation) {
+            throw $this->createNotFoundException('Donation not found');
+        }
+
+        if ($donation->getPaymentStatus() === 'completed') {
+            return $this->redirectToRoute('app.user.dashboard');
+        } else if ($donation->getPaymentStatus() === 'failed') {
+            return $this->redirectToRoute('app.registration.payment');
+        }
+
+        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
+        $params = [
+            'user' => $user,
+            'payment_method' => $paymentMethod,
+            'payment_url' => $this->generateUrl('app.registration.payment'),
+            'payment_reference' => $request->getSession()->get('payment_reference'),
+            'donation' => $donation,
+        ];
+
+        if ($data = $request->query->get('cp_data')){
+            $params['cp_data'] = json_decode($data, true);
+
+            return $this->render('public/pages/auth/coinpayments-waiting-room.html.twig', $params);
+        }else if ($paymentMethod === 'stripe'){
+
+            return $this->render('public/pages/auth/waiting-room.html.twig', $params);
+        }else{
+            $this->addFlash('error', 'Payment method not supported');
+            return $this->redirectToRoute('app.user.dashboard');
+        }
     }
 }
