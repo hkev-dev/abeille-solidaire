@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Form\PDonationPaymentSelectionType;
 
 #[Route('/cause', name: 'landing.cause.')]
 class CauseController extends AbstractController
@@ -68,18 +69,25 @@ class CauseController extends AbstractController
         /*$similarCauses = array_values(array_filter($similarCauses, function (Cause $p) use ($cause) {
             return $p->id !== $cause->id;
         }));*/
+        $form = $this->createForm(PDonationPaymentSelectionType::class);
 
         return $this->render('public/pages/causes/details.html.twig', [
             'cause' => $cause,
+            'form' => $form,
+            'stripe_public_key' => $this->getParameter('stripe.public_key'),
             /*'similarCauses' => $similarCauses*/
         ]);
     }
 
 
 
-    #[Route('/support', name: 'support')]
-    public function support(EntityManagerInterface $entityManager): Response
+    #[Route('/support/{slug}', name: 'support')]
+    public function support(string $slug): Response
     {
-        return $this->redirectToRoute('app.landing.cause.index');
+        $form = $this->createForm(PDonationPaymentSelectionType::class);
+        return $this->render('public/pages/causes/ponctual-donationpayment.html.twig', [
+            'form' => $form,
+            'stripe_public_key' => $this->getParameter('stripe.public_key'),
+        ]);
     }
 }

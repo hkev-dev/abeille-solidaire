@@ -9,11 +9,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Service\Payment\PaymentService;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PaymentController extends AbstractController
 {
     public function __construct(
-        private PaymentFactory $paymentFactory
+        private PaymentFactory $paymentFactory,
+        private PaymentService $paymentService
     ) {
     }
 
@@ -107,5 +110,24 @@ class PaymentController extends AbstractController
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    /**
+     * @throws ApiErrorException
+     */
+    #[Route(path: "/donation", name: "app.payment.ponctualdonation")]
+    public function depositForm(Request $request): Response
+    {
+        $amount = (float)$request->request->get('amount');
+
+        if ($amount < 20)
+            $amount = 20.0;
+
+        $user = $this->getUser() ? $this->getUser() : NULL;
+
+        $returnUrl = $this->generateUrl('landing.home', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $session = $this->paymentService->checkoutPayment($amount, 'Donation', 'Donation Abeille Solidaire', $returnUrl);
+
+        return $this->redirect($session->url);
     }
 }
