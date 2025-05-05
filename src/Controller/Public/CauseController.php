@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Controller\Public;
+
+use App\Entity\Cause;
+use App\Repository\CauseRepository;
+use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/cause', name: 'landing.cause.')]
+class CauseController extends AbstractController
+{
+    public function __construct(
+        private readonly CauseRepository $causeRepository,
+        private readonly PaginatorInterface $paginator
+    ) {
+    }
+
+    #[Route('/', name: 'index')]
+    public function index(Request $request): Response
+    {
+        $query = $this->causeRepository->createQueryBuilder('p')
+            ->orderBy('p.id', 'DESC')
+            ;
+
+        /*if ($request->query->has('category')) {
+            $query->andWhere('p.category = :category')
+                ->setParameter('category', $request->query->get('category'));
+        }*/
+
+        if ($request->query->has('q')) {
+            $query->andWhere('LOWER(p.title) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . $request->query->get('q') . '%');
+        }
+
+        $causes = $this->paginator->paginate(
+            $query->getQuery(),
+            $request->query->getInt('page', 1),
+            9 // Number of items per page
+        );
+
+        return $this->render('public/pages/causes/index.html.twig', [
+            'causes' => $causes
+        ]);
+    }
+
+    #[Route('/{slug}', name: 'details')]
+    public function details(string $slug): Response
+    {
+        /** @var Cause $cause */
+        $cause = $this->causeRepository->findOneBySlug($slug);
+
+        if (!$cause) {
+            throw $this->createNotFoundException('Cause not found');
+        }
+
+        // Get similar causes (same category, excluding current cause)
+        /*$similarCauses = $this->causeRepository->findBy(
+            ['category' => $cause->getCategory()],
+            ['createdAt' => 'DESC'],
+            3
+        );*/
+
+        // Filter out the current cause from similar causes
+        /*$similarCauses = array_values(array_filter($similarCauses, function (Cause $p) use ($cause) {
+            return $p->id !== $cause->id;
+        }));*/
+
+        return $this->render('public/pages/causes/details.html.twig', [
+            'cause' => $cause,
+            /*'similarCauses' => $similarCauses*/
+        ]);
+    }
+
+
+
+    #[Route('/support', name: 'support')]
+    public function support(EntityManagerInterface $entityManager): Response
+    {
+        return $this->redirectToRoute('app.landing.cause.index');
+    }
+}

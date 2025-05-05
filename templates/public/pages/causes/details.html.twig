@@ -1,0 +1,172 @@
+{# templates/pages/projects/details.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}
+	{{ cause.title }}
+	- Abeille Solidaire
+{% endblock %}
+
+{% block content %}
+	{# Page Header #}
+	{% include 'public/components/page-header.html.twig' with {
+        title: cause.title,
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Causes', path: 'landing.cause.index'},
+            {label: cause.title, path: null}
+        ]
+    } %}
+
+	{# Project Details Top Section #}
+	<section class="project-details-top">
+		<div class="container">
+			<div class="row">
+				<div class="col-xl-7 col-lg-6 d-flex align-items-center justify-center">
+					<div class="project-details-top__left w-100">
+						<div class="project-details-top__img">
+							{% if cause.image and cause.image != ' ' %}
+								<img src="{{ vich_uploader_asset(cause, 'imageFile') }}" alt="{{ cause.title }}">
+							{% else %}
+								<img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
+							{% endif %}
+							<div class="project-details-top__icon">
+								<i class="far fa-heart"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-5 col-lg-6">
+					<div class="project-details-top__right">
+						{#<div class="project-details-top__tag-address">
+							<div class="project-details-top__tag">
+								<p>{{ project.category.name }}</p>
+							</div>
+						</div>#}
+						<h3 class="project-details-top__title">{{ cause.title }}</h3>
+						{#{% include 'public/components/project-details/statistics.html.twig' with { project: cause } %}#}
+						{% include 'public/components/project-details/progress.html.twig' with { project: cause } %}
+						{#{% include 'public/components/project-details/creator.html.twig' with { creator: project.creator } %}#}
+						<div class="project-details-top__quantity-btn-social">
+							<div class="quantity-box">
+								<button type="button" class="sub"><i class="fa fa-minus"></i></button>
+								<input type="number" id="1" value="00">
+								<button type="button" class="add"><i class="fa fa-plus"></i></button>
+							</div>
+							<div class="project-details-top__btn-box">
+								<a href="#" class="thm-btn project-details-top__btn">Supporter</a>
+							</div>
+							{#<div class="project-details-top__social">
+								<a href="#"><i class="fab fa-twitter"></i></a>
+								<a href="#"><i class="fab fa-facebook"></i></a>
+								<a href="#"><i class="fab fa-pinterest-p"></i></a>
+								<a href="#"><i class="fab fa-instagram"></i></a>
+							</div>#}
+						</div>
+					</div> 
+				</div>
+			</div>
+		</div>
+	</section>
+
+	{# Project Details Bottom Section #}
+	<section class="project-details-bottom">
+		<div class="container">
+			<div class="row">
+				{# templates/components/project-details/tabs.html.twig #}
+				<div class="project-details__tab-box tabs-box">
+					<ul class="tab-buttons clearfix list-unstyled">
+						<li data-tab="#story" class="tab-btn active-btn">
+							<span>Déscription</span>
+						</li>
+					</ul>
+
+					<div
+						class="tabs-content">
+						{# Story Tab #}
+						<div class="tab active-tab" id="story">
+							<div
+								class="project-details__tab-box-story">
+								{# templates/components/project-details/story-content.html.twig #}
+								<div class="mb-10">
+									{# Main Project Details #}
+									<div class="fs-fw-normal text-gray-700 mb-5">
+										{{ cause.description|nl2br }}
+									</div>
+
+									{# Project Stats Cards #}
+									<div class="row g-5 g-xl-10 mb-15 mt-10">
+										{# Pledged Amount #}
+										{# Goal Progress #}
+										<div class="col-md-6">
+											<div class="card bg-light h-100">
+												<div class="card-body">
+													<div class="d-flex flex-column h-100 justify-content-center">
+														<div class="mb-7">
+															<div class="d-flex align-items-center mb-2">
+																<span class="fs-2 fw-bold text-dark me-2">{{ cause.receivedAmount|format_currency('EUR') }}</span>
+																<span class="fs-7 fw-semibold text-gray-500">sur {{ cause.goal|format_currency('EUR') }}</span>
+															</div>
+															<div class="progress h-8px bg-light-primary mb-2">
+																<div class="progress-bar bg-primary" role="progressbar" style="width: {{ cause.progress }}%"></div>
+															</div>
+															<span class="fs-7 fw-semibold text-gray-500">{{ cause.progress|round }}% de l'objectif</span>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										{# Timeline #}
+										<div class="col-md-6">
+											<div class="card bg-light h-100">
+												<div class="card-body">
+													<div class="d-flex flex-column h-100">
+														<span class="fs-5 fw-bold text-dark mb-4">Calendrier</span>
+														<div class="d-flex flex-column">
+															<div class="d-flex justify-content-between mb-2">
+																<span class="text-gray-600">Début</span>
+																<span class="fw-bold">{{ cause.startDate|format_datetime('short', 'none') }}</span>
+															</div>
+															<div class="d-flex justify-content-between">
+																<span class="text-gray-600">Fin</span>
+																<span class="fw-bold">{{ cause.endDate|format_datetime('short', 'none') }}</span>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</section>
+
+	{# Similar Projects Section
+	{% if similarProjects is not empty %}
+		<section class="similar-project">
+			<div class="container">
+				<div class="section-title text-center">
+					<span class="section-title__tagline">Projets Similaires</span>
+					<h2 class="section-title__title">Découvrez des Projets
+						<br>
+						Similaires</h2>
+				</div>
+				<div class="row justify-content-center">
+					{% for similarProject in similarProjects %}
+						<div class="col-xl-4 col-lg-4 wow fadeInUp" data-wow-delay="{{ loop.index * 100 }}ms">
+							{% include 'public/components/project-card.html.twig' with { project: similarProject } %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+	{% endif %} #}
+
+{% endblock %}

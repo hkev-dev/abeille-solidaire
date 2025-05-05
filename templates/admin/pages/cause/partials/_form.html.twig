@@ -1,0 +1,236 @@
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {# Form Section #}
+            <div class="lg:col-span-2">
+                <div class="card">
+                    <div class="p-6">
+                        {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                            {# Title #}
+                            <div>
+                                {{ form_label(form.title, null, {
+                                    'label_attr': {
+                                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                    }
+                                }) }}
+                                {{ form_widget(form.title, {
+                                    'attr': {
+                                        'class': 'input'
+                                    }
+                                }) }}
+                                {{ form_errors(form.title) }}
+                            </div>
+
+                            {# Category #}
+                            {#<div>
+                                {{ form_label(form.category, null, {
+                                    'label_attr': {
+                                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                    }
+                                }) }}
+                                {{ form_widget(form.category, {
+                                    'attr': {
+                                        'class': 'select'
+                                    }
+                                }) }}
+                                {{ form_errors(form.category) }}
+                            </div>#}
+
+                            {# Goal Amount #}
+                            <div>
+                                {{ form_label(form.goal, null, {
+                                    'label_attr': {
+                                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                    }
+                                }) }}
+                                <div class="input-group">
+                                    {{ form_widget(form.goal, {
+                                        'attr': {
+                                            'class': 'input',
+                                            'placeholder': '0.00',
+                                            'min': '0',
+                                            'data-control': 'input'
+                                        }
+                                    }) }}
+                                    <span class="btn btn-secondary">€</span>
+                                </div>
+                                {{ form_errors(form.goal) }}
+                            </div>
+
+                            {# Description #}
+                            <div>
+                                {{ form_label(form.description, null, {
+                                    'label_attr': {
+                                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                    }
+                                }) }}
+                                {{ form_widget(form.description, {
+                                    'attr': {
+                                        'class': 'textarea',
+                                        'rows': '6'
+                                    }
+                                }) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+
+                            {# Dates Row #}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    {{ form_label(form.startDate, null, {
+                                        'label_attr': {
+                                            'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                        }
+                                    }) }}
+                                    {{ form_widget(form.startDate, {
+                                        'attr': {
+                                            'class': 'input',
+                                            'data-control': 'flatpickr'
+                                        }
+                                    }) }}
+                                    {{ form_errors(form.startDate) }}
+                                </div>
+                                <div>
+                                    {{ form_label(form.endDate, null, {
+                                        'label_attr': {
+                                            'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                        }
+                                    }) }}
+                                    {{ form_widget(form.endDate, {
+                                        'attr': {
+                                            'class': 'input',
+                                            'data-control': 'flatpickr'
+                                        }
+                                    }) }}
+                                    {{ form_errors(form.endDate) }}
+                                </div>
+                            </div>
+
+                            {# Project Image #}
+                            <div>
+                                {{ form_label(form.imageFile, null, {
+                                    'label_attr': {
+                                        'class': 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 block'
+                                    }
+                                }) }}
+                                <div class="image-input h-[300px] w-full" data-image-input="true">
+                                    {# File input #}
+                                    {{ form_widget(form.imageFile, {
+                                        'attr': {
+                                            'class': 'visual-hidden',
+                                            'accept': 'image/jpeg,image/png'
+                                        }
+                                    }) }}
+
+                                    {# Hidden input for remove action #}
+                                    <input type="hidden" name="image_remove"/>
+
+                                    {# Remove button #}
+                                    <span class="btn btn-icon btn-circle btn-active-color-primary w-7 h-7 bg-white absolute top-2 right-2 hidden image-input-changed:flex z-10" data-image-input-remove>
+                                        <i class="ki-duotone ki-cross fs-2"></i>
+                                    </span>
+
+                                    {# Placeholder with preview #}
+                                    <div class="image-input-placeholder w-full h-full border-2 border-dashed border-gray-300 rounded-lg">
+                                        <div class="image-input-preview w-full h-full bg-cover bg-center bg-no-repeat"></div>
+
+                                        {# Upload icon overlay #}
+                                        <div class="hidden image-input-empty:flex items-center justify-center absolute inset-0 cursor-pointer">
+                                            <div class="text-center p-4">
+                                                <i class="ki-duotone ki-picture fs-3x text-gray-400 mb-4"></i>
+                                                <p class="text-sm text-gray-600">Cliquez pour sélectionner</p>
+                                                <p class="text-xs text-gray-400 mt-1">JPG, PNG (max 5MB)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{ form_errors(form.imageFile) }}
+                            </div>
+
+                            {# Submit Buttons #}
+                            <div class="flex justify-end space-x-4 pt-4">
+                                <a href="{{ path('app.user.dashboard') }}" class="btn btn-light">
+                                    Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ki-duotone ki-save-2 fs-2 me-2"></i>
+                                    Créer la cause
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+
+            {# Help Section #}
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Guide de création</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-primary-light text-primary">
+                                        <i class="ki-duotone ki-bookmark fs-2"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium text-gray-900 dark:text-white">Titre accrocheur</h4>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        Choisissez un titre clair et descriptif qui résume bien la cause.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-success-light text-success">
+                                        <i class="ki-duotone ki-target fs-2"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium text-gray-900 dark:text-white">Objectif réaliste</h4>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        Définissez un objectif financier atteignable et justifié.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-info-light text-info">
+                                        <i class="ki-duotone ki-note-2 fs-2"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium text-gray-900 dark:text-white">Description détaillée</h4>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        Expliquez clairement la cause, ses objectifs et son impact.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% block javascripts %}
+    <script>
+        // Initialize flatpickr
+        flatpickr('[data-control="flatpickr"]', {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+
+        // Initialize select2
+        $('select.select').select2({
+            minimumResultsForSearch: 10,
+            theme: 'tailwind'
+        });
+
+        // Initialize image input
+        document.addEventListener('DOMContentLoaded', function () {
+            KTImageInput.init();
+        });
+    </script>
+{% endblock %}

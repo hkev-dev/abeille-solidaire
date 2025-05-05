@@ -1,0 +1,94 @@
+<div class="card">
+    {% if pagination.getPaginationData is defined and pagination.getPaginationData is not empty %}
+        <div class="card-header flex-wrap gap-2">
+            <h3 class="card-title text-gray-600 text-2sm font-medium">
+                Affichage de {{ pagination.getPaginationData.currentItemCount }}
+                sur {{ pagination.getPaginationData.totalCount }} projets
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+                <div class="flex">
+                    <form method="GET" class="flex items-center gap-2">
+                        <input type="hidden" name="perpage" value="{{ app.request.query.get('perpage', 10) }}">
+                        <label class="input input-sm">
+                            <i class="ki-filled ki-magnifier"></i>
+                            <input type="text" name="q" placeholder="Recherche ..."
+                                   value="{{ app.request.query.get('q', '') }}"/>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-light">Rechercher</button>
+                    </form>
+                <a href="{{ path('app.admin.cause.new') }}" class="btn btn-sm btn-primary">Ajouter une cause</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Objectif
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fond
+                        reçu
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                {% for cause in pagination %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-900 max-w-[200px] truncate">{{ cause.title }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ cause.goal|number_format(2) }} €</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm font-medium">
+                            {{ cause.receivedAmount|number_format(2) }} €
+                        </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="badge {{ cause.statusLabel }}">{{ cause.statusLabel }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                <a href="{{ path('app.admin.cause.detail', {id: cause.id}) }}"
+                                   class="btn btn-sm btn-light-primary">
+                                    <i class="ki-duotone ki-pencil text-primary"></i>
+                                    Detail
+                                </a>
+                                <a href="{{ path('app.admin.cause.delete', {id: cause.id}) }}"
+                                   class="btn btn-sm btn-light-danger">
+                                    <i class="ki-duotone ki-trash text-danger"></i>
+                                    Supprimer
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Aucun projet disponible
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    {% include 'admin/components/pagination.html.twig' with {
+        'paginationData': pagination.getPaginationData,
+        'listPath': 'app.admin.cause.index'
+    } %}
+</div>

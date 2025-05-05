@@ -1,0 +1,51 @@
+{# templates/components/project-card.html.twig #}
+<div class="project-one__single">
+	<div class="project-one__img-box">
+		<div class="project-one__img">
+			{% if cause.image and cause.image != ' ' %}
+				<img src="{{ vich_uploader_asset(cause, 'imageFile') }}" alt="{{ cause.title }}">
+			{% else %}
+				<img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
+			{% endif %}
+		</div>
+		<div class="project-one__icon">
+			<i class="far fa-heart"></i>
+		</div>
+	</div>
+	<div class="project-one__content">
+		{#<div class="project-one__tag">
+			<p>{{ project.category.name }}</p>
+		</div>#}
+		<h3 class="project-one__title">
+			<a href="{{ path('landing.cause.details', {slug: cause.slug}) }}">{{ cause.title }}</a>
+		</h3>
+		<div class="project-one__remaing">
+			<div class="icon">
+				<i class="fa fa-clock"></i>
+			</div>
+			<div class="text">
+				<p>{{ cause.daysLeft }} Jours Restants</p>
+			</div>
+		</div>
+		<div class="progress-levels">
+			<div class="progress-box">
+				<div class="inner count-box">
+					<div class="text">Collecté</div>
+					<div class="bar">
+						<div class="bar-innner">
+							<div class="skill-percent">
+								<span class="count-text" data-speed="3000" data-stop="{{ cause.progress|round }}">0</span>
+								<span class="percent">%</span>
+							</div>
+							<div class="bar-fill" data-percent="{{ cause.progress|round }}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="project-one__goals">
+			<p class="project-one__goals-one">Atteint :<span>{{ cause.receivedAmount|number_format(0, '.', ' ') }} €</span></p>
+			<p class="project-one__goals-one">Objectif :<span>{{ cause.goal|number_format(0, '.', ' ') }} €</span></p>
+		</div>
+	</div>
+</div>

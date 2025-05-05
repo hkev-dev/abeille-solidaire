@@ -1,0 +1,40 @@
+{# templates/pages/projects/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Causes - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Nos Causes',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Causes', path: null}
+        ]
+    } %}
+
+    {# Project List Section #}
+    <section class="project-page-one">
+        <div class="container">
+            <div class="row">
+                {% for cause in causes %}
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        {% include 'public/components/cause-card.html.twig' with { project: cause } %}
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            Aucune cause trouvé.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    {{ knp_pagination_render(causes, 'public/components/pagination.html.twig') }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
