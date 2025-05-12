@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CauseRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use App\Entity\Trait\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
@@ -55,9 +57,16 @@ class Cause
     #[Gedmo\Slug(fields: ['title'])]
     private ?string $slug = null;
 
+    /**
+     * @var Collection<int, PonctualDonation>
+     */
+    #[ORM\OneToMany(targetEntity: PonctualDonation::class, mappedBy: 'cause')]
+    private Collection $amount;
+
     public function __construct(){
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->amount = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -235,6 +244,36 @@ class Cause
     public function setSlug(?string $slug): static
     {
         $this->slug = $slug;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PonctualDonation>
+     */
+    public function getAmount(): Collection
+    {
+        return $this->amount;
+    }
+
+    public function addAmount(PonctualDonation $amount): static
+    {
+        if (!$this->amount->contains($amount)) {
+            $this->amount->add($amount);
+            $amount->setCause($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAmount(PonctualDonation $amount): static
+    {
+        if ($this->amount->removeElement($amount)) {
+            // set the owning side to null (unless already changed)
+            if ($amount->getCause() === $this) {
+                $amount->setCause(null);
+            }
+        }
+
         return $this;
     }
 }

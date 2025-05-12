@@ -2,7 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\Cause;
 use App\Entity\Donation;
+use App\Entity\PonctualDonation;
 use App\Entity\Earning;
 use App\Entity\User;
 use App\Entity\Flower;
@@ -80,6 +82,38 @@ class DonationService
 
         return $donation;
     }
+
+    public function createPonctualDonation(?User $user, Cause $cause, string $donor, float $amount ): PonctualDonation
+    {
+
+        $donation = new PonctualDonation();
+        $donation
+            ->setDonor('Test')
+            ->setAnonymous(false)
+            ->setUserId($user ? $user->getId():null)
+            ->setCause($cause)
+            ->setAmount($amount)
+            ->setPaid(false);
+
+        $this->em->persist($donation);
+        $this->em->flush();
+
+        return $donation;
+    }
+
+    public function ChangePonctualDonationStatus(PonctualDonation $donation, bool $status, string $ref): PonctualDonation
+    {
+
+        $donation
+            ->setPaid($status)
+            ->setRef($ref);
+
+        $this->em->persist($donation);
+        $this->em->flush();
+
+        return $donation;
+    }
+
 
     public function createSolidarityDonation(User $donor, float $amount, ?Flower $flower = null): ?Donation
     {

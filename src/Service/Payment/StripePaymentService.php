@@ -2,6 +2,7 @@
 
 namespace App\Service\Payment;
 
+use App\Entity\Cause;
 use App\Entity\Membership;
 use App\Service\MembershipService;
 use DateMalformedStringException;
@@ -10,6 +11,7 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Entity\PonctualDonation;
 use Stripe\PaymentIntent;
 use App\Service\MatrixService;
 use App\Service\DonationService;
@@ -128,7 +130,19 @@ class StripePaymentService extends AbstractPaymentService
 
             $user = $membership->getUser();
             $this->processMembershipPayment($membership, $paymentIntent->id);
-        }else{
+        } else if ($paymentIntent->metadata['payment_type'] === self::PAYMENT_TYPE_PDONATION) {
+            $payableObject = $pDonation = $this->em->getRepository(PonctualDonation::class)->find($paymentIntent->metadata['donation_id']);
+
+            if (!$pDonation) {
+                throw new Exception('Donation not found');
+            }
+
+            if ($pDonation->isPaid()){
+                throw new Exception('Donation payment already processed');
+            }
+            $this->processPDonationPayment($pDonation, true, $paymentIntent->id);
+        }
+        else{
             $payableObject = $donation = $this->em->getRepository(Donation::class)->find($paymentIntent->metadata['donation_id']);
 
             if (!$donation) {
@@ -155,11 +169,23 @@ class StripePaymentService extends AbstractPaymentService
     public function handlePaymentFailure(array $paymentData): void
     {
         $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
-        $user = $this->em->getRepository(User::class)->find($paymentIntent->metadata['user_id']);
-        
-        if ($user && $user->getMainDonation()) {
-            $user->getMainDonation()->setPaymentStatus('failed');
-            $this->em->flush();
+
+        if ($paymentIntent->metadata['payment_type'] === self::PAYMENT_TYPE_PDONATION) {
+            $pDonation = $this->em->getRepository(PonctualDonation::class)->find($paymentIntent->metadata['donation_id']);
+
+            if (!$pDonation) {
+                throw new Exception('Donation not found');
+            }
+
+            $this->processPDonationPayment($pDonation, false, $paymentIntent->id);
+        } else {
+            $paymentIntent = PaymentIntent::retrieve($paymentData['payment_intent_id']);
+            $user = $this->em->getRepository(User::class)->find($paymentIntent->metadata['user_id']);
+            
+            if ($user && $user->getMainDonation()) {
+                $user->getMainDonation()->setPaymentStatus('failed');
+                $this->em->flush();
+            }
         }
     }
 
@@ -171,5 +197,29 @@ class StripePaymentService extends AbstractPaymentService
     public static function getProvider(): string
     {
         return self::PAYMENT_PROVIDER;
+    }
+
+    public function createPonctualDonationPayment(?User $user, Cause $cause, string $donor, float $amount): array
+    {
+        $donation = $this->donationService->createPonctualDonation($user, $cause, $donor, $amount);
+
+        $paymentIntent = PaymentIntent::create([
+            'amount' => $amount * 100,
+            'user' => $user,
+            'currency' => 'eur',
+            'metadata' => [
+                'payment_type' => self::PAYMENT_TYPE_PDONATION,
+                'donation_id' => $donation->getId()
+            ]
+        ]);
+
+        return [
+            'clientSecret' => $paymentIntent->client_secret,
+            'amount' => $amount,
+            'user' => $user,
+            'paymentIntentId' => $paymentIntent->id,
+            'payment_reference' => $paymentIntent->id,
+            'entityId' => $donation->getId()
+        ];
     }
 }

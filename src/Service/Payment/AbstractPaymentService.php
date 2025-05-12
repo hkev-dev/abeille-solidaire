@@ -5,6 +5,7 @@ namespace App\Service\Payment;
 use App\Entity\Membership;
 use App\Entity\User;
 use App\Entity\Donation;
+use App\Entity\PonctualDonation;
 use App\Service\ObjectService;
 use DateMalformedStringException;
 use DateTimeImmutable;
@@ -22,6 +23,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
 {
     const PAYMENT_TYPE_REGISTRATION = Donation::TYPE_REGISTRATION;
     const PAYMENT_TYPE_MEMBERSHIP = 'membership';
+    const PAYMENT_TYPE_PDONATION = 'payment';
     const PAYMENT_TYPE_SUPPLEMENTARY = Donation::TYPE_SUPPLEMENTARY;
 
     protected EntityManagerInterface $em;
@@ -112,6 +114,26 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
             $this->em->beginTransaction();
 
             $this->membershipService->activateMembership($membership, $paymentReference);
+
+            $this->em->flush();
+            $this->em->commit();
+
+        } catch (Exception $e) {
+            $this->em->rollback();
+            $this->logger->error('Failed to process membership payment: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function processPDonationPayment(PonctualDonation $pdonation, bool $status, string $paymentReference): void
+    {
+        try {
+            $this->em->beginTransaction();
+
+            $this->donationService->ChangePonctualDonationStatus($pdonation, $status, $paymentReference);
 
             $this->em->flush();
             $this->em->commit();

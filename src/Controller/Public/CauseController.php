@@ -87,6 +87,7 @@ class CauseController extends AbstractController
         $form = $this->createForm(PDonationPaymentSelectionType::class);
         return $this->render('public/pages/causes/ponctual-donationpayment.html.twig', [
             'form' => $form,
+            'slug' => $slug,
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
         ]);
     }

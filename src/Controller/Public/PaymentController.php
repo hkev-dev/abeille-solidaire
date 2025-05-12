@@ -3,6 +3,8 @@
 namespace App\Controller\Public;
 
 use App\Entity\User;
+use App\Repository\CauseRepository;
+use App\Repository\PonctualDonationRepository;
 use App\Service\Payment\PaymentFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,13 +12,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Service\Payment\PaymentService;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PaymentController extends AbstractController
 {
     public function __construct(
         private PaymentFactory $paymentFactory,
-        private PaymentService $paymentService
+        private PaymentService $paymentService,
+        private CauseRepository $causeRepository,
+        private PonctualDonationRepository $ponctualDonationRepository,
     ) {
     }
 
@@ -124,23 +127,27 @@ class PaymentController extends AbstractController
         if ($request->isXmlHttpRequest() && $request->getContent()) {
             $data = json_decode($request->getContent(), true);
 
-            dd($request);
+            $cause = $this->causeRepository->findOneBy(['slug' => $data['cause']]);
+
+            if (!$cause) {
+                return $this->json(['error' => 'Cause not found'], Response::HTTP_BAD_REQUEST);
+            }
 
             $paymentMethod = $data['payment_method'] ?? 'stripe';
+            $amount = $data['amount'] ?? 25;
 
             try {
                 $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
                 if (isset($data['currency'])) {
                     $user->setPaymentCurrency($data['currency']);
                 }
-                $paymentData = $paymentService->createRegistrationPayment($user, $includeAnnualMembership);
+                $paymentData = $paymentService->createPonctualDonationPayment($user, $cause, $donor = 'Unknown', $amount);
                 if (isset($data['currency'])) {
                     $paymentData["currency"] = $data['currency'];
                 }
 
                 // Store payment preferences in session
                 $request->getSession()->set('payment_method', $paymentMethod);
-                $request->getSession()->set('include_annual_membership', $includeAnnualMembership);
 
                 if (isset($paymentData['payment_reference']) || isset($paymentData['txn_id'])) {
                     $request->getSession()->set('payment_reference', $paymentData['payment_reference'] ?? $paymentData['txn_id']);
@@ -163,33 +170,37 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/ponctual-donation/waiting-room', name: 'app.pdonation.waiting_room')]
-    public function waitingRoom(Request $request, DonationRepository $donationRepository): Response
+    public function waitingRoom(Request $request): Response
     {
         $user = $this->getUser();
 
         if (!$user) {
-            return $this->redirectToRoute('app.login');
+            $user = null;
         }
 
-        $donation = $donationRepository->find($request->query->get('id'));
+        $pDonation = $this->ponctualDonationRepository->findOneBy(['id' => $request->query->get('id')]);
 
-        if (!$donation) {
+        if (!$pDonation) {
             throw $this->createNotFoundException('Donation not found');
         }
 
-        if ($donation->getPaymentStatus() === 'completed') {
-            return $this->redirectToRoute('app.user.dashboard');
-        } else if ($donation->getPaymentStatus() === 'failed') {
-            return $this->redirectToRoute('app.registration.payment');
+        if ($pDonation->isPaid()) {
+            return $this->redirectToRoute('landing.cause.details', [
+                'slug' => $pDonation->getCause()->getSlug()
+            ]);
+        } else {
+            return $this->redirectToRoute('landing.cause.details', [
+                'slug' => $pDonation->getCause()->getSlug()
+            ]);
         }
 
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
         $params = [
             'user' => $user,
             'payment_method' => $paymentMethod,
-            'payment_url' => $this->generateUrl('app.registration.payment'),
+            'payment_url' => $this->generateUrl('app.pdonation.payment'),
             'payment_reference' => $request->getSession()->get('payment_reference'),
-            'donation' => $donation,
+            'donation' => $pDonation,
         ];
 
         if ($data = $request->query->get('cp_data')){
