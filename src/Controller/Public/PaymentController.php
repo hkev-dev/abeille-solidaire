@@ -172,6 +172,7 @@ class PaymentController extends AbstractController
     #[Route('/ponctual-donation/waiting-room', name: 'app.pdonation.waiting_room')]
     public function waitingRoom(Request $request): Response
     {
+        sleep(5);
         $user = $this->getUser();
 
         if (!$user) {
@@ -183,8 +184,6 @@ class PaymentController extends AbstractController
         if (!$pDonation) {
             throw $this->createNotFoundException('Donation not found');
         }
-
-        dd($pDonation);
 
         if ($pDonation->isPaid()) {
             $this->addFlash('success', '❤️ Merci pour votre don ! Votre générosité fait la différence.');
