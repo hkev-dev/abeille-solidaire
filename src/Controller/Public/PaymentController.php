@@ -186,21 +186,23 @@ class PaymentController extends AbstractController
 
         if ($pDonation->isPaid()) {
             $this->addFlash('success', '❤️ Merci pour votre don ! Votre générosité fait la différence.');
-            #return $this->redirectToRoute('landing.cause.details', [
-            #    'slug' => $pDonation->getCause()->getSlug()
-            #]);
+            return $this->redirectToRoute('landing.cause.details', [
+                'slug' => $pDonation->getCause()->getSlug()
+            ]);
         } else {
             $this->addFlash('danger', '❌ Le paiement a échoué. Veuillez réessayer ou utiliser un autre moyen de paiement.');
-            #return $this->redirectToRoute('landing.cause.details', [
-            #    'slug' => $pDonation->getCause()->getSlug()
-            #]);
+            return $this->redirectToRoute('landing.cause.details', [
+                'slug' => $pDonation->getCause()->getSlug()
+            ]);
         }
 
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
         $params = [
             'user' => $user,
             'payment_method' => $paymentMethod,
-            'payment_url' => $this->generateUrl('app.pdonation.payment'),
+            'payment_url' => $this->generateUrl('landing.cause.details', [
+                'slug' => $pDonation->getCause()->getSlug()
+            ]),
             'payment_reference' => $request->getSession()->get('payment_reference'),
             'donation' => $pDonation,
         ];
@@ -211,7 +213,7 @@ class PaymentController extends AbstractController
             return $this->render('public/pages/auth/coinpayments-waiting-room.html.twig', $params);
         }else if ($paymentMethod === 'stripe'){
 
-            return $this->render('public/pages/auth/waiting-room.html.twig', $params);
+            return $this->render('public/pages/cause/waiting-room.html.twig', $params);
         }else{
             $this->addFlash('error', 'Payment method not supported');
             return $this->redirectToRoute('app.user.dashboard');
