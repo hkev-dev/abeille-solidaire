@@ -6,6 +6,7 @@ use App\Entity\Membership;
 use App\Entity\User;
 use App\Entity\Donation;
 use App\Entity\PonctualDonation;
+use App\Service\CauseService;
 use App\Service\ObjectService;
 use DateMalformedStringException;
 use DateTimeImmutable;
@@ -29,6 +30,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
     protected EntityManagerInterface $em;
     protected MatrixService $matrixService;
     protected DonationService $donationService;
+    protected CauseService $causeService;
     protected LoggerInterface $logger;
     protected ParameterBagInterface $params;
     protected MembershipService $membershipService;
@@ -37,6 +39,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
         EntityManagerInterface $em,
         MatrixService          $matrixService,
         DonationService        $donationService,
+        CauseService           $causeService,
         LoggerInterface        $logger,
         ParameterBagInterface  $params,
         MembershipService      $membershipService
@@ -45,6 +48,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
         $this->em = $em;
         $this->matrixService = $matrixService;
         $this->donationService = $donationService;
+        $this->causeService = $causeService;
         $this->logger = $logger;
         $this->params = $params;
         $this->membershipService = $membershipService;
@@ -134,6 +138,7 @@ abstract class AbstractPaymentService implements PaymentServiceInterface
             $this->em->beginTransaction();
 
             $this->donationService->ChangePonctualDonationStatus($pdonation, $status, $paymentReference);
+            $this->causeService->processCauseProgress($pdonation->getCause(), $pdonation->getAmount());
 
             $this->em->flush();
             $this->em->commit();

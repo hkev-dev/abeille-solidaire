@@ -16,28 +16,12 @@ class CauseRepository extends ServiceEntityRepository
         parent::__construct($registry, Cause::class);
     }
 
-    //    /**
-    //     * @return Cause[] Returns an array of Cause objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function save(Cause $cause, bool $andFlush = false): void
+    {
+        $this->getEntityManager()->persist($cause);
 
-    //    public function findOneBySomeField($value): ?Cause
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($andFlush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 }
