@@ -13163,3 +13163,7 @@ body.boxed-wrapper {
   background-color: #f0f0f0;
   transition: background-color 0.3s ease;
 }
+
+.categories-one__backers {
+  display: none;
+}
