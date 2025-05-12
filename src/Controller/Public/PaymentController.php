@@ -184,6 +184,8 @@ class PaymentController extends AbstractController
             throw $this->createNotFoundException('Donation not found');
         }
 
+        dd($pDonation);
+
         if ($pDonation->isPaid()) {
             $this->addFlash('success', '❤️ Merci pour votre don ! Votre générosité fait la différence.');
             return $this->redirectToRoute('landing.cause.details', [
