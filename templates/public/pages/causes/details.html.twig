@@ -21,14 +21,21 @@
 	<section class="project-details-top">
 		<div class="container">
 			<div class="row">
-				{% if message is defined and message is not empty %}
-					{% set alertClass = status == 'danger' ? 'alert-danger' : 'alert-success' %}
-					<div id="custom-flash-message" class="alert {{ alertClass }} alert-dismissible fade show" role="alert" style="position: relative; z-index: 1000;">
-						{{ message }}
-						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-					</div>
-				{% endif %}
 				<div class="col-xl-7 col-lg-6 d-flex align-items-center justify-center">
+					{% for type, messages in app.flashes %}
+						{% for message in messages %}
+							{% set alertClass = type == 'danger' ? 'alert-danger' : 'alert-success' %}
+							<div id="custom-flash-message" class="alert {{ alertClass }} alert-dismissible fade show" role="alert" style="position: relative; z-index: 1000;">
+								{% if type == 'success' %}
+									<i class="fas fa-check-circle me-2"></i>
+								{% elseif type == 'danger' %}
+									<i class="fas fa-exclamation-triangle me-2"></i>
+								{% endif %}
+								{{ message }}
+								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+							</div>
+						{% endfor %}
+					{% endfor %}
 					<div class="project-details-top__left w-100">
 						<div class="project-details-top__img">
 							{% if cause.image and cause.image != ' ' %}
@@ -202,7 +209,7 @@
 				const flash = document.getElementById('custom-flash-message');
 				if (flash) {
 					flash.classList.remove('show');
-					setTimeout(() => flash.remove(), 300); // le temps que l'animation fade se termine
+					setTimeout(() => flash.remove(), 300);
 				}
 			}, 5000);
 		});

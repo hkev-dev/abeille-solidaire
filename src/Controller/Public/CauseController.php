@@ -49,7 +49,7 @@ class CauseController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'details')]
-    public function details(string $slug, Request $request): Response
+    public function details(string $slug): Response
     {
         /** @var Cause $cause */
         $cause = $this->causeRepository->findOneBySlug($slug);
@@ -60,16 +60,10 @@ class CauseController extends AbstractController
 
         $form = $this->createForm(PDonationPaymentSelectionType::class);
 
-        // Récupérer les paramètres facultatifs
-        $message = $request->query->get('message', null);
-        $status = $request->query->get('status', 'success');
-
         return $this->render('public/pages/causes/details.html.twig', [
             'cause' => $cause,
             'form' => $form,
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
-            'message' => $message,
-            'status' => $status,
         ]);
     }
 
