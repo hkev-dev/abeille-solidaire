@@ -217,7 +217,7 @@ class StripePaymentService extends AbstractPaymentService
         return [
             'clientSecret' => $paymentIntent->client_secret,
             'amount' => $amount,
-            'user' => $user->getId(),
+            'user' => $user ? $user->getId():null,
             'paymentIntentId' => $paymentIntent->id,
             'payment_reference' => $paymentIntent->id,
             'entityId' => $donation->getId()
