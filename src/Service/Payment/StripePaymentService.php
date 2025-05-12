@@ -205,7 +205,6 @@ class StripePaymentService extends AbstractPaymentService
 
         $paymentIntent = PaymentIntent::create([
             'amount' => $amount * 100,
-            'user' => $user->getId(),
             'currency' => 'eur',
             'metadata' => [
                 'payment_type' => self::PAYMENT_TYPE_PDONATION,
