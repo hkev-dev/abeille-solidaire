@@ -64,10 +64,15 @@
 						{#{% include 'public/components/project-details/statistics.html.twig' with { project: cause } %}#}
 						{% include 'public/components/project-details/progress.html.twig' with { project: cause } %}
 						{#{% include 'public/components/project-details/creator.html.twig' with { creator: project.creator } %}#}
+						<ul class="list-unstyled project-details-top__money">
+							<li>€10</li>
+							<li>€20</li>
+							<li>€30</li>
+						</ul>
 						<div class="project-details-top__quantity-btn-social">
 							<div class="quantity-box" style="width: 125px;">
 								<button type="button" class="sub"><i class="fa fa-minus"></i></button>
-								<input type="number" id="donation-amount" value="00">
+								<input type="number" id="donation-amount" value="10">
 								<button type="button" class="add"><i class="fa fa-plus"></i></button>
 							</div>
 
@@ -208,6 +213,13 @@
 
 				$(this).attr('href', newHref);
 			});
+
+			 $('.project-details-top__money li').on('click', function() {
+            var value = $(this).text().replace(/[^0-9]/g, '').trim(); 
+            if(value) {
+                $('#donation-amount').val(value);
+            }
+        });
 
 			setTimeout(() => {
 				const flash = document.getElementById('custom-flash-message');

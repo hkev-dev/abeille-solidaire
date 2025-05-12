@@ -13154,3 +13154,12 @@ body.boxed-wrapper {
 #card-element {
   border: 1px solid #626262;
 }
+
+.project-details-top__money li {
+  cursor: pointer;
+}
+
+.project-details-top__money li:hover {
+  background-color: #f0f0f0;
+  transition: background-color 0.3s ease;
+}
