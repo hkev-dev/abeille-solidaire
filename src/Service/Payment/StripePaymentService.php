@@ -12,6 +12,7 @@ use Stripe\Stripe;
 use App\Entity\User;
 use App\Entity\Donation;
 use App\Entity\PonctualDonation;
+use App\Service\CauseService;
 use Stripe\PaymentIntent;
 use App\Service\MatrixService;
 use App\Service\DonationService;
@@ -27,11 +28,12 @@ class StripePaymentService extends AbstractPaymentService
         EntityManagerInterface $em,
         MatrixService          $matrixService,
         DonationService        $donationService,
+        CauseService           $causeService,
         LoggerInterface        $logger,
         ParameterBagInterface  $params,
         MembershipService      $membershipService
     ) {
-        parent::__construct($em, $matrixService, $donationService, $logger, $params, $membershipService);
+        parent::__construct($em, $matrixService, $donationService, $causeService, $logger, $params, $membershipService);
         Stripe::setApiKey($this->params->get('stripe.secret_key'));
     }
 
