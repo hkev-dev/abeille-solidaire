@@ -49,7 +49,7 @@ class CauseController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'details')]
-    public function details(string $slug): Response
+    public function details(string $slug, Request $request): Response
     {
         /** @var Cause $cause */
         $cause = $this->causeRepository->findOneBySlug($slug);
@@ -58,28 +58,20 @@ class CauseController extends AbstractController
             throw $this->createNotFoundException('Cause not found');
         }
 
-        // Get similar causes (same category, excluding current cause)
-        /*$similarCauses = $this->causeRepository->findBy(
-            ['category' => $cause->getCategory()],
-            ['createdAt' => 'DESC'],
-            3
-        );*/
-
-        // Filter out the current cause from similar causes
-        /*$similarCauses = array_values(array_filter($similarCauses, function (Cause $p) use ($cause) {
-            return $p->id !== $cause->id;
-        }));*/
         $form = $this->createForm(PDonationPaymentSelectionType::class);
+
+        // Récupérer les paramètres facultatifs
+        $message = $request->query->get('message', null);
+        $status = $request->query->get('status', 'success');
 
         return $this->render('public/pages/causes/details.html.twig', [
             'cause' => $cause,
             'form' => $form,
             'stripe_public_key' => $this->getParameter('stripe.public_key'),
-            /*'similarCauses' => $similarCauses*/
+            'message' => $message,
+            'status' => $status,
         ]);
     }
-
-
 
     #[Route('/support/{slug}', name: 'support')]
     public function support(string $slug): Response
