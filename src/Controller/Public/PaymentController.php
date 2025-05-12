@@ -185,10 +185,12 @@ class PaymentController extends AbstractController
         }
 
         if ($pDonation->isPaid()) {
+            $this->addFlash('success', '❤️ Merci pour votre don ! Votre générosité fait la différence.');
             return $this->redirectToRoute('landing.cause.details', [
                 'slug' => $pDonation->getCause()->getSlug()
             ]);
         } else {
+            $this->addFlash('danger', '❌ Le paiement a échoué. Veuillez réessayer ou utiliser un autre moyen de paiement.');
             return $this->redirectToRoute('landing.cause.details', [
                 'slug' => $pDonation->getCause()->getSlug()
             ]);
