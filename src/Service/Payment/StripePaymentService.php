@@ -205,7 +205,7 @@ class StripePaymentService extends AbstractPaymentService
 
         $paymentIntent = PaymentIntent::create([
             'amount' => $amount * 100,
-            'user' => $user,
+            'user' => $user->getId(),
             'currency' => 'eur',
             'metadata' => [
                 'payment_type' => self::PAYMENT_TYPE_PDONATION,
@@ -216,7 +216,7 @@ class StripePaymentService extends AbstractPaymentService
         return [
             'clientSecret' => $paymentIntent->client_secret,
             'amount' => $amount,
-            'user' => $user,
+            'user' => $user->getId(),
             'paymentIntentId' => $paymentIntent->id,
             'payment_reference' => $paymentIntent->id,
             'entityId' => $donation->getId()
