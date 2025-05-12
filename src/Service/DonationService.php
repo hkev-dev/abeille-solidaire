@@ -88,7 +88,7 @@ class DonationService
 
         $donation = new PonctualDonation();
         $donation
-            ->setDonor('Test')
+            ->setDonor($user ? $user->getFullName():'Anonyme')
             ->setAnonymous(false)
             ->setUserId($user ? $user->getId():null)
             ->setCause($cause)
