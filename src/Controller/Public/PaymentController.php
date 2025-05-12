@@ -191,9 +191,9 @@ class PaymentController extends AbstractController
             #]);
         } else {
             $this->addFlash('danger', '❌ Le paiement a échoué. Veuillez réessayer ou utiliser un autre moyen de paiement.');
-            return $this->redirectToRoute('landing.cause.details', [
-                'slug' => $pDonation->getCause()->getSlug()
-            ]);
+            #return $this->redirectToRoute('landing.cause.details', [
+            #    'slug' => $pDonation->getCause()->getSlug()
+            #]);
         }
 
         $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
