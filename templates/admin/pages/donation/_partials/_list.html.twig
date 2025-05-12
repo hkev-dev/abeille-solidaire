@@ -1,0 +1,81 @@
+{% set hideActions = hideActions ?? false %}
+<div class="card">
+    {% if pagination.getPaginationData is defined and pagination.getPaginationData is not empty %}
+        <div class="card-header flex-wrap gap-2">
+            <h3 class="card-title text-gray-600 text-2sm font-medium">
+                Affichage de {{ pagination.getPaginationData.currentItemCount }} sur {{ pagination.getPaginationData.totalCount }} donations
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+                <div class="flex">
+                    <form method="GET" class="flex items-center gap-2">
+                        <input type="hidden" name="perpage" value="{{ app.request.query.get('perpage', 10) }}">
+                        <label class="input input-sm">
+                            <i class="ki-filled ki-magnifier"></i>
+                            <input type="text" name="q" placeholder="Recherche ..." value="{{ app.request.query.get('q', '') }}"/>
+                        </label>
+                        <button type="submit" class="btn btn-sm btn-light">Rechercher</button>
+                    </form>
+                    <a href="{{ path('app.admin.user.export') }}" class="btn btn-sm btn-primary" style="margin-left:10px;">Exporter</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Donation
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cause
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Utilisateur
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in pagination %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.id|default('') }}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.getCause.getTitle|default('') }}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.getDonor|default('') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.getAmount|default('') }} €
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <span class="text-sm">{{ item.createdAt|date('d/m/Y') }}</span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Aucune donation disponible
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if pagination.getPaginationData is defined and pagination.getPaginationData is not empty %}
+        {% include 'admin/components/pagination.html.twig' with {
+            'paginationData': pagination.getPaginationData,
+            'listPath': 'app.admin.user.index'
+        } %}
+    {% endif %}
+</div>

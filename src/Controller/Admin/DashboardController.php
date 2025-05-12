@@ -8,6 +8,7 @@ use App\Entity\Donation;
 use App\Entity\Withdrawal;
 use App\Repository\DonationRepository;
 use App\Repository\MembershipRepository;
+use App\Repository\PonctualDonationRepository;
 use App\Repository\UserRepository;
 use App\Repository\WithdrawalRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +27,7 @@ class DashboardController extends AbstractController
         Session $session,
         DonationRepository $donationRepository,
         UserRepository $userRepository,
+        PonctualDonationRepository $ponctualDonationRepository,
         MembershipRepository $membershipRepository,
         WithdrawalRepository $withdrawalRepository
     ): Response {
@@ -34,6 +36,7 @@ class DashboardController extends AbstractController
 
         $stats = [
             'recentUsers' => $userRepository->findRecent(),
+            'recentDonations' => $ponctualDonationRepository->findRecent(),
             'users' => ['count' => $userRepository->count(), 'verifiedCount' => $userRepository->countVerified()],
             'donations' => ['count' => $donationRepository->countCompleted(), 'amount' => $donationRepository->getTotalAmount()],
             'memberships' => ['count' => $membershipRepository->countCompleted(), 'amount' => $membershipRepository->getTotalAmount()],
