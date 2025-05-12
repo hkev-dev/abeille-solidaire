@@ -20,24 +20,7 @@
 	{# Project Details Top Section #}
 	<section class="project-details-top">
 		<div class="container">
-			{% for type, messages in app.flashes %}
-				{% for message in messages %}
-					{% set alertClass = type == 'danger' ? 'alert-danger' : 'alert-success' %}
-					<div class="row">
-						<div class="col-xl-12">
-							<div id="custom-flash-message" class="alert {{ alertClass }} alert-dismissible fade show" role="alert" style="position: relative; z-index: 1000;">
-								{% if type == 'success' %}
-									<i class="fas fa-check-circle me-2"></i>
-								{% elseif type == 'danger' %}
-									<i class="fas fa-exclamation-triangle me-2"></i>
-								{% endif %}
-								{{ message }}
-								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-							</div>
-						</div>
-					</div>
-				{% endfor %}
-			{% endfor %}
+			{% include 'public/components/flash-messages.html.twig' %}
 			<div class="row">
 				<div class="col-xl-7 col-lg-6 d-flex align-items-center justify-center">
 					<div class="project-details-top__left w-100">
