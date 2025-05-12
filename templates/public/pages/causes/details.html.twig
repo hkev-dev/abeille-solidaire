@@ -21,8 +21,13 @@
 	<section class="project-details-top">
 		<div class="container">
 			<div class="row">
-
-                {% include 'public/components/flash-messages.html.twig' %}
+				{% if message is defined and message is not empty %}
+					{% set alertClass = status == 'danger' ? 'alert-danger' : 'alert-success' %}
+					<div id="custom-flash-message" class="alert {{ alertClass }} alert-dismissible fade show" role="alert" style="position: relative; z-index: 1000;">
+						{{ message }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+					</div>
+				{% endif %}
 				<div class="col-xl-7 col-lg-6 d-flex align-items-center justify-center">
 					<div class="project-details-top__left w-100">
 						<div class="project-details-top__img">
@@ -192,6 +197,14 @@
 
 				$(this).attr('href', newHref);
 			});
+
+			setTimeout(() => {
+				const flash = document.getElementById('custom-flash-message');
+				if (flash) {
+					flash.classList.remove('show');
+					setTimeout(() => flash.remove(), 300); // le temps que l'animation fade se termine
+				}
+			}, 5000);
 		});
     </script>
 {% endblock %}
