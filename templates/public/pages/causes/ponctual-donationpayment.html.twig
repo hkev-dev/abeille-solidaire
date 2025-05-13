@@ -271,7 +271,7 @@
             amount: 25,
             returnUrl: '{{ path("app.pdonation.waiting_room") }}',
             createIntentUrl: '{{ path("app.pdonation.payment") }}',
-            currenciesUrl: '{{ path("app.pdonation.crpayment") }}',
+            currenciesUrl: '',
             csrf: {
                 stripeToken: '{{ csrf_token('stripe_payment') }}',
                 cryptoToken: '{{ csrf_token('crypto_payment') }}'
