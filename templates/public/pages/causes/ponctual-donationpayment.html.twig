@@ -152,7 +152,7 @@
                             </div>
 
                             {# Crypto Option - Updated for CoinPayments #}
-                            <div class="payment-option" data-payment="crypto">
+                            <div class="payment-option" style="pointer-events: none;cursor: default;color: #fff;" data-payment="crypto">
                                 <div class="row align-items-center">
                                     <div class="col-auto">
                                         <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Cryptocurrency"
@@ -271,7 +271,7 @@
             amount: 25,
             returnUrl: '{{ path("app.pdonation.waiting_room") }}',
             createIntentUrl: '{{ path("app.pdonation.payment") }}',
-            currenciesUrl: '',
+            currenciesUrl: '{{ path("app.pdonation.crpayment") }}',
             csrf: {
                 stripeToken: '{{ csrf_token('stripe_payment') }}',
                 cryptoToken: '{{ csrf_token('crypto_payment') }}'
