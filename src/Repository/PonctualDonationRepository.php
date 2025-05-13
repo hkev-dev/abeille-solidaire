@@ -21,6 +21,9 @@ class PonctualDonationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('d')
             ->select('d')
+            ->andWhere('d.isPaid = :paid')
+            ->setParameter('paid', true)
+            ->orderBy('d.id', 'DESC')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
