@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 use App\Service\MatrixService;
 use App\Service\DonationService;
 use App\Exception\WebhookException;
+use App\Service\CauseService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\Routing\RouterInterface;
@@ -30,12 +31,13 @@ class CoinPaymentsService extends AbstractPaymentService
         EntityManagerInterface $em,
         MatrixService $matrixService,
         DonationService $donationService,
+        CauseService           $causeService,
         LoggerInterface $logger,
         ParameterBagInterface $params,
         RouterInterface $router,
         MembershipService $membershipService
     ) {
-        parent::__construct($em, $matrixService, $donationService, $logger, $params, $membershipService);
+        parent::__construct($em, $matrixService, $donationService, $causeService, $logger, $params, $membershipService);
         $this->router = $router;
         
         $this->coinPayments = new CoinpaymentsAPI(
