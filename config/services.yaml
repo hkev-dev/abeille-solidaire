@@ -8,6 +8,7 @@ parameters:
     app.recaptcha.secret_key: "%env(GOOGLE_RECAPTCHA_SECRET)%"
     google_recaptcha_site_key: "%env(GOOGLE_RECAPTCHA_SITE_KEY)%"
     stripe.secret_key: "%env(STRIPE_SECRET)%"
+    stripe.sub_product: "%env(STRIPE_SUB_PRODUCT)%"
     stripe.public_key: "%env(STRIPE_PUBLIC_KEY)%"
     stripe.webhook_secret: "%env(STRIPE_WEBHOOK_SECRET)%"
     app.domain: "%env(APP_DOMAIN)%"

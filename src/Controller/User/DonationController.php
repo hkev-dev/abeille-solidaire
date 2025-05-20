@@ -332,14 +332,16 @@ class DonationController extends AbstractController
             $customer = ['id' => $user->getStripeCustomerId()];
         }
 
-        $priceId = "price_1RQWQWP00kvUrStC3akZhevm";
+        $priceId = $this->getParameter('stripe.sub_product');
+        
         $subscription = $stripe->subscriptions->create([
             'customer'         => $customer['id'],
             'items'            => [[ 'price' => $priceId ]],
             'payment_behavior' => 'default_incomplete',
             'expand'           => ['latest_invoice.payment_intent'],
             'metadata'         => [
-                'payment_type'   => 'subSupplementary',
+                'payment_type'   => 'supplementary',
+                'user'   => $user->getId(),
             ]
         ]);
 

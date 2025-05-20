@@ -148,7 +148,8 @@ export class PaymentProcessor {
 
         const submitButton = this.form.querySelector('button[type="submit"]');        
         const includeMembership = document.querySelector('[name="payment_selection[include_annual_membership]"]');
-        const isMonthly = document.getElementById('payment_supplementary_subscibe').checked;
+        const checkbox = document.getElementById('payment_supplementary_subscibe');
+        const isMonthly = checkbox ? checkbox.checked : false;
 
         const originalText = submitButton.textContent;
         submitButton.disabled = true;
@@ -223,7 +224,8 @@ export class PaymentProcessor {
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
         const currencySelect = document.getElementById('crypto-currency-select');
-        const isMonthly = document.getElementById('payment_supplementary_subscibe').checked;
+        const checkbox = document.getElementById('payment_supplementary_subscibe');
+        const isMonthly = checkbox ? checkbox.checked : false;
         
         if (!currencySelect || !currencySelect.value) {
             this.handleCryptoError(new Error('Please select a cryptocurrency'));

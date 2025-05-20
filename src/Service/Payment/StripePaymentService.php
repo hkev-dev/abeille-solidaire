@@ -18,7 +18,6 @@ use App\Service\MatrixService;
 use App\Service\DonationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Stripe\StripeClient;
 use Stripe\Subscription;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -234,43 +233,32 @@ class StripePaymentService extends AbstractPaymentService
     public function handleSubscriptionSuccess(array $paymentData): PayableInterface
     {
         $subscription = Subscription::retrieve([
-            'id' => $paymentData['subscriptionId'],
-            'expand' => ['latest_invoice.payment_intent'],
+            'id' => $paymentData['subscription'],
+            #'expand' => ['latest_invoice.payment_intent'],
         ]);
 
         $metadata = $subscription->metadata;
-        $paymentIntent = $subscription->latest_invoice->payment_intent;
 
-        if ($paymentIntent->metadata['payment_type'] === self::PAYMENT_TYPE_PDONATION) {
-            $payableObject = $pDonation = $this->em->getRepository(PonctualDonation::class)->find($paymentIntent->metadata['donation_id']);
+        $user = $this->em->getRepository(User::class)->find($metadata['user']);
 
-            if (!$pDonation) {
-                throw new Exception('Donation not found');
-            }
+        $this->logger->info("Data webhook", [
+            'data' => $user->getEmail(),
+        ]);
 
-            if ($pDonation->isPaid()){
-                throw new Exception('Donation payment already processed');
-            }
-            $this->processPDonationPayment($pDonation, true, $paymentIntent->id);
-        }
-        else{
-            $payableObject = $donation = $this->em->getRepository(Donation::class)->find($paymentIntent->metadata['donation_id']);
+
+        if ($metadata['payment_type'] === self::PAYMENT_TYPE_SUPPLEMENTARY) {
+            $payableObject = $donation = $this->donationService->createSupplementaryDonation($user);
 
             if (!$donation) {
                 throw new Exception('Donation not found');
             }
 
-            if ($donation->getPaymentStatus() === Donation::PAYMENT_COMPLETED){
-                throw new Exception('Donation payment already processed');
-            }
-
-            $user = $donation->getDonor();
-            $this->processPaymentType($donation, $paymentIntent->metadata['payment_type'], $paymentIntent->id, $paymentIntent->metadata['include_membership'] === 'true');
+            $this->processPaymentType($donation, $metadata['payment_type'], $subscription->id, false);
         }
 
         // Set Stripe customer ID if available
-        if ($paymentIntent->customer && $user) {
-            $user->setStripeCustomerId($paymentIntent->customer);
+        if ($subscription->customer && $user) {
+            $user->setStripeCustomerId($subscription->customer);
             $this->em->flush();
         }
 

@@ -80,8 +80,6 @@ class PaymentController extends AbstractController
     {
         try {
 
-            dd($request);
-
             $logger->info("Received $method webhook", [
                 'payload' => $request->toArray()
             ]);

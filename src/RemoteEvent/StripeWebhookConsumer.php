@@ -28,12 +28,14 @@ final class StripeWebhookConsumer implements ConsumerInterface
 
         $this->logger->info('Received Stripe webhook', [
             'type' => $eventType,
-            'xxxxxx payload' => $payload
+            'payload' => $payload,
+            'eventType' => $eventType,
         ]);
 
         match ($eventType) {
             'payment_intent.succeeded' => $this->handlePaymentSuccess($payload['data']['object']),
             'payment_intent.payment_failed' => $this->handlePaymentFailure($payload['data']['object']),
+            'invoice.payment_succeeded' => $this->paymentService->handleSubscriptionSuccess($payload['data']['object']),
             default => ['status' => 'ignored', 'type' => $eventType]
         };
     }
