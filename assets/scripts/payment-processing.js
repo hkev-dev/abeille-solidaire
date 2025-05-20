@@ -19,6 +19,42 @@ export class PaymentProcessor {
         // Add this line to load cryptocurrencies on initialization
         this.loadCryptoCurrencies();
         this.setupMembershipToggle();
+        this.setupMonthlyToggle();
+    }
+
+    setupMonthlyToggle() {
+        const monthlyCheckbox = document.getElementById('payment_supplementary_subscibe');
+        const cryptoCard = document.querySelector('.payment-option[data-payment="crypto"]');
+        const cryptoRadio = cryptoCard.querySelector('input[type="radio"]');
+        const stripeRadio = document.querySelector('.payment-option[data-payment="stripe"] input[type="radio"]');
+
+        if (!monthlyCheckbox) return;
+
+        if (!document.getElementById('monthly-toggle-style')) {
+            const style = document.createElement('style');
+            style.id = 'monthly-toggle-style';
+            style.textContent = `.payment-option.disabled { opacity: 0.5; pointer-events: none; }`;
+            document.head.append(style);
+        }
+
+        const update = () => {
+            if (monthlyCheckbox.checked) {
+                cryptoRadio.disabled = true;
+                cryptoCard.classList.add('disabled');
+                if (cryptoRadio.checked) {
+                    cryptoRadio.checked = false;
+                    cryptoRadio.dispatchEvent(new Event('change'));
+                    stripeRadio.checked = true;
+                    stripeRadio.dispatchEvent(new Event('change'));
+                }
+            } else {
+                cryptoRadio.disabled = false;
+                cryptoCard.classList.remove('disabled');
+            }
+        };
+
+        monthlyCheckbox.addEventListener('change', update);
+        update();
     }
 
     setupStripeElement() {
@@ -112,6 +148,7 @@ export class PaymentProcessor {
 
         const submitButton = this.form.querySelector('button[type="submit"]');        
         const includeMembership = document.querySelector('[name="payment_selection[include_annual_membership]"]');
+        const isMonthly = document.getElementById('payment_supplementary_subscibe').checked;
 
         const originalText = submitButton.textContent;
         submitButton.disabled = true;
@@ -131,6 +168,7 @@ export class PaymentProcessor {
                 },
                 body: JSON.stringify({
                     payment_method: 'stripe',
+                    isMonthly: isMonthly,
                     include_annual_membership: includeMembership ? includeMembership.checked : false
                 })
             });
@@ -158,8 +196,17 @@ export class PaymentProcessor {
                 throw confirmError;
             }
 
+            console.log(data);
+
+            if(data.subscriptionId) {
+               window.location.href = this.config.waitingSubRoomUrl + "?subscriptionId=" + data.subscriptionId;
+            } else {
+                window.location.href = this.config.returnUrl + "?id=" + data.entityId;
+            }
+                
+
             // Payment successful, redirect to waiting room
-            window.location.href = this.config.returnUrl + "?id=" + data.entityId;
+            //window.location.href = this.config.returnUrl + "?id=" + data.entityId;
 
         } catch (error) {
             this.handlePaymentError(error);
@@ -176,6 +223,7 @@ export class PaymentProcessor {
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
         const currencySelect = document.getElementById('crypto-currency-select');
+        const isMonthly = document.getElementById('payment_supplementary_subscibe').checked;
         
         if (!currencySelect || !currencySelect.value) {
             this.handleCryptoError(new Error('Please select a cryptocurrency'));
@@ -208,6 +256,7 @@ export class PaymentProcessor {
                 },
                 body: JSON.stringify({
                     payment_method: 'coinpayments',
+                    isMonthly: isMonthly,
                     currency: selectedCurrency,
                     include_annual_membership: includeMembership ? includeMembership : false
                 })
@@ -402,8 +451,10 @@ export class PaymentProcessor {
         `;
         document.body.appendChild(overlay);
 
+        console.log('success');
+
         // Redirect to waiting room
-        window.location.href = this.config.waitingRoomUrl;
+        //window.location.href = this.config.waitingRoomUrl;
     }
 
     setupMembershipToggle() {

@@ -19,6 +19,7 @@ interface PaymentServiceInterface
      * Handle successful payment callback
      */
     public function handlePaymentSuccess(array $paymentData): PayableInterface;
+    public function handleSubscriptionSuccess(array $paymentData);
 
     /**
      * Handle failed payment callback
@@ -36,4 +37,5 @@ interface PaymentServiceInterface
     public function createMembershipPayment(User $user): array;
 
     public static function getProvider(): string;
+
 }

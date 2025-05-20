@@ -80,6 +80,8 @@ class PaymentController extends AbstractController
     {
         try {
 
+            dd($request);
+
             $logger->info("Received $method webhook", [
                 'payload' => $request->toArray()
             ]);
@@ -106,6 +108,7 @@ class PaymentController extends AbstractController
             match($paymentType) {
                 'payment_intent.succeeded', 'api' => $paymentService->handlePaymentSuccess($paymentData),
                 'payment_intent.payment_failed' => $paymentService->handlePaymentFailure($paymentData),
+                'invoice.payment_succeeded' => $paymentService->handleSubscriptionSuccess($paymentData),
                 default => throw new \Exception('Unsupported webhook event')
             };
 

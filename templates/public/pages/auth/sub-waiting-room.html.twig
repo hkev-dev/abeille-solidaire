@@ -1,0 +1,110 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}
+    {% if context is defined and context == 'membership' %}
+        Traitement du Renouvellement - Abeille Solidaire
+    {% else %}
+        Traitement de l'Inscription - Abeille Solidaire
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% include 'public/components/page-header.html.twig' with {
+        title: context is defined and context == 'membership' ? 'Renouvellement en Cours' : 'Inscription en Cours',
+        breadcrumbs: context is defined and context == 'membership' ? [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Mon Compte', path: 'app.user.dashboard'},
+            {label: 'Renouvellement', path: null}
+        ] : [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Inscription', path: 'app.register'},
+            {label: 'Traitement', path: null}
+        ]
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    {% include 'public/components/flash-messages.html.twig' %}
+
+                    <div class="waiting-room mb-5">
+                        {% if payment_method == 'stripe' %}
+                            <img src="{{ asset('images/payment/stripe.svg') }}" alt="Processing" class="mb-4" height="120">
+                        {% else %}
+                            <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Processing" class="mb-4" height="120">
+                        {% endif %}
+                        
+                        <h3 class="login-register__title">
+                            {% if context is defined and context == 'membership' %}
+                                Traitement du Paiement d'Adhésion
+                            {% else %}
+                                Traitement du Paiement
+                            {% endif %}
+                        </h3>
+
+                        {% if payment_method == 'stripe' %}
+                            <p>Votre paiement par carte est en cours de traitement. Cette page se mettra à jour automatiquement.</p>
+                        {% else %}
+                            <p>En attente de confirmation de la transaction cryptomonnaie. Cela peut prendre quelques minutes.</p>
+                            {% if payment_reference %}
+                                <p class="text-muted small">ID Transaction: {{ payment_reference }}</p>
+                            {% endif %}
+                        {% endif %}
+
+                        <div class="progress mt-4 mb-4">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                        </div>
+
+                        <p class="text-muted">
+                            Vous recevrez un email de confirmation dès que votre paiement sera validé.<br>
+                            Merci de ne pas fermer cette fenêtre.
+                        </p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{{ path('landing.contact') }}" class="thm-btn thm-btn--outline">
+                            Besoin d'Aide ?
+                        </a>
+                        
+                        {% if payment_method == 'crypto' %}
+                            <a href="{{ payment_url }}" class="thm-btn ml-3">
+                                Retour au Paiement
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        const checkPaymentStatus = async () => {
+            try {
+                const response = await fetch('{{ context is defined and context == "membership" 
+                    ? path("app.membership.check_payment", {id: app.request.query.get('id')})
+                    : path("app.check_sub_payment_status", {id: app.request.query.get('subscriptionId')})
+                }}');
+                const data = await response.json();
+
+                console.log(data);
+
+                if (data.status === 'completed' && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (data.status === 'failed') {
+                    window.location.href = '{{ payment_url }}';
+                }
+            } catch (error) {
+                console.error('Error checking payment status:', error);
+            }
+        };
+
+        // Initial check after 2 seconds
+        setTimeout(checkPaymentStatus, 2000);
+        // Then check every 5 seconds
+        setInterval(checkPaymentStatus, 5000);
+    </script>
+{% endblock %}

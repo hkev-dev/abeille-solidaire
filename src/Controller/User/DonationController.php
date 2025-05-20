@@ -6,6 +6,7 @@ use App\Entity\Donation;
 use App\Entity\Earning;
 use App\Entity\User;
 use App\Form\PaymentSelectionType;
+use App\Form\PaymentSupplementaryType;
 use App\Repository\DonationRepository;
 use App\Repository\EarningRepository;
 use App\Service\DonationReceiptService;
@@ -16,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use Stripe\StripeClient;
 use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/user/donations')]
@@ -25,6 +27,7 @@ class DonationController extends AbstractController
         private readonly PaymentFactory $paymentFactory,
         private readonly DonationRepository     $donationRepository,
         private readonly DonationReceiptService $receiptService,
+        private readonly DonationService $donationService,
         private readonly PaginatorInterface     $paginator,
         private readonly EntityManagerInterface $em,
         private readonly EarningRepository $earningRepository,
@@ -186,7 +189,7 @@ class DonationController extends AbstractController
         }
 
         // Display payment form
-        $form = $this->createForm(PaymentSelectionType::class, null, [
+        $form = $this->createForm(PaymentSupplementaryType::class, null, [
             'show_annual_membership' => false,
             'action' => $this->generateUrl('app.user.donations.make_supplementary'),
         ]);
@@ -242,6 +245,36 @@ class DonationController extends AbstractController
     }
 
     /**
+     * SUBSCRIPTION ON SUPPLEMENTARY
+     */
+    #[Route('/make-sub-pplementary/waiting-room', name: 'app.user.donations.make_sub_supplementary.waiting_room')]
+    public function waitingSubRoom(Request $request, DonationRepository $donationRepository): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('app.login');
+        }
+
+        $paymentMethod = $request->getSession()->get('payment_method', 'stripe');
+        $params = [
+            'user' => $user,
+            'payment_method' => $paymentMethod,
+            'payment_url' => $this->generateUrl('app.user.donations.make_supplementary'),
+            'payment_reference' => $request->getSession()->get('payment_reference'),
+            'context' => 'supplementary',
+            'subscriptionId' => $request->get('subscriptionId'),
+        ];
+
+        if ($paymentMethod === 'stripe'){
+            return $this->render('public/pages/auth/sub-waiting-room.html.twig', $params);
+        }else{
+            $this->addFlash('error', 'Payment method not supported');
+            return $this->redirectToRoute('app.user.dashboard');
+        }
+    }
+
+    /**
      * Handle AJAX payment creation request
      */
     private function handleAjaxPayment(Request $request, User $user): Response
@@ -249,13 +282,21 @@ class DonationController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
             $paymentMethod = $data['payment_method'] ?? 'stripe';
-
+            $isMonthly = $data['isMonthly'] ?? false;
+            
             if (isset($data['currency'])) {
                 $user->setPaymentCurrency($data['currency']);
             }
 
             $paymentService = $this->paymentFactory->getPaymentService($paymentMethod);
-            $paymentData = $paymentService->createSupplementaryDonationPayment($user);
+
+            if ($paymentMethod === 'stripe') {
+                if ($isMonthly) {
+                    $paymentData = $this->createStripeSubscription($user);
+                } else {
+                    $paymentData = $paymentService->createSupplementaryDonationPayment($user);
+                }
+            }
 
             if (isset($data['currency'])) {
                 $paymentData["currency"] = $data['currency'];
@@ -275,5 +316,41 @@ class DonationController extends AbstractController
                 Response::HTTP_BAD_REQUEST
             );
         }
+    }
+
+    private function createStripeSubscription($user): array
+    {
+        $stripe = new StripeClient($this->getParameter('stripe.secret_key'));
+        #$donation = $this->donationService->createSupplementaryDonation($user);
+
+        if (!$user->getStripeCustomerId()) {
+            $customer = $stripe->customers->create([ 'email' => $user->getEmail() ]);
+            $user->setStripeCustomerId($customer->id);
+            $this->em->persist($user);
+            $this->em->flush();
+        } else {
+            $customer = ['id' => $user->getStripeCustomerId()];
+        }
+
+        $priceId = "price_1RQWQWP00kvUrStC3akZhevm";
+        $subscription = $stripe->subscriptions->create([
+            'customer'         => $customer['id'],
+            'items'            => [[ 'price' => $priceId ]],
+            'payment_behavior' => 'default_incomplete',
+            'expand'           => ['latest_invoice.payment_intent'],
+            'metadata'         => [
+                'payment_type'   => 'subSupplementary',
+            ]
+        ]);
+
+        $pi = $subscription->latest_invoice->payment_intent;
+
+        return [
+            'subscriptionId' => $subscription->id,
+            'clientSecret'   => $pi->client_secret,
+            'entityId'       => $subscription->id,
+            'userId'         => $user->getId(),
+            'paymentIntentId' => $pi->id
+        ];
     }
 }

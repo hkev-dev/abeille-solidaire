@@ -186,7 +186,7 @@ class CoinPaymentsService extends AbstractPaymentService
 
         return hash_equals($calculatedHmac, $hmac);
     }
-
+    public function handleSubscriptionSuccess(array $paymentData){}
     public function getAcceptedCryptoCurrencies(): array
     {
         try {

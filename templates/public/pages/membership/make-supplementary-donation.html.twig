@@ -116,6 +116,32 @@
                             </div>
                         </div>
 
+                        <div class="membership-toggle mb-4">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <div class="form-check form-switch d-flex align-items-center">
+                                        {{ form_widget(form.subscibe, {
+                                            'attr': {
+                                                'class': 'form-check-input me-3',
+                                                'role': 'switch',
+                                                'style': 'transform: scale(1.4); margin-left: 0;'
+                                            }
+                                        }) }}
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="">
+                                                {#<i class="fas fa-star text-warning me-2"></i>#}
+                                                Don mensuel
+                                            </label>
+                                            <p class="text-muted mb-0 small">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Faire un don mensuel
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div
                                 class="payment-options">
                             {# Credit Card Option #}
@@ -256,6 +282,7 @@
             userEmail: '{{ app.user.email }}',
             returnUrl: '{{ path("app.user.donations.make_supplementary.waiting_room") }}',
             createIntentUrl: '{{ path("app.user.donations.make_supplementary") }}',
+            waitingSubRoomUrl: '{{ path("app.user.donations.make_sub_supplementary.waiting_room") }}',
             currenciesUrl: '{{ path("app.registration.crypto.currencies") }}',
             csrf: {
                 stripeToken: '{{ csrf_token('stripe_payment') }}',
@@ -264,6 +291,37 @@
         });
 
         processor.initialize();
+
+        $(function() {
+            var $monthly      = $('#payment_supplementary_subscibe');
+            var $cryptoOption = $('.payment-option[data-payment="crypto"]');
+            var $cryptoInput  = $cryptoOption.find('input[type="radio"]');
+            var $stripeOption = $('.payment-option[data-payment="stripe"]');
+            var $stripeInput  = $stripeOption.find('input[type="radio"]');
+
+            $('<style>')
+                .prop('type', 'text/css')
+                .html('.payment-option.disabled { opacity: 0.5; pointer-events: none; }')
+                .appendTo('head');
+
+            function updateCryptoAvailability() {
+                if ($monthly.is(':checked')) {
+                $cryptoInput.prop('disabled', true);
+                $cryptoOption.addClass('disabled');
+
+                if ($cryptoInput.is(':checked')) {
+                    $cryptoInput.prop('checked', false);
+                    $stripeInput.prop('checked', true).trigger('change');
+                }
+                } else {
+                $cryptoInput.prop('disabled', false);
+                $cryptoOption.removeClass('disabled');
+                }
+            }
+
+            $monthly.on('change', updateCryptoAvailability);
+            updateCryptoAvailability();
+            });
     </script>
 {% endblock %}
 

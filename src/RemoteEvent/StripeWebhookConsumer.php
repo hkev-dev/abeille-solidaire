@@ -28,7 +28,7 @@ final class StripeWebhookConsumer implements ConsumerInterface
 
         $this->logger->info('Received Stripe webhook', [
             'type' => $eventType,
-            'payload' => $payload
+            'xxxxxx payload' => $payload
         ]);
 
         match ($eventType) {

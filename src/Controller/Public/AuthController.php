@@ -16,6 +16,8 @@ use App\Repository\FlowerRepository;
 use App\Service\Payment\PaymentFactory;
 use App\Service\UserRegistrationService;
 use App\Service\Payment\CoinPaymentsService;
+use Stripe\StripeClient;
+use Stripe\Subscription;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -218,6 +220,32 @@ class AuthController extends AbstractController
         $status = $donation->getPaymentStatus();
 
         if ($status === 'completed') {
+            return $this->json([
+                'status' => 'completed',
+                'redirect' => $this->generateUrl('app.user.dashboard')
+            ]);
+        }
+
+        return $this->json([
+            'status' => $status
+        ]);
+    }
+
+    #[Route('/register/check-sub-payment-status/{id}', name: 'app.check_sub_payment_status')]
+    public function checkSubPaymentStatus(Request $request, string $id): Response
+    {
+        $user = $this->getUser();
+        $stripe = new StripeClient($this->getParameter('stripe.secret_key'));
+        if (!$user) {
+            return $this->json([
+                'status' => 'error',
+                'redirect' => $this->generateUrl('app.login')
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        $subscription = $stripe->subscriptions->retrieve($id);
+        $status = $subscription->status;
+
+        if ($status == 'active') {
             return $this->json([
                 'status' => 'completed',
                 'redirect' => $this->generateUrl('app.user.dashboard')
