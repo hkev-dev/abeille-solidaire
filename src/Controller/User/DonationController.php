@@ -102,6 +102,43 @@ class DonationController extends AbstractController
         ]);
     }
 
+    #[Route('/supplementaires', name: 'app.user.donations.supp')]
+    public function supplementaire(Request $request): Response
+    {
+        $user = $this->getUser();
+        $query = $this->em->createQueryBuilder()
+            ->select('e')
+            ->from(Earning::class, 'e')
+            ->leftJoin('e.donor', 'donor')
+            ->andWhere('donor.donor = :user')
+            ->andWhere('donor.paymentStatus = :status')
+            ->andWhere('e.amount > :amount')
+            ->setParameter('user', $user)
+            ->setParameter('status', Donation::PAYMENT_COMPLETED)
+            ->setParameter('amount', 12)
+            ->orderBy('e.createdAt', 'DESC');
+
+        $pagination = $this->paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        $stats = [
+            'totalSent' => $this->earningRepository->getTotalMadeByUser($user),
+            'totalSupSent' => $this->earningRepository->getTotalSupMadeByUser($user),
+            'currentFlowerSent' => $this->donationRepository->findTotalMadeInFlower(
+                $user,
+                $user->getCurrentFlower()
+            ),
+        ];
+
+        return $this->render('user/pages/donations/supplementary.html.twig', [
+            'pagination' => $pagination,
+            'stats' => $stats
+        ]);
+    }
+
     #[Route('/solidarity', name: 'app.user.donations.solidarity')]
     public function solidarity(Request $request): Response
     {

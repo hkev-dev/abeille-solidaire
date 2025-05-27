@@ -253,6 +253,8 @@ class StripePaymentService extends AbstractPaymentService
                 throw new Exception('Donation not found');
             }
 
+            $donation->setSubscription(true);
+
             $this->processPaymentType($donation, $metadata['payment_type'], $subscription->id, false);
         }
 

@@ -73,4 +73,17 @@ class EarningRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function getTotalSupMadeByUser(?UserInterface $user)
+    {
+        return $this->createQueryBuilder('e')
+            ->select('SUM(e.amount)')
+            ->leftJoin('e.donor', 'd')
+            ->where('e.donor IN (:donations)')
+            ->andWhere('d.donationType = :donationType')
+            ->setParameter('donations', $user->getDonationsMade()->toArray())
+            ->setParameter('donationType', 'supplementary')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

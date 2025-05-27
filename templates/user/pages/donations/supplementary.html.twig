@@ -1,0 +1,119 @@
+{% extends 'user/layouts/default.html.twig' %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# Stats Cards #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {# Total Sent #}
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-600">Total Envoyé</h3>
+                        <span class="text-primary ki-duotone ki-send text-2xl"></span>
+                    </div>
+                    <div class="text-2xl font-semibold">€{{ stats.totalSupSent|number_format(2) }}</div>
+                </div>
+            </div>
+
+            {# Current Flower Sent #}
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-600">Envoyé dans la Fleur Actuelle</h3>
+                        <span class="text-success ki-duotone ki-flower2 text-2xl"></span>
+                    </div>
+                    <div class="text-2xl font-semibold">€{{ stats.currentFlowerSent|number_format(2) }}</div>
+                </div>
+            </div>
+        </div>
+
+        {# Donations Table #}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Dons supplémentaire Envoyés</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Bénéficiaire</th>
+                            <th>Type</th>
+                            <th>Fleur</th>
+                            {#<th>Montant</th>#}
+                            <th>Abonnement</th>
+{#                            <th>Actions</th>#}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for earning in pagination %}
+                            {% set beneficiary = earning.beneficiary %}
+                            {% set donor = earning.donor %}
+                            <tr>
+                                <td>{{ earning.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>{{ beneficiary.donor.fullName|default('') }}</td>
+                                <td>
+                                    {% if donor.donationType == 'direct' %}
+                                        <span class="badge badge-primary">Don Direct</span>
+                                    {% elseif donor.donationType == 'solidarity' %}
+                                        <span class="badge badge-success">Don Solidaire</span>
+                                    {% elseif donor.donationType == 'registration' %}
+                                        <span class="badge badge-info">Inscription</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ donor.donationType|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ earning.flower.name }}</td>
+                                {#<td>€{{ earning.amount|number_format(2) }}</td>#}
+                                <td>
+                                    {% if donor.isSubscription%}
+                                        <span class="badge badge-primary">Abonnement</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Normal</span>
+                                    {% endif %}
+                                </td>
+{#                                <td>#}
+{#                                    <span class="badge badge-success">{{ donor.paymentProvider == 'stripe' ? 'Carte Bancaire' : 'Crypto' }}</span>#}
+{#                                </td>#}
+{#                                <td>#}
+{#                                    <div class="flex items-center gap-2">#}
+{#                                        <a href="{{ path('app.user.donations.receipt', {id: donation.id}) }}"#}
+{#                                           class="btn btn-sm btn-light-primary">#}
+{#                                            <i class="ki-duotone ki-document text-primary"></i>#}
+{#                                            Reçu#}
+{#                                        </a>#}
+{#                                        <a href="{{ path('app.user.donations.download_receipt', {id: donation.id}) }}"#}
+{#                                           class="btn btn-sm btn-light-info">#}
+{#                                            <i class="ki-duotone ki-document-download text-info"></i>#}
+{#                                            PDF#}
+{#                                        </a>#}
+{#                                        {% if donation.paymentProvider != 'stripe' and donation.statusUrl %}#}
+{#                                            <a href="{{ donation.statusUrl }}"#}
+{#                                               target="_blank"#}
+{#                                               class="btn btn-sm btn-light-warning">#}
+{#                                                <i class="ki-duotone ki-bitcoin text-warning"></i>#}
+{#                                                Status#}
+{#                                            </a>#}
+{#                                        {% endif %}#}
+{#                                    </div>#}
+{#                                </td>#}
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    Aucun don envoyé pour le moment
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="px-6 py-4">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

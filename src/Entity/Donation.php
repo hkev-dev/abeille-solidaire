@@ -101,6 +101,9 @@ class Donation implements PayableInterface
     #[ORM\OneToMany(targetEntity: Earning::class, mappedBy: 'donor')]
     private Collection $beneficiaries;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $isSubscription = null;
+
     public function __construct()
     {
         $this->childrens = new ArrayCollection();
@@ -449,5 +452,17 @@ class Donation implements PayableInterface
         }
 
         return $this->countAllChildrens() - $previousChildren;
+    }
+
+    public function isSubscription(): ?bool
+    {
+        return $this->isSubscription;
+    }
+
+    public function setSubscription(?bool $isSubscription): static
+    {
+        $this->isSubscription = $isSubscription;
+
+        return $this;
     }
 }
