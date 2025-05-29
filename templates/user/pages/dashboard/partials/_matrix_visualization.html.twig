@@ -26,8 +26,8 @@
                                 <div class="w-12 h-12 rounded-full bg-info-100 flex items-center justify-center mx-auto mb-2 border-2 border-info">
                                     <span class="text-info font-semibold">{{ child.firstName|first }}{{ child.lastName|first }}</span>
                                 </div>
-                                {% set position = ((donation.matrixPosition - 2) % 4) + 1 %}
-                                <div class="text-xs text-gray-600">Position {{ position }} </div>
+                                {#{% set position = ((donation.matrixPosition - 2) % 4) + 1 %}#}
+                                <div class="text-xs text-gray-600">Position {{ donation.matrixPosition }} </div>
                                 
                                 {# Include hover details for child #}
                                 {% include 'user/pages/dashboard/partials/_user_hover_details.html.twig' with {'user': child, 'donation': donation} %}

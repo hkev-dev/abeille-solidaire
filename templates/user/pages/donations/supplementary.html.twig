@@ -64,8 +64,8 @@
                                         <span class="badge badge-secondary">{{ donor.donationType|title }}</span>
                                     {% endif %}
                                 </td>
-                                {% set position = ((donor.getMatrixPosition - 2) % 4) + 1 %}
-                                <td>{{ earning.flower.name }}  (Position {{ position }})</td>
+                                {#{% set position = ((donor.getMatrixPosition - 2) % 4) + 1 %}#}
+                                <td>{{ earning.flower.name }}  (Position {{ donor.getMatrixPosition }})</td>
                                 {#<td>€{{ earning.amount|number_format(2) }}</td>#}
                                 <td>
                                     {% if donor.isSubscription%}
