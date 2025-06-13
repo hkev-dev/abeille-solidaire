@@ -1,0 +1,18 @@
+{% extends 'admin/layouts/default.html.twig' %}
+
+{% block title %}Cause - Création
+{% endblock %}
+
+{% block content %}
+    <div class="container-fixed mx-auto">
+        {# Page Header #}
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Creation de service</h1>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Mettez à jour les informations du FAQ.
+            </p>
+        </div>
+
+        {% include 'admin/pages/service/partials/_form.html.twig' %}
+    </div>
+{% endblock %}

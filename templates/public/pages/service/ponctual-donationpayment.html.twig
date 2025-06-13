@@ -1,0 +1,296 @@
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Donation - Abeille Solidaire
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .payment-option {
+            border: 2px solid #e7e7e7;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover {
+            border-color: var(--thm-base);
+        }
+
+        .payment-option.selected {
+            border-color: var(--thm-base);
+            background-color: rgba(var(--thm-base-rgb), 0.05);
+        }
+
+        #stripe-payment-form {
+            min-width: 100%;
+            margin: 0 auto;
+        }
+
+        #card-element {
+            padding: 12px;
+            border: 1px solid #e7e7e7;
+            background: white;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Faire un don',
+        breadcrumbs: [
+            {label: 'Home', path: 'landing.home'},
+            {label: 'Cause', path: 'landing.home'},
+            {label: 'Donation', path: null}
+        ]
+    } %}
+
+    <section class="login-register">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    {% include 'public/components/flash-messages.html.twig' %}
+
+                    <div class="text-center mb-4">
+                        <h3 class="login-register__title">Finaliser le paiement</h3>
+                        <p>Veuillez sélectionner votre mode de paiement pour régler les frais d'inscription de 25€</p>
+                    </div>
+
+                    <div class="card card-body mb-4">
+                        {{ form_start(form, {'attr': {'id': 'payment-selection-form'}}) }}
+                        {{ form_errors(form) }}
+
+                        {# Payment Summary Card #}
+                        <div class="payment-summary mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <h4 class="mb-0">Récapitulatif du Paiement</h4>
+                                <div class="ms-auto">
+                                    <span class="badge bg-primary">Étape 2/2</span>
+                                </div>
+                            </div>
+
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless mb-0">
+                                            <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        {#<i class="fas fa-user-plus me-2 text-primary"></i>#}
+                                                        Montant
+                                                        <i class="fas fa-info-circle ms-2 text-muted"
+                                                           data-bs-toggle="tooltip"
+                                                           title="Montant de la donation"></i>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">€</td>
+                                            </tr>
+                                            <tr class="fw-bold border-top">
+                                                <td class="pt-3" colspan="2">
+                                                    {{ form_widget(form.amount, {
+                                                        'attr': {
+                                                            'class': 'form-control js-donation-amount',
+                                                        }
+                                                    }) }}
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Annual Membership Toggle #}
+                        <div class="membership-toggle mb-4">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <div class="form-check form-switch d-flex align-items-center">
+                                        {{ form_widget(form.annonymous, {
+                                            'attr': {
+                                                'class': 'form-check-input me-3',
+                                                'role': 'switch',
+                                                'style': 'transform: scale(1.4); margin-left: 0;'
+                                            }
+                                        }) }}
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="">
+                                                {#<i class="fas fa-star text-warning me-2"></i>#}
+                                                Donation annonyme
+                                            </label>
+                                            <p class="text-muted mb-0 small">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Faire un don annonyme
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div
+                                class="payment-options">
+                            {# Credit Card Option #}
+                            <div class="payment-option" data-payment="stripe">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <img src="{{ asset('images/payment/stripe.svg') }}" alt="Carte Bancaire"
+                                             height="80">
+                                    </div>
+                                    <div class="col">
+                                        <h4 class="mb-1">Payer par Carte Bancaire</h4>
+                                        <p class="mb-0 text-muted">Paiement rapide et sécurisé via Stripe</p>
+                                    </div>
+                                    <div class="col-auto">
+                                        {{ form_widget(form.payment_method.0, {'attr': {'class': 'visually-hidden'}}) }}
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Crypto Option - Updated for CoinPayments #}
+                            <div class="payment-option" style="pointer-events: none;cursor: default;color: #fff;" data-payment="crypto">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <img src="{{ asset('images/payment/coinpayments.svg') }}" alt="Cryptocurrency"
+                                             height="80">
+                                    </div>
+                                    <div class="col">
+                                        <h4 class="mb-1">Payer en Cryptomonnaie</h4>
+                                        <p class="mb-0 text-muted">Accepte BTC, ETH, LTC, USDT et plus de 175 autres
+                                            cryptomonnaies via CoinPayments</p>
+                                    </div>
+                                    <div class="col-auto">
+                                        {{ form_widget(form.payment_method.1, {'attr': {'class': 'visually-hidden'}}) }}
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Hidden Fields and CSRF Token #}
+                        {{ form_widget(form._csrf_token) }}
+                        {{ form_end(form) }}
+
+                        {# Stripe Payment Form #}
+                        <form id="stripe-payment-form" style="display: none;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('stripe_payment') }}">
+                            <div class="mb-4">
+                                <div id="card-element" class="form-control"></div>
+                                <div id="card-errors" class="invalid-feedback" style="display: none;"></div>
+                            </div>
+
+                            <button type="submit" class="thm-btn login-register__btn w-100" disabled>
+                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                                Payer
+                            </button>
+                        </form>
+
+                        {# Crypto Payment Form - Updated for CoinPayments #}
+                        <form id="crypto-payment" method="POST" style="display: none;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('crypto_payment') }}">
+                            <input class="_slug" type="hidden" name="cause_slug" value="{{ slug }}">
+
+                            <div class="mb-4">
+                                <label for="crypto-currency-select" class="form-label">Sélectionner une
+                                    Cryptomonnaie</label>
+                                <select id="crypto-currency-select" name="currency" class="form-select" required>
+                                    <option value="">Chargement des cryptomonnaies disponibles...</option>
+                                </select>
+                                <div class="currency-details mt-2" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <div class="row">
+                                            <div class="col">
+                                                <small>
+                                                    <strong>Taux de Change :</strong>
+                                                    <span class="rate-display">-</span><br>
+                                                    <strong>Frais de Réseau :</strong>
+                                                    <span class="fee-display">-</span><br>
+                                                    <strong>Confirmations Requises :</strong>
+                                                    <span class="confirms-display">-</span>
+                                                </small>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div class="estimated-total text-end">
+                                                    <small class="d-block text-muted">Total Estimé :</small>
+                                                    <strong class="total-display">-</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <p class="text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Vous serez redirigé vers CoinPayments pour finaliser votre paiement en toute
+                                    sécurité
+                                </p>
+                                {% if app.environment == 'dev' or app.environment == 'test' %}
+                                    <div class="alert alert-warning">
+                                        <small>
+                                            <strong>Test :</strong>
+                                            Utilisez LTCT (Litecoin Testnet) pour les tests. Aucun fonds réel ne sera
+                                            utilisé.
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="thm-btn login-register__btn w-100" disabled>
+                                <i class="fab fa-bitcoin me-2"></i>
+                                Continuer avec le Paiement en Cryptomonnaie
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-lock me-2"></i>
+                            Votre paiement est sécurisé avec un chiffrement de bout en bout
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="module">
+        import {PaymentProcessor} from '{{ asset('scripts/payment-pdonation-processing.js') }}';
+        const processor = new PaymentProcessor({
+            stripePublicKey: '{{ stripe_public_key }}',
+            environment: '{{ app.environment }}',
+            amount: 25,
+            returnUrl: '{{ path("app.pdonation.waiting_room") }}',
+            createIntentUrl: '{{ path("app.pdonation.payment") }}',
+            currenciesUrl: '',
+            csrf: {
+                stripeToken: '{{ csrf_token('stripe_payment') }}',
+                cryptoToken: '{{ csrf_token('crypto_payment') }}'
+            }
+        });
+
+        processor.initialize();
+
+        $(document).ready(function () {
+            function getUrlParam(param) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
+
+            const amount = getUrlParam('amount');
+
+            if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+                $('input[name$="[amount]"]').val(parseFloat(amount));
+            }
+        });
+    </script>
+{% endblock %}

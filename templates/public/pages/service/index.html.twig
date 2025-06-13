@@ -1,0 +1,68 @@
+{# templates/pages/projects/index.html.twig #}
+{% extends 'public/base.html.twig' %}
+
+{% block title %}Causes - Abeille Solidaire{% endblock %}
+
+{% block content %}
+    {# Page Header #}
+    {% include 'public/components/page-header.html.twig' with {
+        title: 'Nos Causes',
+        breadcrumbs: [
+            {label: 'Accueil', path: 'landing.home'},
+            {label: 'Causes', path: null}
+        ]
+    } %}
+
+    {# Project List Section #}
+    <section class="project-page-one">
+        <div class="container">
+            <div class="row">
+                {% for service in services %}
+                    <div class="col-6">
+                        <div class="events-list__inner">
+                    <!--Events List Single Start-->
+                    <div class="events-list__single">
+                        <div class="events-list__left" style="max-width: inherit;">
+                            <div class="events-list__img">
+                                <div class="" style="text-align: center;margin-bottom: 15px;">
+                                    <h2><b>{{ service.title }}</b></h2>
+                                </div>
+                                {% if service.image and service.image != ' ' %}
+                                    <img src="{{ vich_uploader_asset(service, 'imageFile') }}" alt="{{ service.title }}">
+                                {% else %}
+                                    <img src="{{ asset('landing/images/project/ab.jpeg') }}" alt="">
+                                {% endif %}
+                            </div>
+                            <div class="events-list__content">
+                                <h3 class="events-list__title">À Propos</h3>
+                                <p class="events-list__text">{{ service.about }}</p>
+
+                                <h3 class="events-list__title">Description</h3>
+                                {{ service.description }}
+
+                                <h3 class="events-list__title">Contact</h3>
+                                <p>Disponible sur 📞 {{ service.phone }} <br/>Contactez-moi pour discuter <a href="mailto:{{ service.email }}">{{ service.email }}</a> </p>
+
+                                <p class="events-list__text">Site web: <a href="{{ service.website }}">{{ service.title }}</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            Aucune cause trouvé.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    {{ knp_pagination_render(services, 'public/components/pagination.html.twig') }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

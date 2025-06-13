@@ -1,0 +1,105 @@
+{% extends 'admin/layouts/default.html.twig' %}
+
+{% block title %}{{ service.title }}{% endblock %}
+
+{% block content %}
+    <div class="container-fixed">
+        {# service Header Section #}
+        <div class="card mb-8">
+            <div class="card-body p-0">
+                {# Cover Image #}
+                {% if service.image %}
+                    <div class="relative h-[300px] w-full">
+                        <img src="{{ vich_uploader_asset(service, 'imageFile') }}" 
+                             alt="{{ service.title }}"
+                             class="w-full h-full object-cover rounded-t-xl">
+                        
+                        {# Category Badge #}
+                        {#<div class="absolute top-6 right-6">
+                            <span class="badge badge-lg badge-primary">{{ service.category.name }}</span>
+                        </div>#}
+                    </div>
+                {% endif %}
+
+                {# service Info Bar #}
+                <div class="px-8 py-6 bg-white dark:bg-gray-800">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div class="flex gap-3">
+                            <a href="{{ path('app.admin.service.update', {id: service.id}) }}" class="btn btn-light-primary">
+                                <i class="ki-duotone ki-pencil fs-2 me-2"></i>
+                                Modifier
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {# Main Content #}
+            <div class="lg:col-span-2 space-y-8">
+                {# Description Card #}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Description</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-gray-600 dark:text-gray-400 space-y-4">
+                            {{ service.description|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Contact</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-gray-600 dark:text-gray-400 space-y-4">
+                            E-mail : {{ service.email|nl2br }}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400 space-y-4">
+                            Phone: {{ service.phone|nl2br }}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400 space-y-4">
+                            Site web: {{ service.website|nl2br }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Sidebar #}
+            <div class="space-y-8">
+                {# About Card #}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">A propos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-gray-600 dark:text-gray-400 space-y-4">
+                            {{ service.about|nl2br }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function copyToClipboard(button) {
+            const input = button.previousElementSibling;
+            input.select();
+            document.execCommand('copy');
+            
+            // Show copied feedback
+            const icon = button.querySelector('i');
+            const originalClass = icon.className;
+            icon.className = 'ki-duotone ki-check fs-2';
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 2000);
+        }
+    </script>
+{% endblock %}
