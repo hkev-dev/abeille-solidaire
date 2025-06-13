@@ -1,15 +1,15 @@
 {# templates/pages/projects/index.html.twig #}
 {% extends 'public/base.html.twig' %}
 
-{% block title %}Causes - Abeille Solidaire{% endblock %}
+{% block title %}Servicea - Abeille Solidaire{% endblock %}
 
 {% block content %}
     {# Page Header #}
     {% include 'public/components/page-header.html.twig' with {
-        title: 'Nos Causes',
+        title: 'Nos services',
         breadcrumbs: [
             {label: 'Accueil', path: 'landing.home'},
-            {label: 'Causes', path: null}
+            {label: 'Services', path: null}
         ]
     } %}
 
@@ -52,7 +52,7 @@
                 {% else %}
                     <div class="col-12">
                         <div class="alert alert-info text-center">
-                            Aucune cause trouvé.
+                            Aucun service trouvé.
                         </div>
                     </div>
                 {% endfor %}
