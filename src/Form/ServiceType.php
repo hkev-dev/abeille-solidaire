@@ -98,6 +98,7 @@ class ServiceType extends AbstractType
             ])
             ->add('website', UrlType::class, [
                 'label' => 'Site web',
+                'required' => false,
                 'attr' => [
                     'placeholder' => 'Entrez le site web',
                     'maxlength' => 255,
