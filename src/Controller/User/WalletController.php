@@ -68,6 +68,11 @@ class WalletController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
+        if(!is_null($this->userService->getLastHandledWithdrawal($user))){
+            $this->addFlash('warning', 'Une demande est déjà en cours. Veuillez patienter jusqu\'à sa validation avant d\'en soumettre une nouvelle.');
+            return $this->redirectToRoute('app.user.wallet.index');
+        }
+
         // Check all withdrawal prerequisites
         $canWithdraw = $this->userService->isEligibleForWithdrawal($user);
 

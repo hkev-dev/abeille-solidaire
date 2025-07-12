@@ -24,7 +24,7 @@ class WithdrawalController extends AbstractController
     public function request(Request $request, WithdrawalRepository $withdrawalRepository, PaginatorInterface $paginator): Response
     {
         $query = $withdrawalRepository->createQueryBuilder('withdrawal')
-            ->orderBy('withdrawal.updatedAt', 'DESC');
+            ->orderBy('withdrawal.createdAt', 'DESC');
 
         $pagination = $paginator->paginate(
             $query,

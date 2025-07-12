@@ -62,15 +62,19 @@
                         text: walletBalance|format_currency('EUR'),
                         class: 'badge-primary'
                     }
-                },
+                }
+            ]
+        }) }}
+
+        {#
+        ,
                 {
                     label: 'Retrait',
                     route: 'app.user.wallet.withdraw',
                     disabled: not withdrawalEligibility.isEligible,
                     tooltip: not withdrawalEligibility.isEligible ? 'Conditions requises non remplies' : null
                 }
-            ]
-        }) }}
+        #}
 
 		{# Project Management - Single Project #}
 		{{ menuItem.render({
