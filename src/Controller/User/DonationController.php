@@ -378,9 +378,13 @@ class DonationController extends AbstractController
             'items'            => [[ 'price' => $priceId ]],
             'payment_behavior' => 'default_incomplete',
             'expand'           => ['latest_invoice.payment_intent'],
+            'payment_settings' => [
+                'payment_method_options' => [],
+                'save_default_payment_method' => 'on_subscription',
+            ],
             'metadata'         => [
                 'payment_type'   => 'supplementary',
-                'user'   => $user->getId(),
+                'user'           => $user->getId(),
             ]
         ]);
 
