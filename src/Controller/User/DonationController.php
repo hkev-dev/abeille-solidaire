@@ -333,6 +333,8 @@ class DonationController extends AbstractController
                 } else {
                     $paymentData = $paymentService->createSupplementaryDonationPayment($user);
                 }
+            } else {
+                $paymentData = $paymentService->createSupplementaryDonationPayment($user);
             }
 
             if (isset($data['currency'])) {

@@ -220,7 +220,7 @@ export class PaymentProcessor {
 
     async handleCryptoSubmit(event) {
         event.preventDefault();
-        
+
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
         const currencySelect = document.getElementById('crypto-currency-select');
