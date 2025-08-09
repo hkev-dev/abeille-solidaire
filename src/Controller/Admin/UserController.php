@@ -101,11 +101,12 @@ class UserController extends AbstractController
                 $entity->getId(),
                 $entity->getName(),
                 $entity->getEmail(),
-                $entity->getPhone()
+                $entity->getPhone(),
+                ($entity->hasPaidAnnualFee() ? "Payée":"Non Payée"),
             ];
         }
 
-        $headers = ['ID', 'Nom d\'utilisateur', 'Email', 'Phone'];
+        $headers = ['ID', 'Nom d\'utilisateur', 'Email', 'Phone', 'Adhésion annuelle'];
         $filename = 'export.xlsx';
 
         $excelExporter->export($formattedData, $headers, $filename);
