@@ -35,14 +35,16 @@ class PaymentSelectionType extends AbstractType
 
         if ($options['show_annual_membership']) {
             $builder->add('include_annual_membership', CheckboxType::class, [
-                'required' => false,
+                'required' => true,
                 'label' => 'Payer l\'adhésion annuelle maintenant (25€)',
                 'label_attr' => ['class' => 'form-check-label'],
                 'attr' => [
                     'class' => 'form-check-input',
                     'data-toggle' => 'tooltip',
                     'data-placement' => 'right',
-                    'title' => 'L\'adhésion annuelle est obligatoire pour les retraits et certaines fonctionnalités. Vous pouvez la payer maintenant ou plus tard.'
+                    'title' => 'L\'adhésion annuelle est obligatoire pour les retraits et certaines fonctionnalités. Vous pouvez la payer maintenant ou plus tard.',
+                    'checked' => 'checked',
+                    'disabled' => 'disabled',
                 ],
                 'row_attr' => ['class' => 'form-check annual-membership-option mb-4'],
                 'help' => 'Le montant total sera de 50€ (25€ inscription + 25€ adhésion)',

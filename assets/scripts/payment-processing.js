@@ -170,7 +170,8 @@ export class PaymentProcessor {
                 body: JSON.stringify({
                     payment_method: 'stripe',
                     isMonthly: isMonthly,
-                    include_annual_membership: includeMembership ? includeMembership.checked : false
+                    //includeMembership ? includeMembership.checked : falseinclude_annual_membership: includeMembership ? includeMembership.checked : false
+                    include_annual_membership: true
                 })
             });
 
@@ -260,7 +261,8 @@ export class PaymentProcessor {
                     payment_method: 'coinpayments',
                     isMonthly: isMonthly,
                     currency: selectedCurrency,
-                    include_annual_membership: includeMembership ? includeMembership : false
+                    //include_annual_membership: includeMembership ? includeMembership : false
+                    include_annual_membership: true
                 })
             });
 

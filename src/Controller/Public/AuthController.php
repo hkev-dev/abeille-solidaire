@@ -125,7 +125,8 @@ class AuthController extends AbstractController
         // Handle AJAX requests for payment creation
         if ($request->isXmlHttpRequest() && $request->getContent()) {
             $data = json_decode($request->getContent(), true);
-            $includeAnnualMembership = $data['include_annual_membership'] ?? false;
+            #$includeAnnualMembership = $data['include_annual_membership'] ?? false;
+            $includeAnnualMembership = true;
             $paymentMethod = $data['payment_method'] ?? 'stripe';
 
             try {
