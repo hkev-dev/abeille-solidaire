@@ -84,15 +84,32 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <a href="#"
-                                       class="btn btn-sm btn-light-primary">
+                                       class="btn btn-sm btn-light-primary" disabled>
                                         <i class="ki-duotone ki-pencil text-primary"></i>
                                         Modifier
                                     </a>
                                     <a href="#"
-                                       class="btn btn-sm btn-light-danger">
+                                       class="btn btn-sm btn-light-danger" disabled>
                                         <i class="ki-duotone ki-trash text-danger"></i>
                                         Supprimer
                                     </a>
+                                    {% if item.isActive %}
+                                        <form action="{{ path('app.admin.user.toggle_active', {id: item.id}) }}" method="post" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ item.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-light-danger">
+                                                <i class="text-danger" style="font-style: normal;">x</i>
+                                                Bloquer
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form action="{{ path('app.admin.user.toggle_active', {id: item.id}) }}" method="post" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ item.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-light-success">
+                                                <i class="text-success" style="font-style: normal;">✔</i>
+                                                Activer
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         {% endif %}

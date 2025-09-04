@@ -132,6 +132,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'owner')]
     private Collection $projects;
+
+    #[ORM\Column]
+    private ?bool $isActive = null;
     
     public function __construct()
     {
@@ -142,6 +145,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->kycVerifications = new ArrayCollection();
         $this->paymentMethods = new ArrayCollection();
         $this->projects = new ArrayCollection();
+        $this->isActive = true;
     }
 
     public function getId(): ?int
@@ -899,6 +903,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $project->setOwner(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }

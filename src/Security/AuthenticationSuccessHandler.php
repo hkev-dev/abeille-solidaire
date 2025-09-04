@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
@@ -24,6 +25,13 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
     {
         /** @var User $user */
         $user = $token->getUser();
+        
+        if (!$user->isActive()) {
+            $request->getSession()->invalidate();
+            $this->container->get('security.token_storage')->setToken(null);
+        
+            return new RedirectResponse($this->urlGenerator->generate('app.login'));
+        }
 
         if (!$user instanceof User) {
             return new RedirectResponse($this->urlGenerator->generate('app.login'));

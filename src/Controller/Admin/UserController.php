@@ -114,4 +114,22 @@ class UserController extends AbstractController
 
         return $this->file($filename);
     }
+
+    #[Route('/{id}/toggle-active', name: 'toggle_active', methods: ['POST'])]
+    public function toggleActive(User $user, EntityManagerInterface $em): Response
+    {
+        // Inverse l'état
+        $user->setActive(!$user->isActive());
+
+        $em->persist($user);
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            "L'utilisateur %s a bien été %s.",
+            $user->getEmail(),
+            $user->isActive() ? 'activé' : 'bloqué'
+        ));
+
+        return $this->redirectToRoute('app.admin.user.index');
+    }
 }
