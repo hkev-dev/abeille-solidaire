@@ -90,7 +90,7 @@ class HomeController extends AbstractController
 
         // Video Section
         $videoContent = [
-            'videoUrl' => 'https://www.youtube.com/watch?v=MhpYOIhOMsA',
+            'videoUrl' => 'https://www.youtube.com/watch?v=hjvMTi3I67g',
             'videoTitle' => 'Abeille Solidaire révolutionne la façon<br>dont les individus s\'entraident' 
         ];
 
