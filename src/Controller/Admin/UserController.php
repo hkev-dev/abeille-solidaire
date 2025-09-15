@@ -136,7 +136,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}/toggle-active-annual', name: 'toggle_active_annual', methods: ['POST'])]
-    public function toggleActive(User $user, EntityManagerInterface $em, MembershipService $membershipService): Response
+    public function toggleActiveAnnual(User $user, EntityManagerInterface $em, MembershipService $membershipService): Response
     {
         $membership = $membershipService->createMembership($user);
         $membershipService->activateMembership($membership, "ref_manu");
