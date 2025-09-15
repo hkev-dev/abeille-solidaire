@@ -6,6 +6,9 @@
 /public/bundles/
 /var/
 /vendor/
+assets/landing/vendors/
+
+
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###
