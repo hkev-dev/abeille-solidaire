@@ -49,16 +49,15 @@ class MembershipService
     {
         $callerClass = ObjectService::getCallerClass(PaymentServiceInterface::class);
 
-        if (!$callerClass) {
-            $callerClass = "None";
-            #throw new RuntimeException('Membership creation can only be called from a PaymentServiceInterface implementation');
-        }
+        /*if (!$callerClass) {
+            throw new RuntimeException('Membership creation can only be called from a PaymentServiceInterface implementation');
+        }*/
 
         /** @var PaymentServiceInterface $callerClass */
 
         $membership
             ->setPaymentReference($paymentReference)
-            ->setPaymentProvider($callerClass::getProvider())
+            ->setPaymentProvider( $callerClass ? $callerClass::getProvider():'None')
             ->setPaymentStatus('completed')
             ->setPaymentCompletedAt(new DateTime())
             ->activate();
