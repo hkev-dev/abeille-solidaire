@@ -49,9 +49,9 @@ class MembershipService
     {
         $callerClass = ObjectService::getCallerClass(PaymentServiceInterface::class);
 
-        if (!$callerClass) {
+        /*if (!$callerClass) {
             throw new RuntimeException('Membership creation can only be called from a PaymentServiceInterface implementation');
-        }
+        }*/
 
         /** @var PaymentServiceInterface $callerClass */
 

@@ -83,7 +83,7 @@
                         {% if not hideActions %}
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
-                                    <a href="#"
+                                    {#<a href="#"
                                        class="btn btn-sm btn-light-primary" disabled>
                                         <i class="ki-duotone ki-pencil text-primary"></i>
                                         Modifier
@@ -92,7 +92,7 @@
                                        class="btn btn-sm btn-light-danger" disabled>
                                         <i class="ki-duotone ki-trash text-danger"></i>
                                         Supprimer
-                                    </a>
+                                    </a>#}
                                     {% if item.isActive %}
                                         <form action="{{ path('app.admin.user.toggle_active', {id: item.id}) }}" method="post" style="display:inline;">
                                             <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ item.id) }}">
@@ -107,6 +107,15 @@
                                             <button type="submit" class="btn btn-sm btn-light-success">
                                                 <i class="text-success" style="font-style: normal;">✔</i>
                                                 Activer
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if not item.hasPaidAnnualFee %}
+                                        <form action="{{ path('app.admin.user.toggle_active_annual', {id: item.id}) }}" method="post" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ item.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-light-danger">
+                                                <i class="text-success" style="font-style: normal;">✔</i>
+                                                Activer adhésion
                                             </button>
                                         </form>
                                     {% endif %}

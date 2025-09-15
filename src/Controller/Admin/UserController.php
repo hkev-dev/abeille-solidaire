@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Service\ExcelExporterService;
+use App\Service\MembershipService;
+use App\Service\Payment\StripePaymentService;
 
 #[Route('/admin/user', name: 'app.admin.user.')]
 #[IsGranted('ROLE_ADMIN')]
@@ -128,6 +130,20 @@ class UserController extends AbstractController
             "L'utilisateur %s a bien été %s.",
             $user->getEmail(),
             $user->isActive() ? 'activé' : 'bloqué'
+        ));
+
+        return $this->redirectToRoute('app.admin.user.index');
+    }
+
+    #[Route('/{id}/toggle-active-annual', name: 'toggle_active_annual', methods: ['POST'])]
+    public function toggleActive(User $user, EntityManagerInterface $em, MembershipService $membershipService): Response
+    {
+        $membership = $membershipService->createMembership($user);
+        $membershipService->activateMembership($membership, "ref_manu");
+
+        $this->addFlash('success', sprintf(
+            "Utilisateur %s activé.",
+            $user->getEmail()
         ));
 
         return $this->redirectToRoute('app.admin.user.index');
